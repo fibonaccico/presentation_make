@@ -1,0 +1,7 @@
+import enum
+
+
+class ImgGenModuleEnum(enum.Enum):
+    KANDINSKY = "KANDINSKY"
+    STABLEDIFFISION = "STABLEDIFFISION"
+    LOACALDIFFISION = "LOACALDIFFISION"

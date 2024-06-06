@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "make-presentation"
+version = "0.1.0"
+description = ""
+authors = ["Ekaterina Itchenko <ekaterina.savickaya.1989@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+gigachat = "0.1.13"
+python-dotenv = "1.0.0"
+gigachain-core = "0.1.9.1"
+gigachain-community = "0.0.11.1"
+gigachain = "0.1.0.1"
+pillow = "10.2.0"
+python-pptx = "0.6.23"
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "3.5.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

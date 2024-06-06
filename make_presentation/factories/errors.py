@@ -1,0 +1,6 @@
+class InvalidFactoryNameError(Exception):
+    ...
+
+
+class NoImageApiCredentials(Exception):
+    ...

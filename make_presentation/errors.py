@@ -1,0 +1,6 @@
+class ThemeDoesNotExistError(Exception):
+    ...
+
+
+class TittleOrSlideTextNotGeneratedError(Exception):
+    ...
