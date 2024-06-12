@@ -5,13 +5,13 @@ import time
 from io import BytesIO
 
 import aiohttp
+from api_models.interfaces import ImageAPIProtocol
 from config import (BASE_KANDINSKY_URL, KANDINSKY_URLS,
                     MAX_TIME_IMAGE_GENERATION)
 from DTO import ImageDTO
 from PIL import Image
 
 from ..errors import BadRequestError, ImageGenerationFailedError, TimeOutError
-from ..interfaces import ImageAPIProtocol
 
 
 class KandinskyAPI(ImageAPIProtocol):

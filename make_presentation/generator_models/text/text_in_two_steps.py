@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING
 from config import get_main_promt, get_second_promt_beta
 from DTO import TextDTO
 from errors import TittleOrSlideTextNotGeneratedError
-from generator_models.interfaces import TextGeneratorProtocol
+
+from ..interfaces import TextGeneratorProtocol
 
 if TYPE_CHECKING:
     from langchain.schema import AIMessage
@@ -34,7 +35,7 @@ class TextInTwoSteps(TextGeneratorProtocol):
         """
 
         title_and_prompt = await self.__main_request(api, theme, slides_count)
-        title_list, slide_promt, picture_discription_list = self.__split_text_response(
+        title_list, _, picture_discription_list = self.__split_text_response(
             title_and_prompt.content
         )
         slides_text_list = await self.__get_list_of_slides_text(
@@ -60,7 +61,7 @@ class TextInTwoSteps(TextGeneratorProtocol):
         title_and_prompt = await api.request(main_promt)
         return title_and_prompt
 
-    def __split_text_response(self, text: str) -> tuple[list[str]]:
+    def __split_text_response(self, text: str) -> tuple[list[str], list[str], list[str]]:
         """
         Return a tuple of lists of titles, slide descriptions and picture descriptions.
         """

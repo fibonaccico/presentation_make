@@ -1,5 +1,5 @@
-from .template_config import templates_set
+from .template_config import USUAL_PICTURES
 
 __all__ = [
-    "templates_set",
+    "USUAL_PICTURES",
 ]

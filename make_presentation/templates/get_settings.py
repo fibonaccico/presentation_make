@@ -1,45 +1,37 @@
-from typing import TypeAlias, TypeVar
+from errors import NoPicturesInTemplateConfig
 
-from templates.template_config import templates_set
-
-TITLE_TEXT = TypeVar("TITLE_TEXT", dict[str, str], dict[str, bool], dict[str, int])
-PICTURE: TypeAlias = list[dict[str, str]]
-FOREGROUND: TypeAlias = list[str]
-
-INITIAL_END: TypeAlias = dict[str, TITLE_TEXT]
-USUAL: TypeAlias = dict[str, TITLE_TEXT | PICTURE | FOREGROUND]
+from .template_config import FOREGROUND_IMAGE_SETTINGS, USUAL_PICTURES
 
 
-def get_slides_template_setting(
-    template_name: str, num_slides: int
-) -> list[INITIAL_END | USUAL]:
-    """
-    Return settings for each slide in the following format:
-    {
-        "TITLE": {"NAME": "Arial", "SIZE": 46, "BOLD": True, "ITALIC": False},
-        "TEXT": {"NAME": "Arial", "SIZE": 16, "BOLD": False, "ITALIC": False},
-        "PICTURE": [
-            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "304 552"},
-            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "304 552"}
-        ]
-    }
-    """
+def get_slides_pictures_setting(
+    template_name: str,
+    num_slides: int
+) -> list[list[dict[str, str]]]:
 
-    new_setting: list[INITIAL_END | USUAL] = []
+    pictures_setting_for_each_slide = []
 
-    setting = templates_set[template_name]
-    if setting:
-        usual: USUAL = setting["USUAL"]
-        num_slides -= 2
-        initial = setting["INITIAL"]
-        if initial is not None:
-            new_setting.append(initial)
-        if usual is not None:
-            for i in range(num_slides):
-                new_setting.append(usual[i % len(usual)])
+    usual = USUAL_PICTURES[template_name]
+    num_slides -= 2
+    if usual is not None:
+        for i in range(num_slides):
+            pictures_setting_for_each_slide.append(usual[i % len(usual)])
+    else:
+        raise NoPicturesInTemplateConfig("There are no picture in the template config.")
 
-        end = setting["END"]
-        if end is not None:
-            new_setting.append(end)
+    return pictures_setting_for_each_slide
 
-    return new_setting
+
+def get_slides_foreground_pictures_setting(
+    template_name: str,
+    num_slides: int
+) -> list[list[str]]:
+
+    foreground_pictures_setting_for_each_slide = []
+
+    usual = FOREGROUND_IMAGE_SETTINGS[template_name]
+    num_slides -= 2
+    if usual is not None:
+        for i in range(num_slides):
+            foreground_pictures_setting_for_each_slide.append(usual[i % len(usual)])
+
+    return foreground_pictures_setting_for_each_slide
