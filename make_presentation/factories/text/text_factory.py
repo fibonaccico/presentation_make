@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from api_models import GigaChatRequest
 from generator_models import TextInTwoSteps
@@ -14,12 +14,11 @@ if TYPE_CHECKING:
 
 
 class TextFactory:
-    def __init__(self, settings: dict[str, Union[str, bool]]) -> None:
-        self.text_generation_model = None
+    def __init__(self, settings: dict[str, str]) -> None:
         self.settings = settings
 
     def get_api(self) -> TextAPIProtocol:
-        text_api = self.settings.get("API")
+        text_api = self.settings["API"]
 
         if text_api == TextApiModuleEnum.GIGACHAT.value:
             text_request_model = GigaChatRequest()
@@ -31,10 +30,10 @@ class TextFactory:
         return text_request_model
 
     def get_generation_model(self) -> TextGeneratorProtocol:
-        text_generation_model = self.settings.get("GENMODEL")
+        text_generation_model = self.settings["GENMODEL"]
 
         if text_generation_model == TextGenModuleEnum.TEXTINTWOSTEP.value:
-            text_generation_model: TextGeneratorProtocol = TextInTwoSteps()
+            text_generation_model = TextInTwoSteps()
         else:
             raise InvalidFactoryNameError(
                 f"Incorrect text generation module in settings: {text_generation_model}"

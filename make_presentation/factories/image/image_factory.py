@@ -10,7 +10,7 @@ from ..errors import InvalidFactoryNameError, NoImageApiCredentials
 from .image_module_enum import ImgGenModuleEnum
 
 if TYPE_CHECKING:
-    from api_models.interfaces import ImageAPIProtocol
+    from ...api_models.interfaces import ImageAPIProtocol
 
 
 load_dotenv()

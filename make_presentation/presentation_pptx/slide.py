@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import os
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, Optional, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Any
 
-from config import DEFAULT_TEXT_SETTINGS, path_to_foreground_image
+from config import (DEFAULT_TEXT_FONT, DEFAULT_TEXT_FONT_SETTINGS,
+                    DEFAULT_TEXT_SIZE, path_to_foreground_image)
 from DTO import ImageInfoDTO, SlideDTO
+from errors import PicturesNumberError
 from pptx.dml.color import RGBColor
 
 from .image_corrector import ImageCorrector
@@ -16,28 +18,32 @@ if TYPE_CHECKING:
     from pptx.slide import Slide as PptxSlide
 
 
-TITLE_TEXT = TypeVar("TITLE_TEXT", dict[str, str], dict[str, bool], dict[str, int])
-PICTURE: TypeAlias = list[dict[str, str]]
-FOREGROUND: TypeAlias = list[str]
-
-INITIAL_END: TypeAlias = dict[str, TITLE_TEXT]
-USUAL: TypeAlias = dict[str, TITLE_TEXT | PICTURE | FOREGROUND]
-
-
 class Slide:
     def __init__(
         self,
         slide: PptxSlide,
-        title: str | None,
+        title: str,
         text: str,
-        img: Optional[list[ImageDTO]],
-        settings: INITIAL_END | USUAL,
+        img: list[ImageDTO] | None,
+        slide_type: str,
+        text_font: dict[str, dict[str, str]] | None,
+        text_font_settings: dict[str, dict[str, dict[str, bool]]] | None,
+        text_font_size: dict[str, dict[str, int]] | None,
+        text_color: dict[str, dict[str, list[int]]] | None,
+        pictures_setting: list[dict[str, str]] | None,
+        foreground_pictures_setting: list[str] | None
     ) -> None:
         self.title = title
         self.text = text
         self.img = img
         self.slide = slide
-        self.setting = settings
+        self.slide_type = slide_type
+        self.text_font = text_font
+        self.text_font_settings = text_font_settings
+        self.text_font_size = text_font_size
+        self.text_color = text_color
+        self.pictures_setting = pictures_setting
+        self.foreground_pictures_setting = foreground_pictures_setting
 
     def make_slide(self) -> SlideDTO:
         num_pic = 0
@@ -48,45 +54,80 @@ class Slide:
                     self.__add_text_to_placeholder(
                         text_placeholder=shape,
                         text=self.title,
-                        settings=self.setting.get("TITLE"),
+                        text_font=(
+                            self.text_font[self.slide_type]["TITLE"]
+                            if self.text_font else DEFAULT_TEXT_FONT
+                        ),
+                        text_font_settings=(
+                            self.text_font_settings[self.slide_type]["TITLE"]
+                            if self.text_font_settings else DEFAULT_TEXT_FONT_SETTINGS
+                        ),
+                        text_font_size=(
+                            self.text_font_size[self.slide_type]["TITLE"]
+                            if self.text_font_size else DEFAULT_TEXT_SIZE
+                        ),
+                        text_color=(
+                            self.text_color[self.slide_type]["TITLE"]
+                            if self.text_color else None
+                        )
                     )
                 elif shape.text == "TEXT" and self.text is not None:
                     self.__add_text_to_placeholder(
                         text_placeholder=shape,
                         text=self.text,
-                        settings=self.setting.get("TEXT"),
+                        text_font=(
+                            self.text_font[self.slide_type]["TEXT"]
+                            if self.text_font else DEFAULT_TEXT_FONT
+                        ),
+                        text_font_settings=(
+                            self.text_font_settings[self.slide_type]["TEXT"]
+                            if self.text_font_settings else DEFAULT_TEXT_FONT_SETTINGS
+                        ),
+                        text_font_size=(
+                            self.text_font_size[self.slide_type]["TEXT"]
+                            if self.text_font_size else DEFAULT_TEXT_SIZE
+                        ),
+                        text_color=(
+                            self.text_color[self.slide_type]["TEXT"]
+                            if self.text_color else None
+                        )
                     )
                 elif (
                     shape.text == "PIC"
                     and self.img is not None
                     and len(self.img) > num_pic
+                    and self.pictures_setting is not None
                 ):
                     self.__add_picture(
                         shape=shape,
                         num_pic=num_pic,
-                        settings=self.setting["PICTURE"][num_pic],
+                        settings=self.pictures_setting[num_pic],
                     )
                     num_pic += 1
 
-        if self.setting.get("FOREGROUND IMAGE") is not None:
-            self.__add_foreground_images(names=self.setting.get("FOREGROUND IMAGE"))
+        if self.foreground_pictures_setting is not None:
+            self.__add_foreground_images(names=self.foreground_pictures_setting)
+
         if self.img:
-            images = []
+            images: list[ImageInfoDTO] = []
             for image_dto in self.img:
                 image_info = ImageInfoDTO(
                     path=image_dto.path, description=image_dto.description
                 )
                 images.append(image_info)
-        else:
-            images = self.img
 
-        return SlideDTO(title=self.title, text=self.text, images=images)
+            return SlideDTO(title=self.title, text=self.text, images=images)
+
+        return SlideDTO(title=self.title, text=self.text, images=self.img)
 
     def __add_text_to_placeholder(
         self,
         text_placeholder: Any,
         text: str,
-        settings: dict[str, dict[str, str | int | bool]] = DEFAULT_TEXT_SETTINGS,
+        text_font: str,
+        text_font_settings: dict[str, bool],
+        text_font_size: int,
+        text_color: list[int] | None
     ) -> None:
         text_placeholder.text_frame.clear()
 
@@ -96,25 +137,25 @@ class Slide:
         font = run.font
         try:
             text_placeholder.text_frame.fit_text(
-                font_family=settings.get("NAME"),
-                max_size=settings.get("SIZE"),
-                bold=settings.get("BOLD"),
-                italic=settings.get("ITALIC"),
+                font_family=text_font,
+                max_size=text_font_size,
+                bold=text_font_settings["BOLD"],
+                italic=text_font_settings["ITALIC"],
                 font_file=None,
             )
 
-            if settings.get("COLOR"):
-                color: Any = settings["COLOR"]
-                font.color.rgb = RGBColor(color[0], color[1], color[2])
+            if text_color:
+                font.color.rgb = RGBColor(text_color[0], text_color[1], text_color[2])
 
         except OSError:
             ...  # to escape OSError("unsupported operating system")
 
     def __add_picture(self, shape: Any, num_pic: int, settings: dict[str, str]) -> None:
-        if len(self.img) < num_pic:
-            return None
         if self.img:
             pic: Image = self.img[num_pic].image
+
+            if len(self.img) < num_pic:
+                raise PicturesNumberError("Wrong picteres number.")
 
         # Удаляет и восстанавливает объект картинки
         shape.element.getparent().remove(shape.element)
@@ -123,17 +164,18 @@ class Slide:
         width = shape.width
         height = shape.height
 
-        # Кoрректирует форму картинки для вставки в презентацию
-        img_corrector = ImageCorrector(pillow_img=pic, setting=settings)
-        pic = img_corrector.correct()
+        if pic:
+            # Кoрректирует форму картинки для вставки в презентацию
+            img_corrector = ImageCorrector(pillow_img=pic, setting=settings)
+            pic = img_corrector.correct()
 
-        # Получите байтовые данные изображения
-        image_data = BytesIO()
-        pic.save(image_data, format="PNG")
-        image_data.seek(0)
+            # Получите байтовые данные изображения
+            image_data = BytesIO()
+            pic.save(image_data, format="PNG")
+            image_data.seek(0)
 
-        # Вставляем в призентацию
-        self.slide.shapes.add_picture(image_data, left, top, width, height)
+            # Вставляем в призентацию
+            self.slide.shapes.add_picture(image_data, left, top, width, height)
 
     def __add_foreground_images(self, names: list[str]) -> None:
         for shape in self.slide.shapes:

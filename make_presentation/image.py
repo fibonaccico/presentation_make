@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
-from config import default_setting
+from config import DEFAULT_SETTINGS
 from factories import ImgFactory
 from utils import get_pictures_sizes
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class ImagesAdapter:
     def __init__(
-        self, settings: dict[str, dict[str, str | bool] | str] = default_setting
+        self, settings: dict[str, dict[str, str]] = DEFAULT_SETTINGS
     ) -> None:
         self.settings = settings
 

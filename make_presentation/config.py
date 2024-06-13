@@ -1,15 +1,18 @@
 import os
 
-default_setting: dict[str, dict[str, str | bool] | str] = {
+DEFAULT_SETTINGS: dict[str, dict[str, str]] = {
     "TEXT": {"API": "GIGACHAT", "GENMODEL": "TWOSTEP"},
     "IMG": {"API": "KANDINSKY"},
     "PRESENTATION_SETTING": {
         "TEMPLATE_NAME": "1",
-        "OPENING_PR_THEME_TITLE": True,
-        "ENDING_PR_STATUS": True,
-        "ENDING_PR_TEXT": "Спасибо за внимание!",
-    },
+    }
 }
+
+OPENING_PRESENTATION_THEME_TITLE = True
+
+ENDING_PRESENTATION_STATUS = True
+
+ENDING_PRESENTATION_TEXT = "Спасибо за внимание!"
 
 DEFAULT_TEMPERATURE = 1.5
 
@@ -24,9 +27,11 @@ KANDINSKY_URLS = {
     "models": f"{BASE_KANDINSKY_URL}key/api/v1/models",
 }
 
-DEFAULT_TEXT_SETTINGS: dict[str, str | int | bool] = {
-    "NAME": "Arial",
-    "SIZE": 16,
+DEFAULT_TEXT_SIZE = 16
+
+DEFAULT_TEXT_FONT = "Arial"
+
+DEFAULT_TEXT_FONT_SETTINGS: dict[str, bool] = {
     "BOLD": False,
     "ITALIC": False,
 }

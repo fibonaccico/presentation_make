@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from DTO import SlideDTO
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 class PresentationDTO:
     template_name: str
     theme: str
-    finish_title: str
+    finish_title: Optional[str]
     slides: list[SlideDTO]
 
 
