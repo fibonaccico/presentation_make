@@ -4,18 +4,22 @@ import os
 from io import BytesIO
 from typing import TYPE_CHECKING, Any
 
-from config import (DEFAULT_TEXT_FONT, DEFAULT_TEXT_FONT_SETTINGS,
-                    DEFAULT_TEXT_SIZE, path_to_foreground_image)
-from DTO import ImageInfoDTO, SlideDTO
-from errors import PicturesNumberError
 from pptx.dml.color import RGBColor
+
+from make_presentation.config import (DEFAULT_TEXT_FONT,
+                                      DEFAULT_TEXT_FONT_SETTINGS,
+                                      DEFAULT_TEXT_SIZE,
+                                      path_to_foreground_image)
+from make_presentation.DTO import ImageInfoDTO, SlideDTO
+from make_presentation.errors import PicturesNumberError
 
 from .image_corrector import ImageCorrector
 
 if TYPE_CHECKING:
-    from DTO import ImageDTO
     from PIL.Image import Image
     from pptx.slide import Slide as PptxSlide
+
+    from make_presentation.DTO import ImageDTO
 
 
 class Slide:
@@ -118,7 +122,7 @@ class Slide:
 
             return SlideDTO(title=self.title, text=self.text, images=images)
 
-        return SlideDTO(title=self.title, text=self.text, images=self.img)
+        return SlideDTO(title=self.title, text=self.text, images=None)
 
     def __add_text_to_placeholder(
         self,

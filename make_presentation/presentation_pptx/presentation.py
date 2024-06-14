@@ -5,13 +5,17 @@ import os
 import re
 import time
 
-from config import (DEFAULT_SETTINGS, ENDING_PRESENTATION_STATUS,
-                    ENDING_PRESENTATION_TEXT, OPENING_PRESENTATION_THEME_TITLE,
-                    path_to_file)
-from DTO import PresentationPPTXDTO
-from errors import ThemeDoesNotExistError
-from image import ImagesAdapter
-from text import TextAdapter
+from make_presentation.config import (DEFAULT_SETTINGS,
+                                      ENDING_PRESENTATION_STATUS,
+                                      ENDING_PRESENTATION_TEXT,
+                                      OPENING_PRESENTATION_THEME_TITLE,
+                                      path_to_file)
+from make_presentation.DTO import PresentationPPTXDTO
+from make_presentation.errors import (TextDoesNotExistError,
+                                      ThemeDoesNotExistError)
+from make_presentation.factories.text.text_module_enum import TextGenModuleEnum
+from make_presentation.image import ImagesAdapter
+from make_presentation.text import TextAdapter
 
 from .presentation_structure import PresentationTemplate
 
@@ -29,7 +33,8 @@ class PresentationPPTX:
 
     def __init__(
         self,
-        theme: str,
+        text_generation_model: str,
+        theme: str = "",
         config_data: dict[str, dict[str, str]] = DEFAULT_SETTINGS,
         template: str = "1",
         path: str = path_to_file,
@@ -37,15 +42,14 @@ class PresentationPPTX:
         ending_presentation_status: bool = ENDING_PRESENTATION_STATUS
     ) -> None:
 
-        if not theme:
-            raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
+        if text_generation_model == TextGenModuleEnum.TEXTINTWOSTEP.value:
+            if not theme:
+                raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
 
         self.settings = config_data
         self.settings["PRESENTATION_SETTING"]["THEME"] = theme
         self.settings["PRESENTATION_SETTING"]["TEMPLATE_NAME"] = template
-
-        # взяли первые 5 слов для названия
-        self.name = " ".join((theme[:200].split(" ")[:5]))
+        self.settings["TEXT"]["GENMODEL"] = text_generation_model
 
         # создали название папки для сохранения презентации
         self.file_save_path = os.path.join(path, ("prs_" + str(time.time())))
@@ -57,13 +61,24 @@ class PresentationPPTX:
         self.ending_presentation_status = ending_presentation_status
 
     async def make_presentation(
-        self, save_path_for_images: str, image_style: str = "DEFAULT"
+        self,
+        save_path_for_images: str,
+        image_style: str = "DEFAULT",
+        text: str = ''
     ) -> PresentationPPTXDTO:
         """
         Main function to create a presentation.
         """
 
-        text_dto = await TextAdapter(settings=self.settings)()
+        if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.FROMTEXT.value:
+            if not text:
+                raise TextDoesNotExistError(
+                    "There is no text to create a presentation. \
+                    You should input a text because of you are going to generate a \
+                    presentation from text."
+                )
+
+        text_dto = await TextAdapter(settings=self.settings)(text=text)
 
         list_of_image_dto = await ImagesAdapter(
             settings=self.settings
@@ -74,7 +89,7 @@ class PresentationPPTX:
         )
 
         presentation = PresentationTemplate(
-            name=self.name,
+            name=text_dto.theme,
             text=text_dto.slides_text_list,
             title=text_dto.titles,
             images=list_of_image_dto,
@@ -86,25 +101,27 @@ class PresentationPPTX:
         slides = presentation.create_presentation()
 
         self.save_presentation(
-            presentation=presentation, path_to_save=self.file_save_path
+            presentation=presentation,
+            path_to_save=self.file_save_path,
+            theme=text_dto.theme
         )
 
         return PresentationPPTXDTO(
             template_name=self.settings["PRESENTATION_SETTING"]["TEMPLATE_NAME"],
-            theme=self.settings["PRESENTATION_SETTING"]["THEME"],
-            finish_title=ENDING_PRESENTATION_TEXT if self.ending_presentation_status else None,
+            theme=text_dto.theme,
+            finish_title=ENDING_PRESENTATION_TEXT if self.ending_presentation_status else "",
             slides=slides,
             path_to_file=self.presentation_save_path,
         )
 
     def save_presentation(
-        self, presentation: PresentationTemplate, path_to_save: str
+        self, presentation: PresentationTemplate, path_to_save: str, theme: str
     ) -> None:
         """
         Save .pptx file of presentation into file {path_to_save + save_name}.pptx
         """
 
-        text = re.sub(r'[!/:*\\?"<>|+.]', "", self.name)
+        text = re.sub(r'[!/:*\\?"<>|+.]', "", theme)
         text = re.sub(r"\s", "_", text)
 
         save_name = ""

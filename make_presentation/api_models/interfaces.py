@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional, Protocol
 
+from make_presentation.config import MAX_TIME_IMAGE_GENERATION
+
 if TYPE_CHECKING:
-    from DTO import ImageDTO
     from langchain_core.messages import BaseMessage
+
+    from make_presentation.DTO import ImageDTO
 
 
 class TextAPIProtocol(Protocol):
@@ -23,11 +26,11 @@ class ImageAPIProtocol(Protocol):
         promt: str,
         width_height: str,
         negative_prompt: str,
-        images: int,
-        model: Optional[int],
-        style: str,
-        art_gpt: bool,
-        max_time: int,
+        images: int = 1,
+        model: Optional[int] = None,
+        style: str = "DEFAULT",
+        art_gpt: bool = False,
+        max_time: int = MAX_TIME_IMAGE_GENERATION,
     ) -> ImageDTO:
         raise NotImplementedError
 

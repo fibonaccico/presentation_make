@@ -1,13 +1,21 @@
 import asyncio
 import os
 
-from config import path_to_file
-#from presentation import Presentation  # noqa E800
-from presentation_pptx import PresentationPPTX
+from presentation import Presentation  # noqa E800
 
-theme = input("Введите тему презентации: ")
+from make_presentation.config import path_to_file
+from make_presentation.presentation_pptx import PresentationPPTX
 
-pr = PresentationPPTX(theme=theme)   # pr1 = Presentation(theme=theme)
+choice = input("Введите тему презентации:\n1. По теме\n2. По тексту")
+if choice == "1":
+    theme = input("Введите тему презентации: ")
+    text = ''
+    pr = PresentationPPTX(text_generation_model="TWOSTEP", theme=theme)
+elif choice == "2":
+    text = input("Введите тему презентации: ")
+    pr = PresentationPPTX(text_generation_model="FROMTEXT")
+
+
 save_path_for_images = os.path.join(path_to_file, "images")
 
 
@@ -17,7 +25,8 @@ async def main():
         st = time.time()
         task1 = asyncio.create_task(
             pr.make_presentation(
-                save_path_for_images=save_path_for_images
+                save_path_for_images=save_path_for_images,
+                text=text
             )
         )
         t = await task1

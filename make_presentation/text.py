@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from config import DEFAULT_NUMBER_OF_SLIDES, DEFAULT_SETTINGS
-from factories import TextFactory
+from make_presentation.config import DEFAULT_NUMBER_OF_SLIDES, DEFAULT_SETTINGS
+from make_presentation.factories import TextFactory
 
 if TYPE_CHECKING:
-    from DTO import TextDTO
+    from make_presentation.DTO import TextDTO
 
 
 class TextAdapter:
@@ -16,7 +16,9 @@ class TextAdapter:
         self.settings = settings
 
     async def __call__(
-        self, number_of_slides: int = DEFAULT_NUMBER_OF_SLIDES
+        self,
+        text: str,
+        number_of_slides: int = DEFAULT_NUMBER_OF_SLIDES
     ) -> TextDTO:
         """
         To create text for each slide.
@@ -30,6 +32,7 @@ class TextAdapter:
         text_dto = await text_obj.create_text(
             theme=self.settings["PRESENTATION_SETTING"]["THEME"],
             slides_count=number_of_slides,
-            api=text_api
+            api=text_api,
+            text=text
         )
         return text_dto

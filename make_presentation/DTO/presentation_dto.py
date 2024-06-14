@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from DTO import SlideDTO
+    from make_presentation.DTO import SlideDTO
 
 
 @dataclass

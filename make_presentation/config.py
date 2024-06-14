@@ -20,7 +20,7 @@ DEFAULT_NUMBER_OF_SLIDES = 10
 
 BASE_KANDINSKY_URL = "https://api-key.fusionbrain.ai/"
 
-KANDINSKY_URLS = {
+KANDINSKY_URLS: dict[str, str] = {
     "run": f"{BASE_KANDINSKY_URL}key/api/v1/text2image/run",
     "status": f"{BASE_KANDINSKY_URL}key/api/v1/text2image/status/$uuid",
     "styles": "https://cdn.fusionbrain.ai/static/styles/api",
@@ -38,7 +38,38 @@ DEFAULT_TEXT_FONT_SETTINGS: dict[str, bool] = {
 
 MAX_TIME_IMAGE_GENERATION = 180
 
-main_promt = """
+PROMPT_FOR_GENERATION_FROM_TEXT = '''
+Ты ИИ для генерации презентаций. Тебе будет дан отрывок [TEXT] из презентации на тему \" THEME \",
+выполни следующие действия:
+1. Создай заголовок [TITLE] к [TEXT]. Заголовок должен отвечать содержанию, быть интригующим
+и не быть длиннее 70 символов.
+2. Ты должен переписать [TEXT] грамотным литературным языком. Важно! Не добавляй новую информацию,
+ничего не придумывай. В ответе выведи [NEW_TEXT]. Смысл [TEXT] и [NEW_TEXT]
+должны быть одинаковыми.
+3. Создай описание картинки [PICTURE_DESCRIPTION], которая подойдет к [TEXT].
+4. Ответ выведи в формате:
+    Заголовок:[TITLE]
+    Текст:[NEW_TEXT]
+    Картинка:[PICTURE_DESCRIPTION]
+
+
+[TEXT]:
+'''
+
+PROMPT_FOR_THEME_GENERATION = '''
+Ты ИИ для генерации презентаций. Тебе будет дан [TEXT]. Придумай название [THEME] к [TEXT].
+[THEME] должно отвечать содержанию, быть интригующим и не быть длиннее 70 символов.
+
+
+Ответ выведи в формате:
+    Тема: [THEME]
+
+
+[TEXT]:
+'''
+
+
+MAIN_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
 Ты ИИ для генерации презентаций. Твоя задача сгенерировать заголовки, краткое описание слайдов,
 а также описания картинок на слайдах.
 
@@ -52,7 +83,7 @@ main_promt = """
 Картинка:
 """
 
-new_end_promt = """
+SECOND_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
 Напиши текст, который бы ты вставил на слайд номер NUM_SLIDE по его описанию.
 Текст должен быть не более 350 символов.  \nВерни ответ по форме: \n"Текст:
 {сгенерированный текст}".\n \nВот тебе пример рандомного текста, на структуру
@@ -64,13 +95,13 @@ new_end_promt = """
 
 
 def get_main_promt(theme: str, count_sl: int = DEFAULT_NUMBER_OF_SLIDES) -> str:
-    res = main_promt.replace("THEME", theme)
+    res = MAIN_PROMPT_FOR_TEXT_IN_TWO_STEPS.replace("THEME", theme)
     promt = res.replace("NUM_SL", str(count_sl))
     return promt
 
 
 def get_second_promt_beta(title_promt: str, num_slide: str) -> str:
-    promt_for_slide = new_end_promt.replace("NUM_SLIDE", num_slide)
+    promt_for_slide = SECOND_PROMPT_FOR_TEXT_IN_TWO_STEPS.replace("NUM_SLIDE", num_slide)
     return str(title_promt + "\n\n" + promt_for_slide)
 
 
