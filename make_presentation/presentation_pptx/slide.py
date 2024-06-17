@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from io import BytesIO
 from typing import TYPE_CHECKING, Any
@@ -20,6 +21,9 @@ if TYPE_CHECKING:
     from pptx.slide import Slide as PptxSlide
 
     from make_presentation.DTO import ImageDTO
+
+
+logger = logging.getLogger(__name__)
 
 
 class Slide:
@@ -152,7 +156,7 @@ class Slide:
                 font.color.rgb = RGBColor(text_color[0], text_color[1], text_color[2])
 
         except OSError:
-            ...  # to escape OSError("unsupported operating system")
+            logger.info("Could not set text fonts because of unsuppored OS.")
 
     def __add_picture(self, shape: Any, num_pic: int, settings: dict[str, str]) -> None:
         if self.img:
