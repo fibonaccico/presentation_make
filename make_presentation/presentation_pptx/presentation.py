@@ -44,6 +44,7 @@ class PresentationPPTX:
 
         if text_generation_model == TextGenModuleEnum.TEXTINTWOSTEP.value:
             if not theme:
+                logger.error("There is no theme. You should input a theme.")
                 raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
 
         self.settings = config_data
@@ -72,6 +73,7 @@ class PresentationPPTX:
 
         if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.FROMTEXT.value:
             if not text:
+                logger.error("There is no text to create a presentation such way.")
                 raise TextDoesNotExistError(
                     "There is no text to create a presentation. \
                     You should input a text because of you are going to generate a \

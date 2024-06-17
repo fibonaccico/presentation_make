@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 from typing import TYPE_CHECKING
 
@@ -14,6 +15,9 @@ if TYPE_CHECKING:
     from langchain.schema import AIMessage
 
     from ...api_models.interfaces import TextAPIProtocol
+
+
+logger = logging.getLogger(name=__name__)
 
 
 class GenerationFromText(TextGeneratorProtocol):
@@ -38,7 +42,7 @@ class GenerationFromText(TextGeneratorProtocol):
         else:
             presentation_theme = theme
 
-        length = len(text) // (slides_count - 2)
+        length = len(text) // (slides_count - 1)
         list_of_excerpts = self.__split_text(text=text, max_length=length)
 
         titles_list: list[str] = []
@@ -46,12 +50,26 @@ class GenerationFromText(TextGeneratorProtocol):
         pictures_description_list: list[str] = []
 
         for excerpts in list_of_excerpts:
-            slide_text = await self.__get_slide_text(
-                text_api=api, text=excerpts,
-                theme=presentation_theme
-            )
+            while True:
+                slide_text = await self.__get_slide_text(
+                    text_api=api, text=excerpts,
+                    theme=presentation_theme
+                )
 
-            title, text_list, picture_description = self.__get_slide_info(text=slide_text.content)
+                title, text_list, picture_description = self.__get_slide_info(
+                    text=slide_text.content
+                )
+
+                if not picture_description or not title or not text_list:
+                    logger.info(
+                        f"{api.__str__} could not create required text structure. Will try again."
+                    )
+                    continue
+                else:
+                    logger.info(
+                        f"{api.__str__} has generated required text structure."
+                    )
+                    break
 
             titles_list.extend(title)
             slides_text_list.extend(text_list)

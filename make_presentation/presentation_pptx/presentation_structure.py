@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os.path
 from typing import TYPE_CHECKING
 
@@ -19,6 +20,9 @@ if TYPE_CHECKING:
     from pptx.presentation import Presentation as PresentationClass
 
     from make_presentation.DTO import SlideDTO
+
+
+logger = logging.getLogger(__name__)
 
 
 class PresentationTemplate:
@@ -81,6 +85,7 @@ class PresentationTemplate:
         )
 
         self.presentation: PresentationClass = Presentation(search_template)
+        logger.info("A presentation template has been created.")
 
         return self.presentation
 
@@ -140,3 +145,4 @@ class PresentationTemplate:
 
     def save_presentation(self, file_save_path: str) -> None:
         self.presentation.save(file_save_path)
+        logger.info(f"A presentation has been saved into {file_save_path}.")
