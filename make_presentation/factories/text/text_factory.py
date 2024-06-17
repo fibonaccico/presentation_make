@@ -2,15 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from api_models import GigaChatRequest
-from generator_models import TextInTwoSteps
+from make_presentation.api_models import GigaChatRequest
+from make_presentation.generator_models import (GenerationFromText,
+                                                TextInTwoSteps)
 
 from ..errors import InvalidFactoryNameError
 from .text_module_enum import TextApiModuleEnum, TextGenModuleEnum
 
 if TYPE_CHECKING:
-    from api_models.interfaces import TextAPIProtocol
-    from generator_models.interfaces import TextGeneratorProtocol
+    from make_presentation.api_models.interfaces import TextAPIProtocol
+
+    from ...generator_models.interfaces import TextGeneratorProtocol
 
 
 class TextFactory:
@@ -33,10 +35,12 @@ class TextFactory:
         text_generation_model = self.settings["GENMODEL"]
 
         if text_generation_model == TextGenModuleEnum.TEXTINTWOSTEP.value:
-            text_generation_model = TextInTwoSteps()
+            generation_model: TextGeneratorProtocol = TextInTwoSteps()
+        elif text_generation_model == TextGenModuleEnum.FROMTEXT.value:
+            generation_model = GenerationFromText()
         else:
             raise InvalidFactoryNameError(
                 f"Incorrect text generation module in settings: {text_generation_model}"
             )
 
-        return text_generation_model
+        return generation_model

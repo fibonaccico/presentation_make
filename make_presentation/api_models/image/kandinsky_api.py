@@ -1,17 +1,22 @@
 import asyncio
 import base64
 import json
+import logging
 import time
 from io import BytesIO
+from typing import Optional
 
 import aiohttp
-from api_models.interfaces import ImageAPIProtocol
-from config import (BASE_KANDINSKY_URL, KANDINSKY_URLS,
-                    MAX_TIME_IMAGE_GENERATION)
-from DTO import ImageDTO
 from PIL import Image
 
+from make_presentation.api_models.interfaces import ImageAPIProtocol
+from make_presentation.config import (BASE_KANDINSKY_URL, KANDINSKY_URLS,
+                                      MAX_TIME_IMAGE_GENERATION)
+from make_presentation.DTO import ImageDTO
+
 from ..errors import BadRequestError, ImageGenerationFailedError, TimeOutError
+
+logger = logging.getLogger(name=__name__)
 
 
 class KandinskyAPI(ImageAPIProtocol):
@@ -42,7 +47,7 @@ class KandinskyAPI(ImageAPIProtocol):
         width_height="1024 1024",
         negative_prompt: str = "",
         images: int = 1,
-        model=None,
+        model: Optional[int] = None,
         style: str = "DEFAULT",
         art_gpt: bool = False,
         max_time: int = MAX_TIME_IMAGE_GENERATION,
@@ -130,14 +135,17 @@ class KandinskyAPI(ImageAPIProtocol):
                     result = await resp.json()
                     if result["status"] == "DONE":
                         if result["censored"]:
+                            logger.info(f"CENSORED PICTURE: UUID = {uuid}")
                             return {
                                 "data": BytesIO(base64.b64decode(result["images"][0])),
                             }
                         else:
+                            logger.info(f"PICTURE HAS BEEN GENERATED: UUID = {uuid}")
                             return {
                                 "data": BytesIO(base64.b64decode(result["images"][0])),
                             }
                     elif result["status"] == "FAIL":
+                        logger.error(f"FATAL GENERATION PICTURE: UUID = {uuid}")
                         raise ImageGenerationFailedError(
                             "The image generation could not be completed."
                         )

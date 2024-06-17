@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
-from api_models.image.kandinsky_api import KandinskyAPI
 from dotenv import load_dotenv
+
+from make_presentation.api_models.image.kandinsky_api import KandinskyAPI
 
 from ..errors import InvalidFactoryNameError, NoImageApiCredentials
 from .image_module_enum import ImgGenModuleEnum
@@ -17,7 +18,7 @@ load_dotenv()
 
 
 class ImgFactory:
-    def __init__(self, settings: dict[str, Union[str, bool]]) -> None:
+    def __init__(self, settings: dict[str, str]) -> None:
         self.settings = settings
 
     def get_img_api(self) -> ImageAPIProtocol:

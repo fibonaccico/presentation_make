@@ -12,3 +12,11 @@ class NoPicturesInTemplateConfig(Exception):
 
 class PicturesNumberError(Exception):
     ...
+
+
+class TextDoesNotExistError(Exception):
+    ...
+
+
+class InvalidVaraibleForTextGenerationModelError(Exception):
+    ...

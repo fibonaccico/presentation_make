@@ -3,19 +3,22 @@ from __future__ import annotations
 import os.path
 from typing import TYPE_CHECKING
 
-from config import ENDING_PRESENTATION_TEXT, path_to_template
-from DTO import ImageDTO
 from pptx import Presentation
-from templates.get_settings import (get_slides_foreground_pictures_setting,
-                                    get_slides_pictures_setting)
-from templates.template_config import (TEXT_COLOR, TEXT_FONT,
-                                       TEXT_FONT_SETTINGS, TEXT_FONT_SIZE)
+
+from make_presentation.config import ENDING_PRESENTATION_TEXT, path_to_template
+from make_presentation.DTO import ImageDTO
+from make_presentation.templates.get_settings import (
+    get_slides_foreground_pictures_setting, get_slides_pictures_setting)
+from make_presentation.templates.template_config import (TEXT_COLOR, TEXT_FONT,
+                                                         TEXT_FONT_SETTINGS,
+                                                         TEXT_FONT_SIZE)
 
 from .slide import Slide
 
 if TYPE_CHECKING:
-    from DTO import SlideDTO
     from pptx.presentation import Presentation as PresentationClass
+
+    from make_presentation.DTO import SlideDTO
 
 
 class PresentationTemplate:

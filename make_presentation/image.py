@@ -3,12 +3,12 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
-from config import DEFAULT_SETTINGS
-from factories import ImgFactory
-from utils import get_pictures_sizes
+from make_presentation.config import DEFAULT_SETTINGS
+from make_presentation.factories import ImgFactory
+from make_presentation.utils import get_pictures_sizes
 
 if TYPE_CHECKING:
-    from DTO import ImageDTO
+    from make_presentation.DTO import ImageDTO
 
 
 class ImagesAdapter:

@@ -3,11 +3,12 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING, Optional
 
-from api_models.interfaces import TextAPIProtocol
-from config import DEFAULT_TEMPERATURE
 from dotenv import load_dotenv
 from langchain.chat_models.gigachat import GigaChat
 from langchain.schema import HumanMessage, SystemMessage
+
+from make_presentation.api_models.interfaces import TextAPIProtocol
+from make_presentation.config import DEFAULT_TEMPERATURE
 
 if TYPE_CHECKING:
     from langchain_core.messages import BaseMessage
