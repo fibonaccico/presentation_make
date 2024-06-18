@@ -19,11 +19,10 @@ class TextFactory:
     def __init__(self, settings: dict[str, str]) -> None:
         self.settings = settings
 
-    def get_api(self) -> TextAPIProtocol:
+    def get_api(self, api_key: str) -> TextAPIProtocol:
         text_api = self.settings["API"]
-
         if text_api == TextApiModuleEnum.GIGACHAT.value:
-            text_request_model = GigaChatRequest()
+            text_request_model = GigaChatRequest(api_key=api_key)
         else:
             raise InvalidFactoryNameError(
                 f"Incorrect text api module in settings: {text_api}"

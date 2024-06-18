@@ -39,7 +39,10 @@ class Presentation:
 
     async def make_presentation(
         self,
-        save_path_for_images,
+        save_path_for_images: str,
+        text_api_key: str,
+        image_api_key: str,
+        image_secret_key: str,
         image_style: str = "DEFAULT",
         text: str = ''
     ) -> PresentationDTO:
@@ -55,12 +58,17 @@ class Presentation:
                     presentation from text."
                 )
 
-        text_dto = await TextAdapter(settings=self.settings)(text=text)
+        text_dto = await TextAdapter(settings=self.settings)(
+            text=text,
+            api_key=text_api_key
+        )
 
         list_of_image_dto = await ImagesAdapter(settings=self.settings)(
             pictures_descriptions=text_dto.picture_discription_list,
             save_path=save_path_for_images,
             image_style=image_style,
+            api_key=image_api_key,
+            secret_key=image_secret_key
         )
 
         list_of_image_info_dto = []

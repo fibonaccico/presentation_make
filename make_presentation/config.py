@@ -18,6 +18,8 @@ DEFAULT_TEMPERATURE = 1.5
 
 DEFAULT_NUMBER_OF_SLIDES = 10
 
+MAX_COUNT_OF_GENERATION = 5
+
 BASE_KANDINSKY_URL = "https://api-key.fusionbrain.ai/"
 
 KANDINSKY_URLS: dict[str, str] = {

@@ -1,9 +1,14 @@
 import asyncio
 import os
 
+from dotenv import load_dotenv
+
 from make_presentation.config import path_to_file
 from make_presentation.presentation import Presentation  # noqa E800
 from make_presentation.presentation_pptx import PresentationPPTX
+
+load_dotenv()
+
 
 choice = input("\n1. По теме\n2. По тексту\nВыберите тип генерации презентации: ")
 if choice == "1":
@@ -15,6 +20,9 @@ elif choice == "2":
     pr = PresentationPPTX(text_generation_model="FROMTEXT")
 
 save_path_for_images = os.path.join(path_to_file, "images")
+text_api_key = os.getenv("GIGACHAT_API_KEY")
+image_api_key = os.getenv("KANDINSKY_API_KEY")
+image_secret_key = os.getenv("KANDINSKY_SECRET_KEY")
 
 
 async def main():
@@ -24,7 +32,10 @@ async def main():
         task1 = asyncio.create_task(
             pr.make_presentation(
                 save_path_for_images=save_path_for_images,
-                text=text
+                text=text,
+                text_api_key=text_api_key,
+                image_api_key=image_api_key,
+                image_secret_key=image_secret_key
             )
         )
         t = await task1

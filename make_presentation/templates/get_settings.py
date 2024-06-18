@@ -1,4 +1,4 @@
-from errors import NoPicturesInTemplateConfig
+from make_presentation.errors import NoPicturesInTemplateConfig
 
 from .template_config import FOREGROUND_IMAGE_SETTINGS, USUAL_PICTURES
 

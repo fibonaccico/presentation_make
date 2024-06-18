@@ -21,6 +21,8 @@ class ImagesAdapter:
         self,
         pictures_descriptions: list[str],
         save_path: str,
+        secret_key: str,
+        api_key: str,
         negative_prompt: str = "",
         image_style: str = "DEFAULT",
     ) -> list[list[ImageDTO]]:
@@ -29,7 +31,7 @@ class ImagesAdapter:
         """
 
         img_factory = ImgFactory(settings=self.settings["IMG"])
-        image_api_obj = img_factory.get_img_api()
+        image_api_obj = img_factory.get_img_api(secret_key=secret_key, api_key=api_key)
 
         template_name = self.settings["PRESENTATION_SETTING"]["TEMPLATE_NAME"]
         slides_count = len(pictures_descriptions)

@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import os
 from typing import TYPE_CHECKING
-
-from dotenv import load_dotenv
 
 from make_presentation.api_models.image.kandinsky_api import KandinskyAPI
 
@@ -14,17 +11,12 @@ if TYPE_CHECKING:
     from ...api_models.interfaces import ImageAPIProtocol
 
 
-load_dotenv()
-
-
 class ImgFactory:
     def __init__(self, settings: dict[str, str]) -> None:
         self.settings = settings
 
-    def get_img_api(self) -> ImageAPIProtocol:
+    def get_img_api(self, secret_key: str, api_key: str) -> ImageAPIProtocol:
         if self.settings.get("API") == ImgGenModuleEnum.KANDINSKY.value:
-            api_key = os.getenv("KANDINSKY_API_KEY")
-            secret_key = os.getenv("KANDINSKY_SECRET_KEY")
             if api_key and secret_key:
                 self.image_api: ImageAPIProtocol = KandinskyAPI(
                     api_key=api_key,
