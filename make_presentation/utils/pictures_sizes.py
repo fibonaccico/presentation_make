@@ -1,4 +1,4 @@
-from templates import USUAL_PICTURES
+from make_presentation.templates import USUAL_PICTURES
 
 
 def get_pictures_sizes(template_name: str, number_of_slides: int) -> list[list[str]]:

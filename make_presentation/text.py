@@ -11,13 +11,15 @@ if TYPE_CHECKING:
 
 class TextAdapter:
     def __init__(
-        self, settings: dict[str, dict[str, str,]] = DEFAULT_SETTINGS
+        self,
+        settings: dict[str, dict[str, str,]] = DEFAULT_SETTINGS
     ) -> None:
         self.settings = settings
 
     async def __call__(
         self,
         text: str,
+        api_key: str,
         number_of_slides: int = DEFAULT_NUMBER_OF_SLIDES
     ) -> TextDTO:
         """
@@ -26,7 +28,7 @@ class TextAdapter:
 
         text_factory = TextFactory(self.settings["TEXT"])
 
-        text_api = text_factory.get_api()
+        text_api = text_factory.get_api(api_key=api_key)
         text_obj = text_factory.get_generation_model()
 
         text_dto = await text_obj.create_text(

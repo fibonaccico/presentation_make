@@ -4,10 +4,12 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
-from make_presentation.config import (PROMPT_FOR_GENERATION_FROM_TEXT,
+from make_presentation.config import (MAX_COUNT_OF_GENERATION,
+                                      PROMPT_FOR_GENERATION_FROM_TEXT,
                                       PROMPT_FOR_THEME_GENERATION)
 from make_presentation.DTO import TextDTO
-from make_presentation.errors import TittleOrSlideTextNotGeneratedError
+from make_presentation.errors import (MaxCountGenerationError,
+                                      TittleOrSlideTextNotGeneratedError)
 
 from ..interfaces import TextGeneratorProtocol
 
@@ -38,7 +40,10 @@ class GenerationFromText(TextGeneratorProtocol):
         """
         if not theme:
             generated_theme = await self.__get_presentation_theme(text=text, text_api=api)
-            presentation_theme = generated_theme.content.split("Тема: ")[1]
+            if "Тема:" in generated_theme.content:
+                presentation_theme = generated_theme.content.split("Тема:")[1].strip()
+            else:
+                presentation_theme = generated_theme.content
         else:
             presentation_theme = theme
 
@@ -50,7 +55,12 @@ class GenerationFromText(TextGeneratorProtocol):
         pictures_description_list: list[str] = []
 
         for excerpts in list_of_excerpts:
-            while True:
+            flag = 0
+            while flag < MAX_COUNT_OF_GENERATION:
+                logger.info(
+                        f"{flag} text generation."
+                    )
+
                 slide_text = await self.__get_slide_text(
                     text_api=api, text=excerpts,
                     theme=presentation_theme
@@ -64,12 +74,17 @@ class GenerationFromText(TextGeneratorProtocol):
                     logger.info(
                         f"{api.__str__} could not create required text structure. Will try again."
                     )
+                    flag += 1
                     continue
                 else:
                     logger.info(
                         f"{api.__str__} has generated required text structure."
                     )
                     break
+            else:
+                raise MaxCountGenerationError(
+                    "The number of text generation exceeds the permissible value."
+                )
 
             titles_list.extend(title)
             slides_text_list.extend(text_list)

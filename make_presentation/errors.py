@@ -20,3 +20,7 @@ class TextDoesNotExistError(Exception):
 
 class InvalidVaraibleForTextGenerationModelError(Exception):
     ...
+
+
+class MaxCountGenerationError(Exception):
+    ...
