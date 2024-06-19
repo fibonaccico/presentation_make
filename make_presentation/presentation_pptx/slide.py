@@ -122,7 +122,7 @@ class Slide:
                 image_info = ImageInfoDTO(
                     path=image_dto.path, description=image_dto.description
                 )
-                images.append(image_info)
+            images.append(image_info)
 
             return SlideDTO(title=self.title, text=self.text, images=images)
 
