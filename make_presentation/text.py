@@ -18,7 +18,7 @@ class TextAdapter:
 
     async def __call__(
         self,
-        text: str,
+        context: str,
         api_key: str,
         number_of_slides: int = DEFAULT_NUMBER_OF_SLIDES
     ) -> TextDTO:
@@ -32,9 +32,8 @@ class TextAdapter:
         text_obj = text_factory.get_generation_model()
 
         text_dto = await text_obj.create_text(
-            theme=self.settings["PRESENTATION_SETTING"]["THEME"],
             slides_count=number_of_slides,
             api=text_api,
-            text=text
+            context=context
         )
         return text_dto

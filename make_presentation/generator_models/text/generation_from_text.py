@@ -29,26 +29,23 @@ class GenerationFromText(TextGeneratorProtocol):
 
     async def create_text(
         self,
-        theme: str,
         slides_count: int,
         api: TextAPIProtocol,
-        text: str
+        context: str
     ) -> TextDTO:
         """
         To create Text data transfer object with following parameters:
         titles, text of slide description, picture descriptions, full text
         """
-        if not theme:
-            generated_theme = await self.__get_presentation_theme(text=text, text_api=api)
-            if "Тема:" in generated_theme.content:
-                presentation_theme = generated_theme.content.split("Тема:")[1].strip()
-            else:
-                presentation_theme = generated_theme.content
-        else:
-            presentation_theme = theme
 
-        length = len(text) // (slides_count - 1)
-        list_of_excerpts = self.__split_text(text=text, max_length=length)
+        generated_theme = await self.__get_presentation_theme(text=context, text_api=api)
+        if "Тема:" in generated_theme.content:
+            presentation_theme = generated_theme.content.split("Тема:")[1].strip()
+        else:
+            presentation_theme = generated_theme.content
+
+        length = len(context) // (slides_count - 1)
+        list_of_excerpts = self.__split_text(text=context, max_length=length)
 
         titles_list: list[str] = []
         slides_text_list: list[str] = []

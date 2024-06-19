@@ -47,8 +47,7 @@ class Presentation:
         if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.TEXTINTWOSTEP.value:
             if not theme:
                 raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
-
-        self.settings["PRESENTATION_SETTING"]["THEME"] = theme
+            context = theme
 
         if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.FROMTEXT.value:
             if not text:
@@ -57,9 +56,10 @@ class Presentation:
                     You should input a text because of you are going to generate a \
                     presentation from text."
                 )
+            context = text
 
         text_dto = await TextAdapter(settings=self.settings)(
-            text=text,
+            context=context,
             api_key=text_api_key
         )
 

@@ -70,22 +70,24 @@ class PresentationPPTX:
         Main function to create a presentation.
         """
 
-        if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.TEXTINTWOSTEP.value and not theme:
-            logger.error("There is no theme. You should input a theme.")
-            raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
+        if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.TEXTINTWOSTEP.value:
+            if not theme:
+                logger.error("There is no theme. You should input a theme.")
+                raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
+            context = theme
 
-        self.settings["PRESENTATION_SETTING"]["THEME"] = theme
-
-        if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.FROMTEXT.value and not text:
-            logger.error("There is no text to create a presentation such way.")
-            raise TextDoesNotExistError(
-                "There is no text to create a presentation. \
-                You should input a text because of you are going to generate a \
-                presentation from text."
-            )
+        if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.FROMTEXT.value:
+            if not text:
+                logger.error("There is no text to create a presentation such way.")
+                raise TextDoesNotExistError(
+                    "There is no text to create a presentation. \
+                    You should input a text because of you are going to generate a \
+                    presentation from text."
+                )
+            context = text
 
         text_dto = await TextAdapter(settings=self.settings)(
-            text=text,
+            context=context,
             api_key=text_api_key
         )
 

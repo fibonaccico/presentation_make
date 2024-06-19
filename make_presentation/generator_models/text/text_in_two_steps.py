@@ -5,9 +5,7 @@ from typing import TYPE_CHECKING
 
 from make_presentation.config import get_main_promt, get_second_promt_beta
 from make_presentation.DTO import TextDTO
-from make_presentation.errors import (
-    InvalidVaraibleForTextGenerationModelError,
-    TittleOrSlideTextNotGeneratedError)
+from make_presentation.errors import TittleOrSlideTextNotGeneratedError
 
 from ..interfaces import TextGeneratorProtocol
 
@@ -29,19 +27,17 @@ class TextInTwoSteps(TextGeneratorProtocol):
     """
 
     async def create_text(
-        self, theme: str, slides_count: int, api: TextAPIProtocol, text: str = ""
+        self,
+        slides_count: int,
+        api: TextAPIProtocol,
+        context: str
     ) -> TextDTO:
         """
         To create Text data transfer object with following parameters:
         titles, text of slide description, picture descriptions, full text
         """
 
-        if text:
-            raise InvalidVaraibleForTextGenerationModelError(
-                "You are going to create a presentation from theme. Yor should not pass text."
-            )
-
-        title_and_prompt = await self.__main_request(api, theme, slides_count)
+        title_and_prompt = await self.__main_request(api, context, slides_count)
         title_list, _, picture_discription_list = self.__split_text(
             title_and_prompt.content
         )
@@ -53,7 +49,7 @@ class TextInTwoSteps(TextGeneratorProtocol):
             slides_text_list=slides_text_list,
             picture_discription_list=picture_discription_list,
             fulltext=self.__get_full_text(title_list, slides_text_list),
-            theme=theme
+            theme=context
         )
 
     async def __main_request(
