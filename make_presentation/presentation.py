@@ -16,7 +16,6 @@ class Presentation:
     def __init__(
         self,
         text_generation_model: str,
-        theme: str,
         config_data: dict[str, dict[str, str]] = DEFAULT_SETTINGS,
         template: str = "1",
         opening_prentation_theme_title: bool = OPENING_PRESENTATION_THEME_TITLE,
@@ -24,12 +23,6 @@ class Presentation:
     ) -> None:
         self.settings = config_data
         self.settings["TEXT"]["GENMODEL"] = text_generation_model
-
-        if text_generation_model == TextGenModuleEnum.TEXTINTWOSTEP.value:
-            if not theme:
-                raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
-
-        self.settings["PRESENTATION_SETTING"]["THEME"] = theme
 
         if template:
             self.settings["PRESENTATION_SETTING"]["TEMPLATE_NAME"] = template
@@ -44,11 +37,18 @@ class Presentation:
         image_api_key: str,
         image_secret_key: str,
         image_style: str = "DEFAULT",
+        theme: str = '',
         text: str = ''
     ) -> PresentationDTO:
         """
         Main function to create a presentation data transfer object.
         """
+
+        if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.TEXTINTWOSTEP.value:
+            if not theme:
+                raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
+
+        self.settings["PRESENTATION_SETTING"]["THEME"] = theme
 
         if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.FROMTEXT.value:
             if not text:
@@ -71,7 +71,7 @@ class Presentation:
             secret_key=image_secret_key
         )
 
-        list_of_image_info_dto = []
+        list_of_image_info_dto: list[list[ImageInfoDTO]] = []
 
         for images_in_slide in list_of_image_dto:
             img_info_dto_list_in_slide = []
@@ -80,6 +80,7 @@ class Presentation:
                     path=image_dto.path, description=image_dto.description
                 )
                 img_info_dto_list_in_slide.append(image_info)
+
             list_of_image_info_dto.append(img_info_dto_list_in_slide)
 
         slide_dto_list: list[SlideDTO] = []
@@ -87,19 +88,15 @@ class Presentation:
         slides_count = len(text_dto.titles)
 
         if self.opening_prentation_theme_title:
-            text_dto.titles = [self.settings["PRESENTATION_SETTING"]["THEME"]] + text_dto.titles
+            text_dto.titles = [text_dto.theme] + text_dto.titles
             text_dto.slides_text_list = [""] + text_dto.slides_text_list
-            list_of_image_info_dto = [
-                [ImageInfoDTO(path="", description="")]
-            ] + list_of_image_info_dto
+            all_images_list: list[list[ImageInfoDTO] | None] = [None] + list_of_image_info_dto
             slides_count += 1
 
         if self.ending_presentation_status:
             text_dto.titles = text_dto.titles + [ENDING_PRESENTATION_TEXT]
             text_dto.slides_text_list = text_dto.slides_text_list + [""]
-            list_of_image_info_dto = list_of_image_info_dto + [
-                [ImageInfoDTO(path="", description="")]
-            ]
+            all_images_list = all_images_list + [None]
             slides_count += 1
             finish_title = ENDING_PRESENTATION_TEXT
         else:
@@ -109,7 +106,7 @@ class Presentation:
             slide_dto = SlideDTO(
                 title=text_dto.titles[slide],
                 text=text_dto.slides_text_list[slide],
-                images=list_of_image_info_dto[slide],
+                images=all_images_list[slide],
             )
             slide_dto_list.append(slide_dto)
 

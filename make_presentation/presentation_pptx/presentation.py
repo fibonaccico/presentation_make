@@ -34,7 +34,6 @@ class PresentationPPTX:
     def __init__(
         self,
         text_generation_model: str,
-        theme: str = "",
         config_data: dict[str, dict[str, str]] = DEFAULT_SETTINGS,
         template: str = "1",
         path: str = path_to_file,
@@ -42,15 +41,11 @@ class PresentationPPTX:
         ending_presentation_status: bool = ENDING_PRESENTATION_STATUS
     ) -> None:
 
-        if text_generation_model == TextGenModuleEnum.TEXTINTWOSTEP.value:
-            if not theme:
-                logger.error("There is no theme. You should input a theme.")
-                raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
-
         self.settings = config_data
-        self.settings["PRESENTATION_SETTING"]["THEME"] = theme
-        self.settings["PRESENTATION_SETTING"]["TEMPLATE_NAME"] = template
         self.settings["TEXT"]["GENMODEL"] = text_generation_model
+
+        if template:
+            self.settings["PRESENTATION_SETTING"]["TEMPLATE_NAME"] = template
 
         # создали название папки для сохранения презентации
         self.file_save_path = os.path.join(path, ("prs_" + str(time.time())))
@@ -68,20 +63,26 @@ class PresentationPPTX:
         image_api_key: str,
         image_secret_key: str,
         image_style: str = "DEFAULT",
+        theme: str = "",
         text: str = ''
     ) -> PresentationPPTXDTO:
         """
         Main function to create a presentation.
         """
 
-        if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.FROMTEXT.value:
-            if not text:
-                logger.error("There is no text to create a presentation such way.")
-                raise TextDoesNotExistError(
-                    "There is no text to create a presentation. \
-                    You should input a text because of you are going to generate a \
-                    presentation from text."
-                )
+        if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.TEXTINTWOSTEP.value and not theme:
+            logger.error("There is no theme. You should input a theme.")
+            raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
+
+        self.settings["PRESENTATION_SETTING"]["THEME"] = theme
+
+        if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.FROMTEXT.value and not text:
+            logger.error("There is no text to create a presentation such way.")
+            raise TextDoesNotExistError(
+                "There is no text to create a presentation. \
+                You should input a text because of you are going to generate a \
+                presentation from text."
+            )
 
         text_dto = await TextAdapter(settings=self.settings)(
             text=text,

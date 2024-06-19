@@ -48,14 +48,13 @@ class PresentationTemplate:
         self.slides_title = title
         self.slides_text = text
         self.slides_count = len(title)
-        self.images = images
 
         self.settings = settings["PRESENTATION_SETTING"]
 
         if opening_prentation_theme_title:
             self.slides_title = list([name] + self.slides_title)
             self.slides_text = list([""] + self.slides_text)
-            self.images = [[ImageDTO(image=None, path="", description="")]] + self.images
+            self.images: list[list[ImageDTO] | None] = [None] + images
             self.slides_count += 1
 
         if ending_presentation_status:
