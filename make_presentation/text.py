@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from make_presentation.config import DEFAULT_NUMBER_OF_SLIDES, DEFAULT_SETTINGS
+from make_presentation.errors import ContextDoesNotExistError
 from make_presentation.factories import TextFactory
 
 if TYPE_CHECKING:
@@ -18,13 +19,16 @@ class TextAdapter:
 
     async def __call__(
         self,
-        context: str,
+        context: str | None,
         api_key: str,
         number_of_slides: int = DEFAULT_NUMBER_OF_SLIDES
     ) -> TextDTO:
         """
         To create text for each slide.
         """
+
+        if not context:
+            raise ContextDoesNotExistError("You should pass context into a generation text model.")
 
         text_factory = TextFactory(self.settings["TEXT"])
 

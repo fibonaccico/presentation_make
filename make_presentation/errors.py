@@ -24,3 +24,7 @@ class InvalidVaraibleForTextGenerationModelError(Exception):
 
 class MaxCountGenerationError(Exception):
     ...
+
+
+class ContextDoesNotExistError(Exception):
+    ...
