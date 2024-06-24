@@ -9,10 +9,10 @@ from pptx.dml.color import RGBColor
 
 from make_presentation.config import (DEFAULT_TEXT_FONT,
                                       DEFAULT_TEXT_FONT_SETTINGS,
-                                      DEFAULT_TEXT_SIZE,
+                                      DEFAULT_TEXT_SIZE, path_to_fonts,
                                       path_to_foreground_image)
 from make_presentation.DTO import ImageInfoDTO, SlideDTO
-from make_presentation.errors import PicturesNumberError
+from make_presentation.errors import FontDoesNotExistError, PicturesNumberError
 
 from .image_corrector import ImageCorrector
 
@@ -143,13 +143,14 @@ class Slide:
         run = paragraph.add_run()
         run.text = text
         font = run.font
+
         try:
             text_placeholder.text_frame.fit_text(
                 font_family=text_font,
                 max_size=text_font_size,
                 bold=text_font_settings["BOLD"],
                 italic=text_font_settings["ITALIC"],
-                font_file=None,
+                font_file=os.path.join(path_to_fonts, f"{text_font}.ttf")
             )
 
             if text_color:
@@ -157,6 +158,7 @@ class Slide:
 
         except OSError:
             logger.info("Could not set text fonts because of unsuppored OS.")
+            raise FontDoesNotExistError("There is no font file.")
 
     def __add_picture(self, shape: Any, num_pic: int, settings: dict[str, str]) -> None:
         if self.img:
