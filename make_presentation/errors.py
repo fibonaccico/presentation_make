@@ -28,3 +28,7 @@ class MaxCountGenerationError(Exception):
 
 class ContextDoesNotExistError(Exception):
     ...
+
+
+class FontDoesNotExistError(Exception):
+    ...
