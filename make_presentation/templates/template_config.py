@@ -285,21 +285,13 @@ USUAL_PICTURES: dict[str, list[list[dict[str, str]]]] = {
         [{"FIGURE": "ROUNDED DIAMOND", "SIZE": "512 512"}],
     ],
     "classic": [
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "1000 512"}],
-        [{"FIGURE": "RECTANGLE", "SIZE": "512 680"}],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "512 512"}],
-        [{"FIGURE": "RECTANGLE", "SIZE": "640 512"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "815 1080"}],
+        [{"FIGURE": "RECTANGLE", "SIZE": "562 351"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "700 700"}],
+        [{"FIGURE": "RECTANGLE", "SIZE": "562 351"}],
         [
-            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "512 680"},
-            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "512 680"},
-        ],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "1000 512"}],
-        [{"FIGURE": "RECTANGLE", "SIZE": "512 680"}],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "512 512"}],
-        [{"FIGURE": "RECTANGLE", "SIZE": "640 512"}],
-        [
-            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "512 680"},
-            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "512 680"},
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "780 462"},
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "780 462"},
         ],
     ],
     "kfu": [
