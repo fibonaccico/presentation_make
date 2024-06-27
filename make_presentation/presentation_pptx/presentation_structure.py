@@ -123,6 +123,7 @@ class PresentationTemplate:
                 title=title,
                 text=text,
                 img=img,
+                slide_number=slide_number,
                 slide_type=slide_type,
                 text_font=TEXT_FONT.get(self.settings["TEMPLATE_NAME"]),
                 text_font_settings=TEXT_FONT_SETTINGS.get(self.settings["TEMPLATE_NAME"]),

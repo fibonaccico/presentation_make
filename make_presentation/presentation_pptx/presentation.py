@@ -8,10 +8,12 @@ import time
 from make_presentation.config import (DEFAULT_SETTINGS,
                                       ENDING_PRESENTATION_STATUS,
                                       ENDING_PRESENTATION_TEXT,
+                                      MAX_TEXT_LENGTH,
                                       OPENING_PRESENTATION_THEME_TITLE,
                                       path_to_file)
 from make_presentation.DTO import PresentationPPTXDTO
-from make_presentation.errors import (TextDoesNotExistError,
+from make_presentation.errors import (MaxTextLengthError,
+                                      TextDoesNotExistError,
                                       ThemeDoesNotExistError)
 from make_presentation.factories.text.text_module_enum import TextGenModuleEnum
 from make_presentation.image import ImagesAdapter
@@ -84,6 +86,8 @@ class PresentationPPTX:
                     You should input a text because of you are going to generate a \
                     presentation from text."
                 )
+            elif len(text) > MAX_TEXT_LENGTH:
+                raise MaxTextLengthError(f"The text length can't be more than {MAX_TEXT_LENGTH}")
             context = text
 
         text_dto = await TextAdapter(settings=self.settings)(
