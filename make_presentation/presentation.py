@@ -3,9 +3,11 @@ from __future__ import annotations
 from make_presentation.config import (DEFAULT_SETTINGS,
                                       ENDING_PRESENTATION_STATUS,
                                       ENDING_PRESENTATION_TEXT,
+                                      MAX_TEXT_LENGTH,
                                       OPENING_PRESENTATION_THEME_TITLE)
 from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
-from make_presentation.errors import (TextDoesNotExistError,
+from make_presentation.errors import (MaxTextLengthError,
+                                      TextDoesNotExistError,
                                       ThemeDoesNotExistError)
 from make_presentation.factories.text.text_module_enum import TextGenModuleEnum
 from make_presentation.image import ImagesAdapter
@@ -57,6 +59,8 @@ class Presentation:
                     You should input a text because of you are going to generate a \
                     presentation from text."
                 )
+            elif len(text) > MAX_TEXT_LENGTH:
+                raise MaxTextLengthError(f"The text length can't be more than {MAX_TEXT_LENGTH}")
             context = text
 
         text_dto = await TextAdapter(settings=self.settings)(
@@ -107,6 +111,7 @@ class Presentation:
 
         for slide in range(slides_count):
             slide_dto = SlideDTO(
+                number=slide,
                 title=text_dto.titles[slide],
                 text=text_dto.slides_text_list[slide],
                 images=list_of_image_info_dto[slide],

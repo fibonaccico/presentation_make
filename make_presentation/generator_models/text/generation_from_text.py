@@ -5,6 +5,7 @@ import re
 from typing import TYPE_CHECKING
 
 from make_presentation.config import (MAX_COUNT_OF_GENERATION,
+                                      MAX_SLIDE_TEXT_LENGTH,
                                       PROMPT_FOR_GENERATION_FROM_TEXT,
                                       PROMPT_FOR_THEME_GENERATION)
 from make_presentation.DTO import TextDTO
@@ -44,8 +45,7 @@ class GenerationFromText(TextGeneratorProtocol):
         else:
             presentation_theme = generated_theme.content
 
-        length = len(context) // (slides_count - 1)
-        list_of_excerpts = self.__split_text(text=context, max_length=length)
+        list_of_excerpts = self.__split_text(text=context)
 
         titles_list: list[str] = []
         slides_text_list: list[str] = []
@@ -104,7 +104,7 @@ class GenerationFromText(TextGeneratorProtocol):
     async def __get_presentation_theme(self, text_api: TextAPIProtocol, text: str) -> AIMessage:
         return await text_api.request(text=(PROMPT_FOR_THEME_GENERATION + text))
 
-    def __split_text(self, text: str, max_length: int = 2048) -> list[str]:
+    def __split_text(self, text: str, max_length: int = MAX_SLIDE_TEXT_LENGTH) -> list[str]:
         """
         Divide text into sentenses then create a list of excerpts
         of text with length <= max_length.

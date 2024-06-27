@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class SlideDTO:
+    number: int
     title: str
     text: str
     images: list[ImageInfoDTO] | None
