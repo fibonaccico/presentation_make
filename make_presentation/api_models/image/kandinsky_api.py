@@ -132,7 +132,8 @@ class KandinskyAPI(ImageAPIProtocol):
                     url=self.urls["status"].replace("$uuid", uuid),
                     headers=self.AUTH_HEADERS,
                 ) as resp:
-                    result = await resp.json()
+                    data = await resp.read()
+                    result = json.loads(data)
                     if result["status"] == "DONE":
                         if result["censored"]:
                             logger.info(f"CENSORED PICTURE: UUID = {uuid}")
