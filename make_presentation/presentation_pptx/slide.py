@@ -34,6 +34,7 @@ class Slide:
         text: str,
         img: list[ImageDTO] | None,
         slide_type: str,
+        slide_number: int,
         text_font: dict[str, dict[str, str]] | None,
         text_font_settings: dict[str, dict[str, dict[str, bool]]] | None,
         text_font_size: dict[str, dict[str, int]] | None,
@@ -46,6 +47,7 @@ class Slide:
         self.img = img
         self.slide = slide
         self.slide_type = slide_type
+        self.slide_number = slide_number
         self.text_font = text_font
         self.text_font_settings = text_font_settings
         self.text_font_size = text_font_size
@@ -124,9 +126,14 @@ class Slide:
                 )
             images.append(image_info)
 
-            return SlideDTO(title=self.title, text=self.text, images=images)
+            return SlideDTO(
+                number=self.slide_number,
+                title=self.title,
+                text=self.text,
+                images=images
+            )
 
-        return SlideDTO(title=self.title, text=self.text, images=None)
+        return SlideDTO(number=self.slide_number, title=self.title, text=self.text, images=None)
 
     def __add_text_to_placeholder(
         self,

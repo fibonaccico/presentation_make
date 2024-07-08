@@ -32,3 +32,7 @@ class ContextDoesNotExistError(Exception):
 
 class FontDoesNotExistError(Exception):
     ...
+
+
+class MaxTextLengthError(Exception):
+    ...
