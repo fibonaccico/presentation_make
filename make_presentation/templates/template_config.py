@@ -1,5 +1,5 @@
 TEXT_FONT: dict[str, dict[str, dict[str, str]]] = {
-    "1": {
+    "minima": {
         "INITIAL": {
             "TITLE": "Arial Black",
             "TEXT": "Arial"
@@ -69,7 +69,7 @@ TEXT_FONT: dict[str, dict[str, dict[str, str]]] = {
             "TEXT": "Arial"
         },
     },
-    "techno": {
+    "style": {
         "INITIAL": {
             "TITLE": "Arial",
             "TEXT": "Arial"
@@ -86,7 +86,7 @@ TEXT_FONT: dict[str, dict[str, dict[str, str]]] = {
 }
 
 TEXT_FONT_SIZE: dict[str, dict[str, dict[str, int]]] = {
-    "1": {
+    "minima": {
         "INITIAL": {
             "TITLE": 46,
             "TEXT": 16
@@ -156,7 +156,7 @@ TEXT_FONT_SIZE: dict[str, dict[str, dict[str, int]]] = {
             "TEXT": 16
         },
     },
-    "techno": {
+    "style": {
         "INITIAL": {
             "TITLE": 48,
             "TEXT": 16
@@ -173,7 +173,7 @@ TEXT_FONT_SIZE: dict[str, dict[str, dict[str, int]]] = {
 }
 
 TEXT_FONT_SETTINGS: dict[str, dict[str, dict[str, dict[str, bool]]]] = {
-    "1": {
+    "minima": {
         "INITIAL": {
             "TITLE": {"BOLD": False, "ITALIC": False},
             "TEXT": {"BOLD": False, "ITALIC": False},
@@ -245,7 +245,7 @@ TEXT_FONT_SETTINGS: dict[str, dict[str, dict[str, dict[str, bool]]]] = {
             "TEXT": {"BOLD": False, "ITALIC": False}
         },
     },
-    "techno": {
+    "style": {
         "INITIAL": {
             "TITLE": {"BOLD": True, "ITALIC": False},
             "TEXT": {"BOLD": False, "ITALIC": False}
@@ -262,7 +262,7 @@ TEXT_FONT_SETTINGS: dict[str, dict[str, dict[str, dict[str, bool]]]] = {
 }
 
 USUAL_PICTURES: dict[str, list[list[dict[str, str]]]] = {
-    "1": [
+    "minima": [
         [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "680 561"}],
         [
             {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "550 327"},
@@ -295,28 +295,22 @@ USUAL_PICTURES: dict[str, list[list[dict[str, str]]]] = {
         ],
     ],
     "kfu": [
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "512 680"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "700 500"}],
         [],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "512 680"}],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "512 680"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "700 500"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "700 500"}],
         [],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "512 680"}],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "512 680"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "700 500"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "700 500"}],
         [],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "512 680"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "700 500"}],
         []
     ],
-    "techno": [
-        [{"SIZE": "512 680"}],
+    "style": [
+        [{"SIZE": "562 351"}],
         [],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "1016 512"}],
-        [],
-        [{"SIZE": "512 680"}],
-        [],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "1016 512"}],
-        [],
-        [{"SIZE": "512 680"}],
-        []
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "815 1080"}],
+        [{"SIZE": "780 462"}]
     ],
 }
 
@@ -355,7 +349,7 @@ TEXT_COLOR: dict[str, dict[str, dict[str, list[int]]]] = {
             "TEXT": [255, 255, 255]
         },
     },
-    "techno": {
+    "style": {
         "INITIAL": {
             "TITLE": [255, 255, 255],
             "TEXT": [255, 255, 255]},
@@ -371,7 +365,7 @@ TEXT_COLOR: dict[str, dict[str, dict[str, list[int]]]] = {
 }
 
 FOREGROUND_IMAGE_SETTINGS: dict[str, list[list[str]]] = {
-    "1": [
+    "minima": [
         [],
         ["violet_spring.png"],
         [],

@@ -127,13 +127,19 @@ class KandinskyAPI(ImageAPIProtocol):
         """
         start_time = time.time()
         while time.time() - (start_time + max_time) < 0:
+            url = self.urls["status"].replace("$uuid", uuid)
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                    url=self.urls["status"].replace("$uuid", uuid),
+                    url=url,
                     headers=self.AUTH_HEADERS,
                 ) as resp:
-                    data = await resp.read()
-                    result = json.loads(data)
+                    if not resp.ok:
+                        logger.info(
+                            f"Response error: url = {url}"
+                        )
+                        continue
+                    else:
+                        result = await resp.json()
                     if result["status"] == "DONE":
                         if result["censored"]:
                             logger.info(f"CENSORED PICTURE: UUID = {uuid}")

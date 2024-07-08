@@ -4,7 +4,7 @@ DEFAULT_SETTINGS: dict[str, dict[str, str]] = {
     "TEXT": {"API": "GIGACHAT", "GENMODEL": "TWOSTEP"},
     "IMG": {"API": "KANDINSKY"},
     "PRESENTATION_SETTING": {
-        "TEMPLATE_NAME": "1",
+        "TEMPLATE_NAME": "minima",
     }
 }
 
@@ -91,8 +91,9 @@ MAIN_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
 """
 
 SECOND_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
+Ты ИИ для генерации презентаций.
 Напиши текст, который бы ты вставил на слайд номер NUM_SLIDE по его описанию.
-Текст должен быть не более 350 символов.
+Текст должен быть не более 850 символов, но не менее 650 символов.
 
 Верни ответ по форме:
 Текст: {сгенерированный текст}.
