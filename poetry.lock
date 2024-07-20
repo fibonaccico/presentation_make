@@ -141,6 +141,18 @@ test = ["anyio[trio]", "coverage[toml] (>=7)", "exceptiongroup (>=1.2.0)", "hypo
 trio = ["trio (>=0.23)"]
 
 [[package]]
+name = "aspose-pdf"
+version = "24.6.0"
+description = "Aspose.PDF for Python via .NET is a PDF Processing library to perform document management can easily be used to generate, modify, convert, render, secure and print documents without using Adobe Acrobat."
+optional = false
+python-versions = "<3.13,>=3.7"
+files = [
+    {file = "aspose_pdf-24.6.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:a23817e2cb2c834662511452a6b9228deeaf1ae44d20a8b4c75b8f12acd79fd3"},
+    {file = "aspose_pdf-24.6.0-py3-none-win32.whl", hash = "sha256:06bfb05419aef1283750dfabd07c3e68d8d81625e148953779212d3374d8d020"},
+    {file = "aspose_pdf-24.6.0-py3-none-win_amd64.whl", hash = "sha256:ffdf0fccbe618e3baef1acdf8e2632bbf2467d4828d9d315ba96eb76bef35662"},
+]
+
+[[package]]
 name = "aspose-slides"
 version = "24.6.0"
 description = "Aspose.Slides for Python via .NET is a presentation file formats processing library for working with Microsoft PowerPoint files without using Microsoft PowerPoint."
@@ -153,6 +165,22 @@ files = [
     {file = "Aspose.Slides-24.6.0-py3-none-win32.whl", hash = "sha256:db13771d8820eba464a40929d34dea32c14a433146c1e4bc33dcc847ef0681f4"},
     {file = "Aspose.Slides-24.6.0-py3-none-win_amd64.whl", hash = "sha256:3dfaea532e9a18f0b47444b4c1af3f9cd0ab2e6699ae5b2ceec387541867c2d4"},
 ]
+
+[[package]]
+name = "asposeslidescloud"
+version = "24.6.0"
+description = "Aspose.Slides Cloud SDK for Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "asposeslidescloud-24.6.0-py3-none-any.whl", hash = "sha256:182612b3e9c933103224cb8e8909c1c01da0a4347a052e29cf94bb41c2734b2e"},
+    {file = "asposeslidescloud-24.6.0.tar.gz", hash = "sha256:ee31e33ab3d9749e6bc9a5f911465693c56543f49f3be06768e50d7bf4edbb03"},
+]
+
+[package.dependencies]
+certifi = ">=14.05.14"
+six = ">=1.10"
+urllib3 = ">=1.15.1"
 
 [[package]]
 name = "attrs"
@@ -1175,6 +1203,17 @@ test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=7.4.3)", "pytest-
 type = ["mypy (>=1.8)"]
 
 [[package]]
+name = "plum-dispatch"
+version = "1.7.4"
+description = "Multiple dispatch in Python"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "plum-dispatch-1.7.4.tar.gz", hash = "sha256:1c1d15b2842b5fa98405fd3dff6fad4887bdc77b60bd200e209d76ebfe9990fe"},
+    {file = "plum_dispatch-1.7.4-py3-none-any.whl", hash = "sha256:c40dbeab269bbbf972ce0dbc078380da19ebaee1a370a2c564e1814a11bde216"},
+]
+
+[[package]]
 name = "pre-commit"
 version = "3.5.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
@@ -1429,6 +1468,17 @@ docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments
 testing = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "importlib-metadata", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "jaraco.test", "mypy (==1.10.0)", "packaging (>=23.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.1)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-home (>=0.5)", "pytest-mypy", "pytest-perf", "pytest-ruff (>=0.3.2)", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
 
 [[package]]
+name = "six"
+version = "1.16.0"
+description = "Python 2 and 3 compatibility utilities"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
+files = [
+    {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
+    {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
+]
+
+[[package]]
 name = "sniffio"
 version = "1.3.1"
 description = "Sniff out which async library your code is running under"
@@ -1438,6 +1488,20 @@ files = [
     {file = "sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2"},
     {file = "sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc"},
 ]
+
+[[package]]
+name = "spire-presentation"
+version = "9.3.0"
+description = "A 100% standalone Power Point Python API for Processing Power Point Files"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "Spire.Presentation-9.3.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:9cfced30a0e6ac844047386126680daa14263ef9ccac875856983804994fd233"},
+    {file = "Spire.Presentation-9.3.0-py3-none-win_amd64.whl", hash = "sha256:111acdca12a9641912dd445626e1e8108a2fcf3459721978cfd3d46844fc83c6"},
+]
+
+[package.dependencies]
+plum-dispatch = "1.7.4"
 
 [[package]]
 name = "sqlalchemy"
@@ -1720,5 +1784,5 @@ multidict = ">=4.0"
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.11"
-content-hash = "083aa0ac552996f68d4491a94421a3f7515b02d1762547db167eaff86bfd4904"
+python-versions = ">=3.11,<3.13"
+content-hash = "82a26e29af1f198fe876a1211ef2742da9e9f428a88e293691f61bbdace2f195"

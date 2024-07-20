@@ -37,7 +37,7 @@ class PresentationPPTX:
         self,
         text_generation_model: str,
         config_data: dict[str, dict[str, str]] = DEFAULT_SETTINGS,
-        template: str = "1",
+        template: str = "minima",
         path: str = path_to_file,
         opening_prentation_theme_title: bool = OPENING_PRESENTATION_THEME_TITLE,
         ending_presentation_status: bool = ENDING_PRESENTATION_STATUS
