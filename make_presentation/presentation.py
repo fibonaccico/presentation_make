@@ -136,6 +136,7 @@ class Presentation:
             slides=slide_dto_list,
         )
 
+    @staticmethod
     def save_from_html_file(
         self,
         file_name: str,
@@ -166,6 +167,7 @@ class Presentation:
             return output_path.replace("pdf", "pptx")
         return output_path
 
+    @staticmethod
     def save_from_html_string(
         self,
         data: str,
@@ -197,6 +199,7 @@ class Presentation:
             return output_file_name + ".pptx"
         return output_file_name + ".pdf"
 
+    @staticmethod
     def save(
         self,
         data: PresentationDTO,
