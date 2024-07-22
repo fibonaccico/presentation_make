@@ -138,7 +138,6 @@ class Presentation:
 
     @staticmethod
     def save_from_html_file(
-        self,
         file_name: str,
         format: str,
         save_path: str,
@@ -155,7 +154,7 @@ class Presentation:
         # create a folder
         os.makedirs(output_path, exist_ok=True)
 
-        output_path = self._get_pdf_from_file(
+        output_path = Presentation.get_pdf_from_file(
             file=file_name,
             output=output_path
         )
@@ -169,7 +168,6 @@ class Presentation:
 
     @staticmethod
     def save_from_html_string(
-        self,
         data: str,
         format: str,
         save_path: str,
@@ -201,7 +199,6 @@ class Presentation:
 
     @staticmethod
     def save(
-        self,
         data: PresentationDTO,
         format: str,
         save_path: str,
@@ -220,7 +217,7 @@ class Presentation:
         # create a folder
         os.makedirs(output_path, exist_ok=True)
 
-        presentation_save_path = self._get_presentationn_save_path(
+        presentation_save_path = Presentation.get_presentationn_save_path(
             save_path=output_path,
             theme=data.theme
         )
@@ -229,14 +226,15 @@ class Presentation:
             file_save_path=presentation_save_path
         )
         if format == "pdf":
-            pdf_presentation_path = self._get_pdf_from_file(
+            pdf_presentation_path = Presentation.get_pdf_from_file(
                 file=presentation_save_path,
                 output=presentation_save_path.replace("pptx", "pdf")
             )
             return pdf_presentation_path
         return presentation_save_path
 
-    def _get_pdf_from_file(self, file: str, output: str) -> str:
+    @staticmethod
+    def get_pdf_from_file(file: str, output: str) -> str:
         if file.split(".")[1] == "html":
             output = os.path.join(output, f"{time.time()}.pdf")
             options = HtmlLoadOptions()
@@ -253,7 +251,8 @@ class Presentation:
 
         return output
 
-    def _get_presentationn_save_path(self, save_path: str, theme: str) -> str:
+    @staticmethod
+    def get_presentationn_save_path(save_path: str, theme: str) -> str:
         text = re.sub(r'[!/:*\\?"<>|+.]', "", theme)
         text = re.sub(r"\s", "_", text)
 
