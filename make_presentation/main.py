@@ -27,10 +27,6 @@ text_api_key = os.getenv("GIGACHAT_API_KEY")
 image_api_key = os.getenv("KANDINSKY_API_KEY")
 image_secret_key = os.getenv("KANDINSKY_SECRET_KEY")
 
-with open("HTML.html", "rb") as file:
-    my_bytes = file.read()
-    html_data = my_bytes.decode()
-
 
 presentation_data = PresentationDTO(
     template_name='minima',
@@ -44,24 +40,25 @@ async def main():
         print("START")                                 # noqa T201
         import time
         st = time.time()
-        # task1 = asyncio.create_task(                               # noqa E800
-        #     pr.make_presentation(                                   # noqa E800
-        #         save_path_for_images=save_path_for_images,          # noqa E800
-        #         text=text,                                          # noqa E800
-        #         theme=theme,                                        # noqa E800
-        #         text_api_key=text_api_key,                        # noqa E800
-        #         image_api_key=image_api_key,                          # noqa E800
-        #         image_secret_key=image_secret_key                   # noqa E800
-        #     )                                                       # noqa E800
-        # )                                                           # noqa E800
-        task1 = pr.save(data=presentation_data,
-                        format="pdf",
-                        save_path=path_to_file)
-        task2 = pr.save_from_html_file(file_name="HTML.html", format="pptx", save_path=path_to_file) # noqa E501
-        # t = await task1
-        print(task2)                                       # noqa T201
-        print(task1)                                      # noqa T201
-        print(f"TIME : {(time.time() - st)/60}")       # noqa T201
+        task1 = asyncio.create_task(
+            pr.make_presentation(
+                save_path_for_images=save_path_for_images,
+                text=text,
+                theme=theme,
+                text_api_key=text_api_key,
+                image_api_key=image_api_key,
+                image_secret_key=image_secret_key
+            )
+        )
+        task2 = Presentation.save(
+            data=presentation_data,
+            format="pdf",
+            save_path=path_to_file
+        )
+        t = await task1
+        print(t)                                      # noqa T201
+        print(task2)                                  # noqa T201
+        print(f"TIME : {(time.time() - st)/60}")      # noqa T201
 
 
 if __name__ == "__main__":
