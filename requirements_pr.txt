@@ -76,3 +76,8 @@ urllib3==2.2.1
 virtualenv==20.26.2
 XlsxWriter==3.2.0
 yarl==1.9.4
+setuptools==70.0.0
+aspose-pdf==24.6.0
+aspose-slides==24.6.0
+spire-presentation==9.3.0
+unoserver==2.1
