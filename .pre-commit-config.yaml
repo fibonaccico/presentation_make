@@ -19,8 +19,8 @@ repos:
                                   flake8-broken-line, flake8-string-format]
         args: [--max-line-length=100]
 
-# -   repo: https://github.com/pre-commit/mirrors-mypy
-#     rev: v1.4.1
-#     hooks:
-#     -   id: mypy
-#         additional_dependencies: []
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.4.1
+    hooks:
+    -   id: mypy
+        additional_dependencies: []

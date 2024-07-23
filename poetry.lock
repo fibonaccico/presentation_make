@@ -1632,6 +1632,20 @@ mypy-extensions = ">=0.3.0"
 typing-extensions = ">=3.7.4"
 
 [[package]]
+name = "unoserver"
+version = "2.1"
+description = "A server for file conversions with Libre Office"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "unoserver-2.1-py3-none-any.whl", hash = "sha256:f77f9f6f56b0cbc81fa0f9f0ff7b86eeb328b7cf27259cd0fbcf876f959a116a"},
+    {file = "unoserver-2.1.tar.gz", hash = "sha256:d11b42a3668f991b69841f6cfc7bce1cfefc00ae464eedb3f0e603c5262d60c6"},
+]
+
+[package.extras]
+devenv = ["black", "check-manifest", "flake8", "pyroma", "pytest", "pytest-cov", "zest.releaser"]
+
+[[package]]
 name = "urllib3"
 version = "2.2.2"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
@@ -1785,4 +1799,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "82a26e29af1f198fe876a1211ef2742da9e9f428a88e293691f61bbdace2f195"
+content-hash = "06b970bde27e3c4d63f807067b92b81eef7628917f6ee987fa899476f51f3dab"

@@ -19,6 +19,7 @@ aspose-pdf = "^24.6.0"
 aspose-slides = "24.6.0"
 asposeslidescloud = "^24.6.0"
 spire-presentation = "^9.3.0"
+unoserver = "^2.1"
 
 
 [tool.poetry.group.dev.dependencies]
