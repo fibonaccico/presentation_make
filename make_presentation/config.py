@@ -1,5 +1,7 @@
 import os
 
+import pkg_resources
+
 DEFAULT_SETTINGS: dict[str, dict[str, str]] = {
     "TEXT": {"API": "GIGACHAT", "GENMODEL": "TWOSTEP"},
     "IMG": {"API": "KANDINSKY"},
@@ -125,19 +127,19 @@ path_to_project = os.path.dirname(
 # Путь к папке с презентацией, текстом, логом
 path_to_file = os.path.join(os.path.dirname(path_to_project), "data", "presentation")
 
+
+def load_template(template_name):
+    # Получаем полный путь к шаблону
+    template_path = pkg_resources.resource_filename(
+        'make_presentation', f'templates/{template_name}'
+    )
+    return template_path
+
+
 # Путь к картинкам переднего плана
-path_to_foreground_image = os.path.join(
-    path_to_project,
-    "make_presentation",
-    "templates",
-    "foreground_images",
-)
+path_to_foreground_image = load_template(template_name="foreground_images")
 
 # Путь к шаблонам презентаций
-path_to_template = os.path.join(
-    path_to_project, "make_presentation", "templates", "templates"
-)
+path_to_template = load_template(template_name="templates")
 
-path_to_fonts = os.path.join(
-    path_to_project, "make_presentation", "templates", "fonts"
-)
+path_to_fonts = load_template(template_name="fonts")
