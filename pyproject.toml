@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "make-presentation"
+name = "presentation-make"
 version = "0.1.1"
 description = ""
 authors = ["Ekaterina Itchenko <ekaterina.savickaya.1989@gmail.com>"]
@@ -30,6 +30,6 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "make-presentation"
-version = "0.1.0"
+name = "presentation-make"
+version = "0.1.1"
 requires-python = ">=3.10"
