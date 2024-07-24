@@ -4,16 +4,7 @@ version = "0.1.1"
 description = ""
 authors = ["Ekaterina Itchenko <ekaterina.savickaya.1989@gmail.com>"]
 readme = "README.md"
-include = [
-    "make_presentation/templates/templates/minima/*.pptx",
-    "make_presentation/templates/templates/2/*.pptx",
-    "make_presentation/templates/templates/classic/*.pptx",
-    "make_presentation/templates/templates/kfu/*.pptx",
-    "make_presentation/templates/templates/black_study/*.pptx",
-    "make_presentation/templates/templates/style/*.pptx",
-    "make_presentation/templates/foreground_images/*.png",
-    "make_presentation/templates/fonts/*.ttf",
-]
+
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
