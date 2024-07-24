@@ -127,7 +127,7 @@ path_to_file = os.path.join(os.path.dirname(path_to_project), "data", "presentat
 
 # Путь к картинкам переднего плана
 path_to_foreground_image = os.path.join(
-    "presentation_make",
+    path_to_project,
     "make_presentation",
     "templates",
     "foreground_images",
@@ -135,9 +135,9 @@ path_to_foreground_image = os.path.join(
 
 # Путь к шаблонам презентаций
 path_to_template = os.path.join(
-    "presentation_make", "make_presentation", "templates", "templates"
+    path_to_project, "make_presentation", "templates", "templates"
 )
 
 path_to_fonts = os.path.join(
-    "presentation_make", "make_presentation", "templates", "fonts"
+    path_to_project, "make_presentation", "templates", "fonts"
 )
