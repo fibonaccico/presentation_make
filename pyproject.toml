@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "make-presentation"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Ekaterina Itchenko <ekaterina.savickaya.1989@gmail.com>"]
 readme = "README.md"
+include = ["*.pptx"]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
@@ -20,7 +21,6 @@ aspose-slides = "24.6.0"
 asposeslidescloud = "^24.6.0"
 spire-presentation = "^9.3.0"
 unoserver = "^2.1"
-
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "3.5.0"
