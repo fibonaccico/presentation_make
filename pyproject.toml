@@ -4,7 +4,7 @@ version = "0.1.1"
 description = ""
 authors = ["Ekaterina Itchenko <ekaterina.savickaya.1989@gmail.com>"]
 readme = "README.md"
-include = ["make_presentation/templates/templates/*.pptx"]
+include = ["make_presentation/templates/templates/minima/*.pptx"]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
