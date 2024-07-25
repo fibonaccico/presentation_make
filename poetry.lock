@@ -1203,17 +1203,6 @@ test = ["appdirs (==1.4.4)", "covdefaults (>=2.3)", "pytest (>=7.4.3)", "pytest-
 type = ["mypy (>=1.8)"]
 
 [[package]]
-name = "plum-dispatch"
-version = "1.7.4"
-description = "Multiple dispatch in Python"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "plum-dispatch-1.7.4.tar.gz", hash = "sha256:1c1d15b2842b5fa98405fd3dff6fad4887bdc77b60bd200e209d76ebfe9990fe"},
-    {file = "plum_dispatch-1.7.4-py3-none-any.whl", hash = "sha256:c40dbeab269bbbf972ce0dbc078380da19ebaee1a370a2c564e1814a11bde216"},
-]
-
-[[package]]
 name = "pre-commit"
 version = "3.5.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
@@ -1468,6 +1457,21 @@ docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments
 testing = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "importlib-metadata", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "jaraco.test", "mypy (==1.10.0)", "packaging (>=23.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.1)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-home (>=0.5)", "pytest-mypy", "pytest-perf", "pytest-ruff (>=0.3.2)", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
 
 [[package]]
+name = "singledispatch"
+version = "4.1.0"
+description = "Backport functools.singledispatch to older Pythons."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "singledispatch-4.1.0-py2.py3-none-any.whl", hash = "sha256:6061bd291204beaeac90cdbc342b68d213b7a6efb44ae6c5e6422a78be351c8a"},
+    {file = "singledispatch-4.1.0.tar.gz", hash = "sha256:f3430b886d5b4213d07d715096a75da5e4a8105284c497b9aee6d6d48bfe90cb"},
+]
+
+[package.extras]
+docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-lint"]
+testing = ["pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-mypy (>=0.9.1)", "pytest-ruff"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -1488,20 +1492,6 @@ files = [
     {file = "sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2"},
     {file = "sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc"},
 ]
-
-[[package]]
-name = "spire-presentation"
-version = "9.3.0"
-description = "A 100% standalone Power Point Python API for Processing Power Point Files"
-optional = false
-python-versions = ">=3.9"
-files = [
-    {file = "Spire.Presentation-9.3.0-py3-none-manylinux1_x86_64.whl", hash = "sha256:9cfced30a0e6ac844047386126680daa14263ef9ccac875856983804994fd233"},
-    {file = "Spire.Presentation-9.3.0-py3-none-win_amd64.whl", hash = "sha256:111acdca12a9641912dd445626e1e8108a2fcf3459721978cfd3d46844fc83c6"},
-]
-
-[package.dependencies]
-plum-dispatch = "1.7.4"
 
 [[package]]
 name = "sqlalchemy"
@@ -1632,6 +1622,17 @@ mypy-extensions = ">=0.3.0"
 typing-extensions = ">=3.7.4"
 
 [[package]]
+name = "unoconv"
+version = "0.9.0"
+description = "Universal Office Converter - Office document conversion"
+optional = false
+python-versions = "*"
+files = [
+    {file = "unoconv-0.9.0-py2.py3-none-any.whl", hash = "sha256:227ecb6d9c98d66318b960dbed6466afc35f886d235ad465f33a7130dd09c80b"},
+    {file = "unoconv-0.9.0.tar.gz", hash = "sha256:308ebfd98e67d898834876348b27caf41470cd853fbe2681cc7dacd8fd5e6031"},
+]
+
+[[package]]
 name = "unoserver"
 version = "2.1"
 description = "A server for file conversions with Libre Office"
@@ -1644,6 +1645,19 @@ files = [
 
 [package.extras]
 devenv = ["black", "check-manifest", "flake8", "pyroma", "pytest", "pytest-cov", "zest.releaser"]
+
+[[package]]
+name = "unotools"
+version = "0.3.3"
+description = "Interacting with OpenOffice.org/LibreOffice using UNO"
+optional = false
+python-versions = "*"
+files = [
+    {file = "unotools-0.3.3.tar.gz", hash = "sha256:72190c70279977db7e60c620b54e8ade9f11e9113289e7728fe367014cbd268d"},
+]
+
+[package.dependencies]
+singledispatch = "*"
 
 [[package]]
 name = "urllib3"
@@ -1799,4 +1813,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "06b970bde27e3c4d63f807067b92b81eef7628917f6ee987fa899476f51f3dab"
+content-hash = "4aa7516b8459da9b7579de915f8e7a1f4895e0b913093916723dfb9eb7c12aa6"
