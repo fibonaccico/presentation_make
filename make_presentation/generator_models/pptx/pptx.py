@@ -93,7 +93,7 @@ class PresentationTemplate:
                 ),
                 foreground_pictures_setting=(
                     foreground_pictures_setting[slide.number - 1]
-                    if slide_type == "USUAL" else None
+                    if foreground_pictures_setting and slide_type == "USUAL" else None
                 )
             )
 

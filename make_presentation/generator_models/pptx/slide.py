@@ -59,6 +59,10 @@ class Slide:
         for shape in self.slide.shapes:
             if shape.has_text_frame:
                 if shape.text == "TITLE" and self.title is not None:
+                    text_color_slide_type = (
+                        self.text_color.get(self.slide_type)
+                        if self.text_color else None
+                    )
                     self.__add_text_to_placeholder(
                         text_placeholder=shape,
                         text=self.title,
@@ -76,10 +80,14 @@ class Slide:
                         ),
                         text_color=(
                             self.text_color[self.slide_type]["TITLE"]
-                            if self.text_color else None
+                            if self.text_color and text_color_slide_type else None
                         )
                     )
                 elif shape.text == "TEXT" and self.text is not None:
+                    text_color_slide_type = (
+                        self.text_color.get(self.slide_type)
+                        if self.text_color else None
+                    )
                     self.__add_text_to_placeholder(
                         text_placeholder=shape,
                         text=self.text,
@@ -97,7 +105,7 @@ class Slide:
                         ),
                         text_color=(
                             self.text_color[self.slide_type]["TEXT"]
-                            if self.text_color else None
+                            if self.text_color and text_color_slide_type else None
                         )
                     )
                 elif (
