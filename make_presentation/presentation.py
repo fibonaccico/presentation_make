@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import os
 import re
+import subprocess
 import time
 
 import aspose.slides as slides
 from aspose.pdf import Document, HtmlFragment, HtmlLoadOptions
-from spire.presentation import Presentation as PresentationPPTX
-from spire.presentation import *  # noqa F403
-from spire.presentation.common import *  # noqa F403
 
 from make_presentation.config import (DEFAULT_SETTINGS,
                                       ENDING_PRESENTATION_STATUS,
@@ -241,14 +239,9 @@ class Presentation:
             document = Document(file, options)
             document.save(output)
         else:
-            # Create an object of Presentation class
-            presentation = PresentationPPTX()
-            # Load a PPT or PPTX file
-            presentation.LoadFromFile(file)
-            # Convert the presentation file to PDF and save it
-            presentation.SaveToFile(output, FileFormat.PDF)         # noqa F405
-            presentation.Dispose()
-
+            output_dir = os.path.dirname(output)
+            cmd = f"libreoffice --headless --convert-to pdf --outdir {output_dir} {file}"
+            subprocess.run(cmd, shell=True)
         return output
 
     @staticmethod
