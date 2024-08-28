@@ -43,12 +43,12 @@ TEXT_FONT: dict[str, dict[str, dict[str, str]]] = {
     },
     "classic": {
         "INITIAL": {
-            "TITLE": "Calibri",
-            "TEXT": "Calibri"
+            "TITLE": "Corbel",
+            "TEXT": "Corbel"
         },
         "END": {
-            "TITLE": "Calibri",
-            "TEXT": "Calibri"
+            "TITLE": "Corbel",
+            "TEXT": "Corbel"
         },
         "USUAL": {
             "TITLE": "Corbel",
@@ -57,47 +57,47 @@ TEXT_FONT: dict[str, dict[str, dict[str, str]]] = {
     },
     "kfu": {
         "INITIAL": {
-            "TITLE": "Arial",
-            "TEXT": "Arial"
+            "TITLE": "PT Sans",
+            "TEXT": "PT Sans"
         },
         "END": {
-            "TITLE": "Arial",
-            "TEXT": "Arial"
+            "TITLE": "PT Sans",
+            "TEXT": "PT Sans"
         },
         "USUAL": {
-            "TITLE": "Arial",
-            "TEXT": "Arial"
+            "TITLE": "PT Sans",
+            "TEXT": "PT Sans"
         },
     },
     "style": {
         "INITIAL": {
-            "TITLE": "Arial",
+            "TITLE": "Arial Black",
             "TEXT": "Arial"
         },
         "END": {
-            "TITLE": "Arial",
+            "TITLE": "Arial Black",
             "TEXT": "Arial"
         },
         "USUAL": {
-            "TITLE": "Arial",
+            "TITLE": "Arial Black",
             "TEXT": "Arial"
         },
-    },
+    }
 }
 
 TEXT_FONT_SIZE: dict[str, dict[str, dict[str, int]]] = {
     "minima": {
         "INITIAL": {
-            "TITLE": 46,
-            "TEXT": 16
+            "TITLE": 25,
+            "TEXT": 12
         },
         "END": {
-            "TITLE": 46,
-            "TEXT": 16
+            "TITLE": 25,
+            "TEXT": 12
         },
         "USUAL": {
-            "TITLE": 30,
-            "TEXT": 16,
+            "TITLE": 21,
+            "TEXT": 12
         },
     },
     "2": {
@@ -130,47 +130,207 @@ TEXT_FONT_SIZE: dict[str, dict[str, dict[str, int]]] = {
     },
     "classic": {
         "INITIAL": {
-            "TITLE": 48,
-            "TEXT": 24
+            "TITLE": 40,
+            "TEXT": 15
         },
         "END": {
-            "TITLE": 52,
-            "TEXT": 24
+            "TITLE": 40,
+            "TEXT": 15
         },
         "USUAL": {
-            "TITLE": 28,
-            "TEXT": 18
+            "TITLE": 23,
+            "TEXT": 15
         },
     },
     "kfu": {
         "INITIAL": {
-            "TITLE": 48,
+            "TITLE": 20,
             "TEXT": 16
         },
         "END": {
-            "TITLE": 52,
+            "TITLE": 36,
             "TEXT": 16
         },
         "USUAL": {
-            "TITLE": 32,
-            "TEXT": 16
+            "TITLE": 14,
+            "TEXT": 14
         },
     },
     "style": {
         "INITIAL": {
-            "TITLE": 48,
-            "TEXT": 16
+            "TITLE": 33,
+            "TEXT": 12
         },
         "END": {
-            "TITLE": 52,
-            "TEXT": 16
+            "TITLE": 34,
+            "TEXT": 12
         },
         "USUAL": {
-            "TITLE": 32,
-            "TEXT": 16
+            "TITLE": 24,
+            "TEXT": 18
         },
     },
 }
+
+MAX_CHARS: dict[str, dict[str, dict[str, dict[str, int]]]] = {
+    "minima": {
+        "max": {
+            "INITIAL": {
+                "TITLE": 70
+            },
+            "END": {
+                "TITLE": 25
+            },
+            "USUAL": {
+                "TITLE": 40,
+                "TEXT": 900
+            },
+        },
+        "min": {
+            "INITIAL": {
+                "TITLE": 10
+            },
+            "END": {
+                "TITLE": 10
+            },
+            "USUAL": {
+                "TITLE": 15,
+                "TEXT": 300
+            },
+        }
+    },
+    "2": {
+        "max": {
+            "INITIAL": {
+                "TITLE": 86
+            },
+            "END": {
+                "TITLE": 86
+            },
+            "USUAL": {
+                "TITLE": 86,
+                "TEXT": 915,
+            },
+        },
+        "min": {
+            "INITIAL": {
+                "TITLE": 70
+            },
+            "END": {
+                "TITLE": 70
+            },
+            "USUAL": {
+                "TITLE": 70,
+                "TEXT": 700,
+            },
+        }
+    },
+    "black_study": {
+        "max": {
+            "INITIAL": {
+                "TITLE": 86
+            },
+            "END": {
+                "TITLE": 86
+            },
+            "USUAL": {
+                "TITLE": 86,
+                "TEXT": 915,
+            },
+        },
+        "min": {
+            "INITIAL": {
+                "TITLE": 70
+            },
+            "END": {
+                "TITLE": 70
+            },
+            "USUAL": {
+                "TITLE": 70,
+                "TEXT": 700,
+            },
+        }
+    },
+    "classic": {
+        "max": {
+            "INITIAL": {
+                "TITLE": 50
+            },
+            "END": {
+                "TITLE": 25
+            },
+            "USUAL": {
+                "TITLE": 45,
+                "TEXT": 700,
+            },
+        },
+        "min": {
+            "INITIAL": {
+                "TITLE": 10
+            },
+            "END": {
+                "TITLE": 10
+            },
+            "USUAL": {
+                "TITLE": 15,
+                "TEXT": 300,
+            },
+        }
+    },
+    "kfu": {
+        "max": {
+            "INITIAL": {
+                "TITLE": 300
+            },
+            "END": {
+                "TITLE": 25
+            },
+            "USUAL": {
+                "TITLE": 210,
+                "TEXT": 480,
+            },
+        },
+        "min": {
+            "INITIAL": {
+                "TITLE": 10
+            },
+            "END": {
+                "TITLE": 10
+            },
+            "USUAL": {
+                "TITLE": 15,
+                "TEXT": 200,
+            },
+        }
+    },
+    "style":  {
+        "max": {
+            "INITIAL": {
+                "TITLE": 40
+            },
+            "END": {
+                "TITLE": 25
+            },
+            "USUAL": {
+                "TITLE": 80,
+                "TEXT": 450
+            },
+        },
+        "min": {
+            "INITIAL": {
+                "TITLE": 10
+            },
+            "END": {
+                "TITLE": 10
+            },
+            "USUAL": {
+                "TITLE": 15,
+                "TEXT": 250
+            },
+        }
+    },
+}
+
 
 TEXT_FONT_SETTINGS: dict[str, dict[str, dict[str, dict[str, bool]]]] = {
     "minima": {
@@ -233,7 +393,7 @@ TEXT_FONT_SETTINGS: dict[str, dict[str, dict[str, dict[str, bool]]]] = {
     },
     "kfu": {
         "INITIAL": {
-            "TITLE": {"BOLD": True, "ITALIC": False},
+            "TITLE": {"BOLD": False, "ITALIC": False},
             "TEXT": {"BOLD": False, "ITALIC": False}
         },
         "END": {
@@ -310,7 +470,7 @@ USUAL_PICTURES: dict[str, list[list[dict[str, str]]]] = {
         [{"SIZE": "562 351"}],
         [],
         [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "815 1080"}],
-        [{"SIZE": "780 462"}]
+        []
     ],
 }
 

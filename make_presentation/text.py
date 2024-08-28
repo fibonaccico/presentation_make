@@ -38,6 +38,7 @@ class TextAdapter:
         text_dto = await text_obj.create_text(
             slides_count=number_of_slides,
             api=text_api,
-            context=context
+            context=context,
+            template=self.settings["PRESENTATION_SETTING"]["TEMPLATE_NAME"]
         )
         return text_dto

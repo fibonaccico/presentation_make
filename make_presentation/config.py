@@ -20,7 +20,7 @@ DEFAULT_TEMPERATURE = 1.5
 
 DEFAULT_NUMBER_OF_SLIDES = 10
 
-MAX_COUNT_OF_GENERATION = 5
+MAX_COUNT_OF_GENERATION = 10
 
 BASE_KANDINSKY_URL = "https://api-key.fusionbrain.ai/"
 
@@ -44,14 +44,16 @@ MAX_TIME_IMAGE_GENERATION = 180
 
 MAX_SLIDE_TEXT_LENGTH = 650
 
-MAX_TEXT_LENGTH = DEFAULT_NUMBER_OF_SLIDES * MAX_SLIDE_TEXT_LENGTH
+MAX_NUMBER_OF_SLIDES_IN_TEMPLATES = 98
+
+MAX_TEXT_LENGTH = MAX_NUMBER_OF_SLIDES_IN_TEMPLATES * MAX_SLIDE_TEXT_LENGTH
 
 
 PROMPT_FOR_GENERATION_FROM_TEXT = '''
 Ты ИИ для генерации презентаций. Тебе будет дан отрывок [TEXT] из презентации на тему \" THEME \",
 выполни следующие действия:
 1. Создай заголовок [TITLE] к [TEXT]. Заголовок должен отвечать содержанию, быть интригующим
-и не быть длиннее 60 символов.
+и быть длинной от [MIN_CHAR] до [MAX_CHAR] символов.
 2. Ты должен переписать [TEXT] грамотным литературным языком. Важно! Не добавляй новую информацию,
 ничего не придумывай. В ответе выведи [NEW_TEXT]. Смысл [TEXT] и [NEW_TEXT]
 должны быть одинаковыми.
@@ -67,7 +69,7 @@ PROMPT_FOR_GENERATION_FROM_TEXT = '''
 
 PROMPT_FOR_THEME_GENERATION = '''
 Ты ИИ для генерации презентаций. Тебе будет дан [TEXT]. Придумай название [THEME] к [TEXT].
-[THEME] должно отвечать содержанию, быть интригующим и не быть длиннее 70 символов.
+[THEME] должно отвечать содержанию, быть интригующим и быть от MIN_CHAR до MAX_CHAR символов.
 
 
 Ответ выведи в формате:
@@ -79,13 +81,16 @@ PROMPT_FOR_THEME_GENERATION = '''
 
 
 MAIN_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
-Ты ИИ для генерации презентаций. Твоя задача сгенерировать заголовки, краткое описание слайдов,
-а также описания картинок на слайдах.
+Ты ИИ для генерации презентаций. Твоя задача сгенерировать заголовки, краткие описания к слайдам
+по их заголовкам, а также описания картинок для слайдов в презентации. Выполни следующие действия:
 
-Твоя задача вернуть мне заголовки слайдов , что должно быть описано в этих слайдах, а так же
-какие картинки  должны быть использованы в данном слайде.
+1. Создай заголовок [Заголовок] к слайду.
+   Заголовок должен быть интригующим и быть от MIN_CHAR до MAX_CHAR символов.
+2. Создай краткое описание к слайду [Описание].
+3. Создай описание картинки [Картинка], которая подойдет к заголовоку слайда [Заголовок].
 
-Верни ответ на тему презентации \" THEME \" на NUM_SL слайдов в форме:
+Для презентации на NUM_SL слайдов по теме \" THEME \" верни ответ в следующей форме:
+
 Слайд {Номер слайда}
 Заголовок:
 Описание:
@@ -94,8 +99,8 @@ MAIN_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
 
 SECOND_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
 Ты ИИ для генерации презентаций.
-Напиши текст, который бы ты вставил на слайд номер NUM_SLIDE по его описанию.
-Текст должен быть не более 850 символов, но не менее 650 символов.
+Напиши текст длинной от MIN_CHAR до MAX_CHAR символов, который ты бы вставил на слайд
+номер NUM_SLIDE по его описанию.
 
 Верни ответ по форме:
 Текст: {сгенерированный текст}.
@@ -107,15 +112,31 @@ SECOND_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
 множество видов, включая черный, зеленый и белый чай."\n
 """
 
+SCALING_FACTOR = 0.46     # Меньше значение - более плавное уменьшение шрифта
 
-def get_main_promt(theme: str, count_sl: int = DEFAULT_NUMBER_OF_SLIDES) -> str:
-    res = MAIN_PROMPT_FOR_TEXT_IN_TWO_STEPS.replace("THEME", theme)
+
+def get_main_promt(
+    theme: str,
+    title_min_char: int,
+    title_max_char: int,
+    count_sl: int = DEFAULT_NUMBER_OF_SLIDES
+) -> str:
+    res = MAIN_PROMPT_FOR_TEXT_IN_TWO_STEPS.replace(
+        "THEME", theme
+    ).replace("MIN_CHAR", str(title_min_char)).replace("MAX_CHAR", str(title_max_char))
     promt = res.replace("NUM_SL", str(count_sl))
     return promt
 
 
-def get_second_promt_beta(title_promt: str, num_slide: str) -> str:
-    promt_for_slide = SECOND_PROMPT_FOR_TEXT_IN_TWO_STEPS.replace("NUM_SLIDE", num_slide)
+def get_second_promt_beta(
+    title_promt: str,
+    num_slide: str,
+    text_min_char: int,
+    text_max_char: int
+) -> str:
+    promt_for_slide = SECOND_PROMPT_FOR_TEXT_IN_TWO_STEPS.replace(
+        "NUM_SLIDE", num_slide
+    ).replace("MIN_CHAR", str(text_min_char)).replace("MAX_CHAR", str(text_max_char))
     return str(title_promt + "\n\n" + promt_for_slide)
 
 

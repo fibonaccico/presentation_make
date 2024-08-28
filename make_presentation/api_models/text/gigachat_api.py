@@ -18,7 +18,10 @@ class GigaChatRequest(TextAPIProtocol):
         self.api = GigaChat(credentials=self.api_key, verify_ssl_certs=False)
         self.api.temperature = DEFAULT_TEMPERATURE
 
-    async def request(self, text: str, assistant: Optional[str] = None) -> BaseMessage:
+    async def request(
+        self, text: str,
+        assistant: Optional[str] = None
+    ) -> BaseMessage:
         messages = [HumanMessage(content=text)]
         if assistant:
             messages.append(SystemMessage(content=assistant))

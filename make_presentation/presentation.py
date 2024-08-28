@@ -2,17 +2,14 @@ from __future__ import annotations
 
 import os
 import re
-import subprocess
 import time
-
-import aspose.slides as slides
-from aspose.pdf import Document, HtmlFragment, HtmlLoadOptions
 
 from make_presentation.config import (DEFAULT_SETTINGS,
                                       ENDING_PRESENTATION_STATUS,
                                       ENDING_PRESENTATION_TEXT,
                                       MAX_TEXT_LENGTH,
                                       OPENING_PRESENTATION_THEME_TITLE)
+from make_presentation.converters import convert_pptx_to_pdf
 from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
 from make_presentation.errors import (MaxTextLengthError,
                                       TextDoesNotExistError,
@@ -135,67 +132,6 @@ class Presentation:
         )
 
     @staticmethod
-    def save_from_html_file(
-        file_name: str,
-        format: str,
-        save_path: str,
-    ) -> str:
-        """
-        To save a presentation from html string to pdf and pptx formats.
-        file_name: str - path to the file we have to convert
-        save_path: str - a path to the folder to save a presentation
-        """
-        # TODO use aspose libraries, we have to buy a certificate to escape aspose titiles
-
-        output_path = os.path.join(save_path, ("prs_" + str(time.time())))
-
-        # create a folder
-        os.makedirs(output_path, exist_ok=True)
-
-        output_path = Presentation.get_pdf_from_file(
-            file=file_name,
-            output=output_path
-        )
-
-        if format == "pptx":
-            with slides.Presentation() as pres:
-                pres.slides.add_from_pdf(output_path)
-                pres.save(output_path.replace("pdf", "pptx"), slides.export.SaveFormat.PPTX)
-            return output_path.replace("pdf", "pptx")
-        return output_path
-
-    @staticmethod
-    def save_from_html_string(
-        data: str,
-        format: str,
-        save_path: str,
-    ) -> str:
-        """
-        To save a presentation from html string to pdf and pptx formats.
-        save_path: str - a path to the folder to save a presentation
-        """
-        # TODO use aspose libraries, we have to buy a certificate to escape aspose titiles
-
-        output_path = os.path.join(save_path, ("prs_" + str(time.time())))
-
-        # create a folder
-        os.makedirs(output_path, exist_ok=True)
-
-        doc = Document()
-        page = doc.pages.add()
-        html_fr = HtmlFragment(data)
-        page.paragraphs.add(html_fr)
-        output_file_name = os.path.join(output_path, str(time.time()))
-        doc.save(output_file_name + ".pdf")
-
-        if format == "pptx":
-            with slides.Presentation() as pres:
-                pres.slides.add_from_pdf(output_file_name + ".pdf")
-                pres.save(output_file_name + ".pptx", slides.export.SaveFormat.PPTX)
-            return output_file_name + ".pptx"
-        return output_file_name + ".pdf"
-
-    @staticmethod
     def save(
         data: PresentationDTO,
         format: str,
@@ -207,13 +143,13 @@ class Presentation:
 
         save_path: str - a path to the folder to save a presentation
         """
-        presentation = PresentationTemplate()
-        presentation.create_presentation(data=data)
 
         output_path = os.path.join(save_path, ("prs_" + str(time.time())))
-
         # create a folder
         os.makedirs(output_path, exist_ok=True)
+
+        presentation = PresentationTemplate()
+        presentation.create_presentation(data=data, save_path=output_path)
 
         presentation_save_path = Presentation.get_presentationn_save_path(
             save_path=output_path,
@@ -224,25 +160,12 @@ class Presentation:
             file_save_path=presentation_save_path
         )
         if format == "pdf":
-            pdf_presentation_path = Presentation.get_pdf_from_file(
+            pdf_presentation_path = convert_pptx_to_pdf(
                 file=presentation_save_path,
                 output=presentation_save_path.replace("pptx", "pdf")
             )
             return pdf_presentation_path
         return presentation_save_path
-
-    @staticmethod
-    def get_pdf_from_file(file: str, output: str) -> str:
-        if file.split(".")[1] == "html":
-            output = os.path.join(output, f"{time.time()}.pdf")
-            options = HtmlLoadOptions()
-            document = Document(file, options)
-            document.save(output)
-        else:
-            output_dir = os.path.dirname(output)
-            cmd = f"libreoffice --headless --convert-to pdf --outdir {output_dir} {file}"
-            subprocess.run(cmd, shell=True)
-        return output
 
     @staticmethod
     def get_presentationn_save_path(save_path: str, theme: str) -> str:
