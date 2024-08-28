@@ -14,7 +14,7 @@ class TextAPIProtocol(Protocol):
     async def request(
         self,
         text: str,
-        assistant: Optional[str] = None,
+        assistant: Optional[str] = None
     ) -> BaseMessage:
         raise NotImplementedError
 

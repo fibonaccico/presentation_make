@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import os
 from io import BytesIO
 from typing import TYPE_CHECKING, Any
@@ -10,8 +11,8 @@ from pptx.dml.color import RGBColor
 
 from make_presentation.config import (DEFAULT_TEXT_FONT,
                                       DEFAULT_TEXT_FONT_SETTINGS,
-                                      DEFAULT_TEXT_SIZE, path_to_fonts,
-                                      path_to_foreground_image)
+                                      DEFAULT_TEXT_SIZE, SCALING_FACTOR,
+                                      path_to_fonts, path_to_foreground_image)
 from make_presentation.DTO import ImageInfoDTO
 from make_presentation.errors import FontDoesNotExistError, PicturesNumberError
 
@@ -38,7 +39,8 @@ class Slide:
         text_font_size: dict[str, dict[str, int]] | None,
         text_color: dict[str, dict[str, list[int]]] | None,
         pictures_setting: list[dict[str, str]] | None,
-        foreground_pictures_setting: list[str] | None
+        foreground_pictures_setting: list[str] | None,
+        max_chars: dict[str, dict[str, int]]
     ) -> None:
         self.title = title
         self.text = text
@@ -52,6 +54,7 @@ class Slide:
         self.text_color = text_color
         self.pictures_setting = pictures_setting
         self.foreground_pictures_setting = foreground_pictures_setting
+        self.max_chars = max_chars
 
     def make_slide(self) -> None:
         num_pic = 0
@@ -81,7 +84,8 @@ class Slide:
                         text_color=(
                             self.text_color[self.slide_type]["TITLE"]
                             if self.text_color and text_color_slide_type else None
-                        )
+                        ),
+                        max_chars=self.max_chars[self.slide_type]["TITLE"]
                     )
                 elif shape.text == "TEXT" and self.text is not None:
                     text_color_slide_type = (
@@ -106,7 +110,8 @@ class Slide:
                         text_color=(
                             self.text_color[self.slide_type]["TEXT"]
                             if self.text_color and text_color_slide_type else None
-                        )
+                        ),
+                        max_chars=self.max_chars[self.slide_type]["TEXT"]
                     )
                 elif (
                     shape.text == "PIC"
@@ -124,6 +129,19 @@ class Slide:
         if self.foreground_pictures_setting is not None:
             self.__add_foreground_images(names=self.foreground_pictures_setting)
 
+    def __calculate_font_size(
+        self,
+        text: str,
+        max_chars: int,
+        base_font_size: int,
+        scaling_factor: float = SCALING_FACTOR
+    ) -> int:
+        font_size = base_font_size
+        if len(text) > max_chars:
+            # Вычисляем новый размер шрифта с использованием логарифмической функции
+            font_size = base_font_size * (1 - scaling_factor * math.log(len(text) / max_chars))
+        return math.floor(font_size)
+
     def __add_text_to_placeholder(
         self,
         text_placeholder: Any,
@@ -131,8 +149,21 @@ class Slide:
         text_font: str,
         text_font_settings: dict[str, bool],
         text_font_size: int,
-        text_color: list[int] | None
+        text_color: list[int] | None,
+        max_chars: int
     ) -> None:
+        """
+        Add text into a shape with font settings.
+
+        :param text_placeholder: text box.
+        :param text: text for adding.
+        :param text_font: a font name.
+        :param text_font_settings: font settings (bold, italic).
+        :param text_font_size: font size.
+        :param text_color: text color in RGB format.
+        :param max_chars: max number of characters
+        """
+
         text_placeholder.text_frame.clear()
 
         paragraph = text_placeholder.text_frame.paragraphs[0]
@@ -140,24 +171,29 @@ class Slide:
         run.text = text
         font = run.font
 
+        font_size = self.__calculate_font_size(
+            text=text,
+            max_chars=max_chars,
+            base_font_size=text_font_size
+        )
+        text_placeholder.text_frame.auto_size = True
+
         try:
+            logger.info(f"Set font size = {font_size}")
             text_placeholder.text_frame.fit_text(
                 font_family=text_font,
-                max_size=text_font_size,
-                bold=text_font_settings["BOLD"],
-                italic=text_font_settings["ITALIC"],
+                max_size=font_size,
+                bold=text_font_settings.get("BOLD", False),
+                italic=text_font_settings.get("ITALIC", False),
                 font_file=os.path.join(path_to_fonts, f"{text_font}.ttf")
             )
-
             if text_color:
-                font.color.rgb = RGBColor(text_color[0], text_color[1], text_color[2])
-
+                font.color.rgb = RGBColor(*text_color)
         except OSError:
-            logger.info("Could not set text fonts because of unsuppored OS.")
+            logger.error("Could not set text fonts because of unsuppored OS.")
             raise FontDoesNotExistError("There is no font file.")
 
     def __add_picture(self, shape: Any, num_pic: int, settings: dict[str, str]) -> None:
-
         if self.img:
             if len(self.img) < num_pic:
                 raise PicturesNumberError("Wrong picteres number.")

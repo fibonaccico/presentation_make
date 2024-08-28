@@ -19,9 +19,7 @@ setuptools = "^70.0.0"
 aspose-pdf = "^24.6.0"
 aspose-slides = "24.6.0"
 asposeslidescloud = "^24.6.0"
-unoserver = "^2.1"
-unoconv = "^0.9.0"
-unotools = "^0.3.3"
+pymupdf = "^1.24.9"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "3.5.0"

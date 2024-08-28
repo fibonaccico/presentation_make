@@ -10,6 +10,10 @@ class NoPicturesInTemplateConfig(Exception):
     ...
 
 
+class TemplateConfigDoesNotExistError(Exception):
+    ...
+
+
 class PicturesNumberError(Exception):
     ...
 

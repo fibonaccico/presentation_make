@@ -5,12 +5,12 @@ import re
 from typing import TYPE_CHECKING
 
 from make_presentation.config import (MAX_COUNT_OF_GENERATION,
-                                      MAX_SLIDE_TEXT_LENGTH,
                                       PROMPT_FOR_GENERATION_FROM_TEXT,
                                       PROMPT_FOR_THEME_GENERATION)
 from make_presentation.DTO import TextDTO
 from make_presentation.errors import (MaxCountGenerationError,
                                       TittleOrSlideTextNotGeneratedError)
+from make_presentation.templates.template_config import MAX_CHARS
 
 from ..interfaces import TextGeneratorProtocol
 
@@ -32,7 +32,8 @@ class GenerationFromText(TextGeneratorProtocol):
         self,
         slides_count: int,
         api: TextAPIProtocol,
-        context: str
+        context: str,
+        template: str
     ) -> TextDTO:
         """
         To create Text data transfer object with following parameters:
@@ -45,7 +46,7 @@ class GenerationFromText(TextGeneratorProtocol):
         else:
             presentation_theme = generated_theme.content
 
-        list_of_excerpts = self.__split_text(text=context)
+        list_of_excerpts = self.__split_text(text=context, template=template)
 
         titles_list: list[str] = []
         slides_text_list: list[str] = []
@@ -60,7 +61,8 @@ class GenerationFromText(TextGeneratorProtocol):
 
                 slide_text = await self.__get_slide_text(
                     text_api=api, text=excerpts,
-                    theme=presentation_theme
+                    theme=presentation_theme,
+                    template=template
                 )
 
                 title, text_list, picture_description = self.__get_slide_info(
@@ -97,22 +99,30 @@ class GenerationFromText(TextGeneratorProtocol):
             theme=presentation_theme
         )
 
-    async def __get_slide_text(self, text_api: TextAPIProtocol, text: str, theme: str) -> AIMessage:
+    async def __get_slide_text(
+        self, text_api: TextAPIProtocol, text: str, theme: str, template: str
+    ) -> AIMessage:
+        title_min_char = MAX_CHARS[template]["min"]["USUAL"]["TITLE"]
+        title_max_char = MAX_CHARS[template]["max"]["USUAL"]["TITLE"]
         prompt = PROMPT_FOR_GENERATION_FROM_TEXT.replace("THEME", theme)
+        prompt = PROMPT_FOR_GENERATION_FROM_TEXT.replace("MIN_CHAR", str(title_min_char))
+        prompt = PROMPT_FOR_GENERATION_FROM_TEXT.replace("MAX_CHAR", str(title_max_char))
         return await text_api.request(text=(prompt + text))
 
     async def __get_presentation_theme(self, text_api: TextAPIProtocol, text: str) -> AIMessage:
         return await text_api.request(text=(PROMPT_FOR_THEME_GENERATION + text))
 
-    def __split_text(self, text: str, max_length: int = MAX_SLIDE_TEXT_LENGTH) -> list[str]:
+    def __split_text(self, text: str, template: str) -> list[str]:
         """
         Divide text into sentenses then create a list of excerpts
         of text with length <= max_length.
         """
 
-        sentences = text.replace("\n", " ") .split(". ")
+        sentences = text.replace("\n", " ").split(". ")
         excerpts = []
         current_excerpt = ""
+
+        max_length = MAX_CHARS[template]["max"]["USUAL"]["TEXT"]
 
         for sentence in sentences:
             if len(current_excerpt) + len(sentence) <= max_length:
