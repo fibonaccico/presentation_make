@@ -312,7 +312,7 @@ MAX_CHARS: dict[str, dict[str, dict[str, dict[str, int]]]] = {
                 "TITLE": 25
             },
             "USUAL": {
-                "TITLE": 80,
+                "TITLE": 40,
                 "TEXT": 450
             },
         },
@@ -470,7 +470,10 @@ USUAL_PICTURES: dict[str, list[list[dict[str, str]]]] = {
         [{"SIZE": "562 351"}],
         [],
         [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "815 1080"}],
-        []
+        [
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "780 462"},
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "780 462"}
+        ]
     ],
 }
 
