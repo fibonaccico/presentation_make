@@ -21,7 +21,7 @@ async def make_pres():
         text_api_key=text_api_key,
         image_api_key=image_api_key,
         image_secret_key=image_secret_key,
-        theme="Влияние радиоактивного излучение на человека"
+        theme="Средневековая Россия"
     )
     return task2
 
