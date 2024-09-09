@@ -134,7 +134,7 @@ TEXT_FONT_SIZE: dict[str, dict[str, dict[str, int]]] = {
             "TEXT": 15
         },
         "END": {
-            "TITLE": 40,
+            "TITLE": 36,
             "TEXT": 15
         },
         "USUAL": {
@@ -257,11 +257,11 @@ MAX_CHARS: dict[str, dict[str, dict[str, dict[str, int]]]] = {
                 "TITLE": 50
             },
             "END": {
-                "TITLE": 25
+                "TITLE": 40
             },
             "USUAL": {
-                "TITLE": 45,
-                "TEXT": 700,
+                "TITLE": 35,
+                "TEXT": 550,
             },
         },
         "min": {
