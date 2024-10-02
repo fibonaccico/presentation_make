@@ -58,6 +58,9 @@ class PresentationTemplate:
         slides_count: int,
         save_path: str
     ) -> str:
+        '''
+        Not implemented now!!!!!
+        '''
 
         slides_list = []
 
@@ -99,6 +102,10 @@ class PresentationTemplate:
         return result_template
 
     def _merge_pdf_files(self, files: list[str], output_file_path: str) -> str:
+        '''
+        Not implemented now!!!!!
+        '''
+
         result = fitz.open()
         for pdf in files:
             with fitz.open(pdf) as current_file:
@@ -138,6 +145,9 @@ class PresentationTemplate:
                 slide=self.presentation.slides[slide.number],
                 title=slide.title,
                 text=slide.text,
+                subtitle_1=slide.subtitle_1,
+                subtitle_2=slide.subtitle_2,
+                subtitle_3=slide.subtitle_3,
                 img=slide.images,
                 slide_number=slide.number,
                 slide_type=slide_type,

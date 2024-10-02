@@ -4,7 +4,8 @@ import os
 import re
 import time
 
-from make_presentation.config import (DEFAULT_SETTINGS,
+from make_presentation.config import (DEFAULT_NUMBER_OF_SLIDES,
+                                      DEFAULT_SETTINGS,
                                       ENDING_PRESENTATION_STATUS,
                                       ENDING_PRESENTATION_TEXT,
                                       MAX_TEXT_LENGTH,
@@ -46,7 +47,8 @@ class Presentation:
         image_secret_key: str,
         image_style: str = "DEFAULT",
         theme: str = '',
-        text: str = ''
+        text: str = '',
+        number_of_slides: int = DEFAULT_NUMBER_OF_SLIDES
     ) -> PresentationDTO:
         """
         Main function to create a presentation data transfer object.
@@ -71,7 +73,8 @@ class Presentation:
 
         text_dto = await TextAdapter(settings=self.settings)(
             context=context,
-            api_key=text_api_key
+            api_key=text_api_key,
+            number_of_slides=number_of_slides
         )
 
         list_of_image_dto = await ImagesAdapter(settings=self.settings)(
@@ -102,13 +105,19 @@ class Presentation:
 
         if self.opening_prentation_theme_title:
             text_dto.titles = [text_dto.theme] + text_dto.titles
-            text_dto.slides_text_list = [""] + text_dto.slides_text_list
+            text_dto.slides_text_list = [[""]] + text_dto.slides_text_list
+            text_dto.subtitles_1 = [""] + text_dto.subtitles_1
+            text_dto.subtitles_2 = [""] + text_dto.subtitles_2
+            text_dto.subtitles_3 = [""] + text_dto.subtitles_3
             list_of_image_info_dto = [None] + list_of_image_info_dto   # type: ignore
             slides_count += 1
 
         if self.ending_presentation_status:
             text_dto.titles = text_dto.titles + [ENDING_PRESENTATION_TEXT]
-            text_dto.slides_text_list = text_dto.slides_text_list + [""]
+            text_dto.slides_text_list = text_dto.slides_text_list + [[""]]
+            text_dto.subtitles_1 = text_dto.subtitles_1 + [""]
+            text_dto.subtitles_2 = text_dto.subtitles_2 + [""]
+            text_dto.subtitles_3 = text_dto.subtitles_3 + [""]
             list_of_image_info_dto = list_of_image_info_dto + [None]   # type: ignore
             slides_count += 1
             finish_title = ENDING_PRESENTATION_TEXT
@@ -116,11 +125,29 @@ class Presentation:
             finish_title = None
 
         for slide in range(slides_count):
+            if not text_dto.subtitles_1:
+                subtitle_1 = None
+            else:
+                subtitle_1 = text_dto.subtitles_1[slide]
+
+            if not text_dto.subtitles_2:
+                subtitle_2 = None
+            else:
+                subtitle_2 = text_dto.subtitles_2[slide]
+
+            if not text_dto.subtitles_3:
+                subtitle_3 = None
+            else:
+                subtitle_3 = text_dto.subtitles_3[slide]
+
             slide_dto = SlideDTO(
                 number=slide,
                 title=text_dto.titles[slide],
                 text=text_dto.slides_text_list[slide],
                 images=list_of_image_info_dto[slide],
+                subtitle_1=subtitle_1,
+                subtitle_2=subtitle_2,
+                subtitle_3=subtitle_3
             )
             slide_dto_list.append(slide_dto)
 

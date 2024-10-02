@@ -13,8 +13,25 @@ class ImageCorrector:
             self.create_rounded_square(pillow_img=self.pillow_img)
         elif figure == "ROUNDED DIAMOND":
             self.create_rounded_diamond(pillow_img=self.pillow_img)
-
+        elif figure == "ELLIPSE":
+            size = self.setting.get("SIZE").split(" ")
+            oval_width = int(size[0])
+            oval_height = int(size[1])
+            self.create_ellipse(
+                pillow_img=self.pillow_img,
+                oval_width=oval_width,
+                oval_height=oval_height
+            )
         return self.pillow_img
+
+    def create_ellipse(self, pillow_img: Image, oval_height: int, oval_width: int) -> Image:
+        # Создаем копию овальной формы как маску для изображения
+        mask = Image.new("L", (oval_width, oval_height), 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0, oval_width, oval_height), fill=255)
+        pillow_img.putalpha(mask)
+
+        return pillow_img
 
     def create_rounded_square(self, pillow_img: Image, radius: int = 50) -> Image:
         # Задайте размер изображения и радиус скругления углов

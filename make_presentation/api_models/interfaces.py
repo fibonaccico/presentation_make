@@ -13,8 +13,7 @@ if TYPE_CHECKING:
 class TextAPIProtocol(Protocol):
     async def request(
         self,
-        text: str,
-        assistant: Optional[str] = None
+        text: str
     ) -> BaseMessage:
         raise NotImplementedError
 

@@ -40,3 +40,19 @@ class FontDoesNotExistError(Exception):
 
 class MaxTextLengthError(Exception):
     ...
+
+
+class NoSlideTextError(Exception):
+    ...
+
+
+class NoSubtitlesError(Exception):
+    ...
+
+
+class InvalidSubtitlesNumberError(Exception):
+    ...
+
+
+class InvalidTitlesNumberError(Exception):
+    ...
