@@ -108,32 +108,96 @@ SECOND_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
 \n
 """
 
-SCALING_FACTOR = 0.3     # Меньше значение - более плавное уменьшение шрифта
+SCALING_FACTOR = 0.1     # Меньше значение - более плавное уменьшение шрифта
+
+TITLE_GENERATION_PROMPT = """
+Ты ИИ для генерации презентаций. Твоя задача:
+1. Сгенерировать NUM_SL заголовков для NUM_SL слайдов в презентации по теме \" THEME \".
+Важно: слайды введения и заключения не пиши
+2. К каждому слайду придумать простое короткое описание для картинки людей,
+зданий, предметов, которая будет изображена на слайде (картинка).
+Важно: это не должны быть графики или надписи
+
+Верни ответ в форме:
+Слайд {Номер слайда}
+Заголовок:
+Картинка:
+
+"""
+
+SUBTITLES_GENERATION_PROMPT = """
+Ты ИИ для генерации презентаций. Тебе будут даны заголовки слайдов.
+Твоя задача сгенерировать по 3 подзаголовка на каждый из заголовков
+по теме \" THEME \".
+
+TITLES
+
+Верни ответ в форме:
+Слайд {Номер слайда}
+Заголовок слайда:
+Подзаголовок 1:
+Подзаголовок 2:
+Подзаголовок 3:
+
+"""
+
+GENERAL_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
+Тема: THEME
+Слайд NUM_SLIDE
+Заголовок слайда: TITLE
+Подзаголовок 1: Subtitle_1
+Подзаголовок 2: Subtitle_2
+Подзаголовок 3: Subtitle_3
+
+Твоя задача на каждый из подзаголовков:
+Написать очень краткий информационный текст в одно предложение с важными датами,
+названиями и лицами (Описание)
+
+Верни ответ в следующей форме:
+Слайд {Номер слайда}
+Заголовок слайда:
+Подзаголовок (номер подзаголовка):
+Описание:
+
+"""
 
 
-def get_main_promt(
+def get_titles_generation_prompt(
     theme: str,
-    title_min_char: int,
-    title_max_char: int,
     count_sl: int = DEFAULT_NUMBER_OF_SLIDES
 ) -> str:
-    res = MAIN_PROMPT_FOR_TEXT_IN_TWO_STEPS.replace(
+    res = TITLE_GENERATION_PROMPT.replace(
         "THEME", theme
-    ).replace("MIN_CHAR", str(title_min_char)).replace("MAX_CHAR", str(title_max_char))
-    promt = res.replace("NUM_SL", str(count_sl))
-    return promt
+    ).replace("NUM_SL", str(count_sl))
+    return res
 
 
-def get_second_promt_beta(
-    title_promt: str,
-    num_slide: str,
-    text_min_char: int,
-    text_max_char: int
+def get_subtitles_generation_prompt(
+    theme: str,
+    titles: str
 ) -> str:
-    promt_for_slide = SECOND_PROMPT_FOR_TEXT_IN_TWO_STEPS.replace(
+    res = SUBTITLES_GENERATION_PROMPT.replace(
+        "THEME", theme
+    ).replace("TITLES", titles)
+    return res
+
+
+def get_general_prompt_for_each_slide(
+    theme: str,
+    num_slide: str,
+    title: str,
+    subtitle_1: str,
+    subtitle_2: str,
+    subtitle_3: str
+) -> str:
+    promt_for_slide = GENERAL_PROMPT_FOR_TEXT_IN_TWO_STEPS.replace(
         "NUM_SLIDE", num_slide
-    ).replace("MIN_CHAR", str(text_min_char)).replace("MAX_CHAR", str(text_max_char))
-    return str(title_promt + "\n\n" + promt_for_slide)
+    ).replace("THEME", theme).replace(
+        "TITLE", title
+    ).replace("Subtitle_1", subtitle_1).replace(
+        "Subtitle_2", subtitle_2
+    ). replace("Subtitle_3", subtitle_3)
+    return promt_for_slide
 
 
 # Путь к проекту

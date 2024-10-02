@@ -15,13 +15,14 @@ image_secret_key = os.getenv("KANDINSKY_SECRET_KEY")
 
 
 async def make_pres():
-    pr = Presentation(text_generation_model="TWOSTEP", template="classic")
+    pr = Presentation(text_generation_model="TWOSTEP", template="flow")
     task2 = await pr.make_presentation(
         save_path_for_images=save_path_for_images,
         text_api_key=text_api_key,
         image_api_key=image_api_key,
         image_secret_key=image_secret_key,
-        theme="Средневековая Россия"
+        theme="Биография А.С.Пушкина",
+        number_of_slides=10
     )
     return task2
 

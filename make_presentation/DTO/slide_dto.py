@@ -11,5 +11,8 @@ if TYPE_CHECKING:
 class SlideDTO:
     number: int
     title: str
-    text: str
+    text: list[str]
     images: list[ImageInfoDTO] | None
+    subtitle_1: str | None
+    subtitle_2: str | None
+    subtitle_3: str | None

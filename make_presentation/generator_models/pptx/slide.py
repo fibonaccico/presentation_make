@@ -30,7 +30,10 @@ class Slide:
         self,
         slide: PptxSlide,
         title: str,
-        text: str,
+        text: list[str],
+        subtitle_1: str | None,
+        subtitle_2: str | None,
+        subtitle_3: str | None,
         img: list[ImageInfoDTO] | None,
         slide_type: str,
         slide_number: int,
@@ -44,6 +47,9 @@ class Slide:
     ) -> None:
         self.title = title
         self.text = text
+        self.subtitle_1 = subtitle_1
+        self.subtitle_2 = subtitle_2
+        self.subtitle_3 = subtitle_3
         self.img = img
         self.slide = slide
         self.slide_type = slide_type
@@ -87,14 +93,16 @@ class Slide:
                         ),
                         max_chars=self.max_chars[self.slide_type]["TITLE"]
                     )
-                elif shape.text == "TEXT" and self.text is not None:
+                elif "TEXT" in shape.text and self.text is not None:
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
                     )
+                    shape_text = shape.text
+                    text_number = int(shape_text[-1])
                     self.__add_text_to_placeholder(
                         text_placeholder=shape,
-                        text=self.text,
+                        text=self.text[text_number - 1],
                         text_font=(
                             self.text_font[self.slide_type]["TEXT"]
                             if self.text_font else DEFAULT_TEXT_FONT
@@ -113,6 +121,42 @@ class Slide:
                         ),
                         max_chars=self.max_chars[self.slide_type]["TEXT"]
                     )
+
+                elif "SUBTITLE" in shape.text and self.text is not None:
+                    text_color_slide_type = (
+                        self.text_color.get(self.slide_type)
+                        if self.text_color else None
+                    )
+                    shape_text = shape.text
+                    subtitle_number = int(shape_text[-1])
+                    if subtitle_number == 1:
+                        subtitle = self.subtitle_1
+                    elif subtitle_number == 2:
+                        subtitle = self.subtitle_2
+                    else:
+                        subtitle = self.subtitle_3
+                    self.__add_text_to_placeholder(
+                        text_placeholder=shape,
+                        text=subtitle,
+                        text_font=(
+                            self.text_font[self.slide_type]["SUBTITLE"]
+                            if self.text_font else DEFAULT_TEXT_FONT
+                        ),
+                        text_font_settings=(
+                            self.text_font_settings[self.slide_type]["SUBTITLE"]
+                            if self.text_font_settings else DEFAULT_TEXT_FONT_SETTINGS
+                        ),
+                        text_font_size=(
+                            self.text_font_size[self.slide_type]["SUBTITLE"]
+                            if self.text_font_size else DEFAULT_TEXT_SIZE
+                        ),
+                        text_color=(
+                            self.text_color[self.slide_type]["SUBTITLE"]
+                            if self.text_color and text_color_slide_type else None
+                        ),
+                        max_chars=self.max_chars[self.slide_type]["SUBTITLE"]
+                    )
+
                 elif (
                     shape.text == "PIC"
                     and self.img is not None

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from make_presentation.config import DEFAULT_NUMBER_OF_SLIDES, DEFAULT_SETTINGS
+from make_presentation.config import DEFAULT_SETTINGS
 from make_presentation.errors import ContextDoesNotExistError
 from make_presentation.factories import TextFactory
 
@@ -21,7 +21,7 @@ class TextAdapter:
         self,
         context: str | None,
         api_key: str,
-        number_of_slides: int = DEFAULT_NUMBER_OF_SLIDES
+        number_of_slides: int
     ) -> TextDTO:
         """
         To create text for each slide.
