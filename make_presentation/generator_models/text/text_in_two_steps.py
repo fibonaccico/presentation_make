@@ -59,6 +59,11 @@ class TextInTwoSteps(TextGeneratorProtocol):
             titles=titles_and_picture_descriptions.content
         )
 
+        if len(subtitles_1) < slides_count or (
+            len(subtitles_1) < slides_count
+        ) or len(subtitles_1) < slides_count:
+            raise InvalidSubtitlesNumberError("Invalid number of generated sutitles.")
+
         slides_text_list = await self.__get_list_of_slides_text(
             api=api,
             theme=context,

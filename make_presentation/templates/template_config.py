@@ -577,16 +577,16 @@ USUAL_PICTURES: dict[str, list[list[dict[str, str]]]] = {
         [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "748 1080"}],
     ],
     "focus": [
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "683 1079"}],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "1917 412"}],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "713 1079"}],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "683 1079"}],
+        [{"FIGURE": "RECTANGLE", "SIZE": "683 1079"}],
+        [{"FIGURE": "RECTANGLE", "SIZE": "1917 412"}],
+        [{"FIGURE": "RECTANGLE", "SIZE": "713 1079"}],
+        [{"FIGURE": "RECTANGLE", "SIZE": "683 1079"}],
         [{"FIGURE": "ELLIPSE", "SIZE": "1017 1137"}],
         [],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "683 1079"}],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "1917 412"}],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "683 1079"}],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "683 1079"}],
+        [{"FIGURE": "RECTANGLE", "SIZE": "683 1079"}],
+        [{"FIGURE": "RECTANGLE", "SIZE": "1917 412"}],
+        [{"FIGURE": "RECTANGLE", "SIZE": "683 1079"}],
+        [{"FIGURE": "RECTANGLE", "SIZE": "683 1079"}],
     ],
     "flow": [
         [],
@@ -690,9 +690,9 @@ TEXT_COLOR: dict[str, dict[str, dict[str, list[int]]]] = {
             "TEXT": [255, 255, 255]
         },
         "USUAL": {
-            "TITLE": [53, 66, 89],
-            "SUBTITLE": [125, 133, 163],
-            "TEXT": [53, 66, 89]
+            "TITLE": [255, 255, 255],
+            "SUBTITLE": [255, 255, 255],
+            "TEXT": [255, 255, 255]
         },
     },
     "classic": {

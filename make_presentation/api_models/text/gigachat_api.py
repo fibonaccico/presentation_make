@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING, Sequence
 
+from dotenv import load_dotenv
 from langchain.chat_models.gigachat import GigaChat
 from langchain.schema import HumanMessage
 
@@ -12,9 +14,15 @@ if TYPE_CHECKING:
     from langchain_core.messages import BaseMessage
 
 
+load_dotenv()
+
+
 class GigaChatRequest(TextAPIProtocol):
-    def __init__(self, api_key: str):
-        self.api = GigaChat(credentials=api_key, verify_ssl_certs=False)
+    def __init__(self):
+        self.api = GigaChat(
+            credentials=os.getenv("GIGACHAT_API_KEY"),
+            verify_ssl_certs=False
+        )
         self.api.temperature = DEFAULT_TEMPERATURE
         # self.history = []  # noqa E800
 

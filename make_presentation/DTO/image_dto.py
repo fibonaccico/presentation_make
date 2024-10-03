@@ -10,11 +10,11 @@ if TYPE_CHECKING:
 @dataclass
 class ImageDTO:
     image: Image | None
-    path: str
+    path: str | None
     description: str
 
 
 @dataclass
 class ImageInfoDTO:
-    path: str
+    path: str | None
     description: str

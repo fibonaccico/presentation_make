@@ -2,11 +2,13 @@ import asyncio
 import base64
 import json
 import logging
+import os
 import time
 from io import BytesIO
 from typing import Optional
 
 import aiohttp
+from dotenv import load_dotenv
 from PIL import Image
 
 from make_presentation.api_models.interfaces import ImageAPIProtocol
@@ -18,14 +20,16 @@ from ..errors import BadRequestError, ImageGenerationFailedError, TimeOutError
 
 logger = logging.getLogger(name=__name__)
 
+load_dotenv()
+
 
 class KandinskyAPI(ImageAPIProtocol):
-    def __init__(self, api_key: str, secret_key: str) -> None:
+    def __init__(self) -> None:
         self.base_url = BASE_KANDINSKY_URL
         self.urls = KANDINSKY_URLS
         self.AUTH_HEADERS = {
-            "X-Key": f"Key {api_key}",
-            "X-Secret": f"Secret {secret_key}",
+            "X-Key": f"Key {os.getenv('KANDINSKY_API_KEY')}",
+            "X-Secret": f"Secret {os.getenv('KANDINSKY_SECRET_KEY')}",
         }
 
     async def get_model(self) -> int:
@@ -42,7 +46,7 @@ class KandinskyAPI(ImageAPIProtocol):
 
     async def create_image(
         self,
-        save_path: str,
+        save_path: Optional[str],
         promt: str = "Cat",
         width_height="1024 1024",
         negative_prompt: str = "",
@@ -102,9 +106,13 @@ class KandinskyAPI(ImageAPIProtocol):
         uuid = result["uuid"]
         image_result = await self._check_status(uuid=uuid, max_time=max_time)
         image_data = BytesIO(image_result["data"].getvalue())
-        path = f"{save_path}/{uuid}.png"
         image = Image.open(image_data)
-        image.save(fp=path)
+
+        if save_path:
+            path = f"{save_path}/{uuid}.png"
+            image.save(fp=path)
+        else:
+            path = None
 
         return ImageDTO(image=image, path=path, description=promt)
 
