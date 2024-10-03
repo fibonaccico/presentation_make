@@ -4,5 +4,7 @@ include make_presentation/templates/templates/classic/*.pptx
 include make_presentation/templates/templates/kfu/*.pptx
 include make_presentation/templates/templates/black_study/*.pptx
 include make_presentation/templates/templates/style/*.pptx
+include make_presentation/templates/templates/focus/*.pptx
+include make_presentation/templates/templates/flow/*.pptx
 include make_presentation/templates/foreground_images/*.png
 include make_presentation/templates/fonts/*.ttf
