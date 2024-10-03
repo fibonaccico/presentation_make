@@ -21,7 +21,7 @@ class TextAPIProtocol(Protocol):
 class ImageAPIProtocol(Protocol):
     async def create_image(
         self,
-        save_path: str,
+        save_path: Optional[str],
         promt: str,
         width_height: str,
         negative_prompt: str,

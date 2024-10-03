@@ -13,7 +13,7 @@ from make_presentation.config import (DEFAULT_TEXT_FONT,
                                       DEFAULT_TEXT_FONT_SETTINGS,
                                       DEFAULT_TEXT_SIZE, SCALING_FACTOR,
                                       path_to_fonts, path_to_foreground_image)
-from make_presentation.DTO import ImageInfoDTO
+from make_presentation.DTO import ImageDTO, ImageInfoDTO
 from make_presentation.errors import FontDoesNotExistError, PicturesNumberError
 
 from .image_corrector import ImageCorrector
@@ -34,7 +34,7 @@ class Slide:
         subtitle_1: str | None,
         subtitle_2: str | None,
         subtitle_3: str | None,
-        img: list[ImageInfoDTO] | None,
+        img: list[ImageInfoDTO] | None | list[ImageDTO],
         slide_type: str,
         slide_number: int,
         text_font: dict[str, dict[str, str]] | None,
@@ -241,7 +241,10 @@ class Slide:
         if self.img:
             if len(self.img) < num_pic:
                 raise PicturesNumberError("Wrong picteres number.")
-            pic = Image.open(self.img[num_pic].path)
+            if self.img[num_pic].path:
+                pic = Image.open(self.img[num_pic].path)
+            else:
+                pic = self.img[num_pic].image
 
         # Удаляет и восстанавливает объект картинки
         shape.element.getparent().remove(shape.element)

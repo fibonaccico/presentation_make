@@ -11,7 +11,8 @@ from make_presentation.config import (DEFAULT_NUMBER_OF_SLIDES,
                                       MAX_TEXT_LENGTH,
                                       OPENING_PRESENTATION_THEME_TITLE)
 from make_presentation.converters import convert_pptx_to_pdf
-from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
+from make_presentation.DTO import (  # , ImageInfoDTO # noqa E800
+    PresentationDTO, SlideDTO)
 from make_presentation.errors import (MaxTextLengthError,
                                       TextDoesNotExistError,
                                       ThemeDoesNotExistError)
@@ -41,10 +42,7 @@ class Presentation:
 
     async def make_presentation(
         self,
-        save_path_for_images: str,
-        text_api_key: str,
-        image_api_key: str,
-        image_secret_key: str,
+        save_path_for_images: str | None = None,
         image_style: str = "DEFAULT",
         theme: str = '',
         text: str = '',
@@ -73,29 +71,28 @@ class Presentation:
 
         text_dto = await TextAdapter(settings=self.settings)(
             context=context,
-            api_key=text_api_key,
             number_of_slides=number_of_slides
         )
 
         list_of_image_dto = await ImagesAdapter(settings=self.settings)(
             pictures_descriptions=text_dto.picture_discription_list,
             save_path=save_path_for_images,
-            image_style=image_style,
-            api_key=image_api_key,
-            secret_key=image_secret_key
+            image_style=image_style
         )
 
-        list_of_image_info_dto: list[list[ImageInfoDTO]] = []
+        list_of_image_info_dto = list_of_image_dto
 
-        for images_in_slide in list_of_image_dto:
-            img_info_dto_list_in_slide = []
-            for image_dto in images_in_slide:
-                image_info = ImageInfoDTO(
-                    path=image_dto.path, description=image_dto.description
-                )
-                img_info_dto_list_in_slide.append(image_info)
+        # list_of_image_info_dto: list[list[ImageInfoDTO]] = []     # noqa E800
 
-            list_of_image_info_dto.append(img_info_dto_list_in_slide)
+        # for images_in_slide in list_of_image_dto:                 # noqa E800
+        #     img_info_dto_list_in_slide = []                       # noqa E800
+        #     for image_dto in images_in_slide:                     # noqa E800
+        #         image_info = ImageInfoDTO(                        # noqa E800
+        #             path=image_dto.path, description=image_dto.description        # noqa E800
+        #         )                                                     # noqa E800
+        #         img_info_dto_list_in_slide.append(image_info)         # noqa E800
+
+        #     list_of_image_info_dto.append(img_info_dto_list_in_slide)  # noqa E800
 
         slide_dto_list: list[SlideDTO] = []
 
@@ -161,8 +158,8 @@ class Presentation:
     @staticmethod
     def save(
         data: PresentationDTO,
-        format: str,
         save_path: str,
+        format: str = "pptx"
     ) -> str:
         """
         To save a presentation from PresentationDTO to pdf and pptx formats.

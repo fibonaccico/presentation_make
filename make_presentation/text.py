@@ -20,7 +20,6 @@ class TextAdapter:
     async def __call__(
         self,
         context: str | None,
-        api_key: str,
         number_of_slides: int
     ) -> TextDTO:
         """
@@ -32,7 +31,7 @@ class TextAdapter:
 
         text_factory = TextFactory(self.settings["TEXT"])
 
-        text_api = text_factory.get_api(api_key=api_key)
+        text_api = text_factory.get_api()
         text_obj = text_factory.get_generation_model()
 
         text_dto = await text_obj.create_text(
