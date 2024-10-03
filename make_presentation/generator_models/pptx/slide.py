@@ -99,6 +99,7 @@ class Slide:
                         if self.text_color else None
                     )
                     shape_text = shape.text
+                    logger.info(f"Shape text {shape_text}. Last item {shape_text[-1]}")
                     text_number = int(shape_text[-1])
                     self.__add_text_to_placeholder(
                         text_placeholder=shape,
