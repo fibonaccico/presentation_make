@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 import re
 import time
@@ -20,6 +21,8 @@ from make_presentation.factories.text.text_module_enum import TextGenModuleEnum
 from make_presentation.generator_models.pptx import PresentationTemplate
 from make_presentation.image import ImagesAdapter
 from make_presentation.text import TextAdapter
+
+logger = logging.getLogger(__name__)
 
 
 class Presentation:
@@ -55,17 +58,24 @@ class Presentation:
         context = None
         if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.TEXTINTWOSTEP.value:
             if not theme:
+                logger.error("There is no theme.")
                 raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
             context = theme
 
         if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.FROMTEXT.value:
             if not text:
+                logger.error(
+                    "There is no text to create a presentation. \
+                    You should input a text because of you are going to generate a \
+                    presentation from text."
+                )
                 raise TextDoesNotExistError(
                     "There is no text to create a presentation. \
                     You should input a text because of you are going to generate a \
                     presentation from text."
                 )
             elif len(text) > MAX_TEXT_LENGTH:
+                logger.error(f"The text length can't be more than {MAX_TEXT_LENGTH}")
                 raise MaxTextLengthError(f"The text length can't be more than {MAX_TEXT_LENGTH}")
             context = text
 
@@ -159,7 +169,7 @@ class Presentation:
     def save(
         data: PresentationDTO,
         save_path: str,
-        format: str = "pdf"
+        format: str = "pptx"
     ) -> str:
         """
         To save a presentation from PresentationDTO to pdf and pptx formats.
@@ -188,7 +198,7 @@ class Presentation:
                 file=presentation_save_path,
                 output=presentation_save_path.replace("pptx", "pdf")
             )
-            return presentation_save_path, pdf_presentation_path
+            return pdf_presentation_path
         return presentation_save_path
 
     @staticmethod
