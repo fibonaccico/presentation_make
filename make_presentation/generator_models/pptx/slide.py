@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from PIL import Image
 from pptx.dml.color import RGBColor
+from pptx.enum.text import MSO_AUTO_SIZE
 
 from make_presentation.config import (DEFAULT_TEXT_FONT,
                                       DEFAULT_TEXT_FONT_SETTINGS,
@@ -220,7 +221,7 @@ class Slide:
             max_chars=max_chars,
             base_font_size=text_font_size
         )
-        text_placeholder.text_frame.auto_size = True
+        text_placeholder.text_frame.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
 
         try:
             logger.info(f"Set font size = {font_size}")

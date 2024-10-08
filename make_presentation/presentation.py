@@ -159,7 +159,7 @@ class Presentation:
     def save(
         data: PresentationDTO,
         save_path: str,
-        format: str = "pptx"
+        format: str = "pdf"
     ) -> str:
         """
         To save a presentation from PresentationDTO to pdf and pptx formats.
@@ -188,7 +188,7 @@ class Presentation:
                 file=presentation_save_path,
                 output=presentation_save_path.replace("pptx", "pdf")
             )
-            return pdf_presentation_path
+            return presentation_save_path, pdf_presentation_path
         return presentation_save_path
 
     @staticmethod
