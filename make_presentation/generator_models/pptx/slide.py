@@ -214,6 +214,7 @@ class Slide:
         run = paragraph.add_run()
         run.text = text
         font = run.font
+        logger.info(f"font size BEFORE = {text_font_size}")
 
         font_size = self.__calculate_font_size(
             text=text,
@@ -222,7 +223,7 @@ class Slide:
         )
 
         try:
-            logger.info(f"Set font size = {font_size}")
+            logger.info(f"Set font size  AFTER = {font_size}")
             text_placeholder.text_frame.fit_text(
                 font_family=text_font,
                 max_size=font_size,

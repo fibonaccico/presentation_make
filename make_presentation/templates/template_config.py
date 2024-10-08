@@ -392,15 +392,15 @@ MAX_CHARS: dict[str, dict[str, dict[str, dict[str, int]]]] = {
     "focus":  {
         "max": {
             "INITIAL": {
-                "TITLE": 42
+                "TITLE": 30
             },
             "END": {
-                "TITLE": 42
+                "TITLE": 30
             },
             "USUAL": {
-                "TITLE": 55,
-                "TEXT": 220,
-                "SUBTITLE": 80
+                "TITLE": 30,
+                "TEXT": 180,
+                "SUBTITLE": 60
             },
         },
         "min": {
