@@ -236,6 +236,15 @@ class Slide:
         except OSError:
             logger.error("Could not set text fonts because of unsuppored OS.")
             raise FontDoesNotExistError("There is no font file.")
+        except TypeError as err:
+            logger.info(err)
+            logger.info(f"TEXT ====   {text}")
+            logger.info(f"font_family = {text_font}")
+            logger.info(f"max_size = {font_size}")
+            logger.info(f"bold = {text_font_settings.get('BOLD', False)}")
+            logger.info(f"italic = {text_font_settings.get('ITALIC', False)}")
+            s = f'{text_font}.ttf'
+            logger.info(f"font_file = {os.path.join(path_to_fonts, s)}")
 
     def __add_picture(self, shape: Any, num_pic: int, settings: dict[str, str]) -> None:
         if self.img:
