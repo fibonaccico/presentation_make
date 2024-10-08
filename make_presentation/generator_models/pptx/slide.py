@@ -214,7 +214,6 @@ class Slide:
         run = paragraph.add_run()
         run.text = text
         font = run.font
-        logger.info(f"font size BEFORE = {text_font_size}")
 
         font_size = self.__calculate_font_size(
             text=text,
@@ -223,7 +222,9 @@ class Slide:
         )
 
         try:
-            logger.info(f"Set font size  AFTER = {font_size}")
+            if text_color:
+                font.color.rgb = RGBColor(*text_color)
+
             text_placeholder.text_frame.fit_text(
                 font_family=text_font,
                 max_size=font_size,
@@ -231,20 +232,11 @@ class Slide:
                 italic=text_font_settings.get("ITALIC", False),
                 font_file=os.path.join(path_to_fonts, f"{text_font}.ttf")
             )
-            if text_color:
-                font.color.rgb = RGBColor(*text_color)
         except OSError:
             logger.error("Could not set text fonts because of unsuppored OS.")
             raise FontDoesNotExistError("There is no font file.")
-        except TypeError as err:
-            logger.info(err)
-            logger.info(f"TEXT ====   {text}")
-            logger.info(f"font_family = {text_font}")
-            logger.info(f"max_size = {font_size}")
-            logger.info(f"bold = {text_font_settings.get('BOLD', False)}")
-            logger.info(f"italic = {text_font_settings.get('ITALIC', False)}")
-            s = f'{text_font}.ttf'
-            logger.info(f"font_file = {os.path.join(path_to_fonts, s)}")
+        except TypeError:
+            logger.error("Could not fit text because of litle text frame.")
 
     def __add_picture(self, shape: Any, num_pic: int, settings: dict[str, str]) -> None:
         if self.img:
