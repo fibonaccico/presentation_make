@@ -168,6 +168,8 @@ class PresentationTemplate:
 
             slide_in_pres.make_slide()
 
+        logger.info(f"A presentation {data.theme} has been created.")
+
     def save_presentation(self, file_save_path: str) -> None:
         self.presentation.save(file_save_path)
         logger.info(f"A presentation has been saved into {file_save_path}.")

@@ -185,7 +185,7 @@ class Presentation:
         presentation = PresentationTemplate()
         presentation.create_presentation(data=data, save_path=output_path)
 
-        presentation_save_path = Presentation.get_presentationn_save_path(
+        presentation_save_path = Presentation.get_presentation_save_path(
             save_path=output_path,
             theme=data.theme
         )
@@ -193,16 +193,24 @@ class Presentation:
         presentation.save_presentation(
             file_save_path=presentation_save_path
         )
+
+        logger.info(
+            f"Presentation {data.theme}, template:{data.template_name} is saved in pptx format."
+        )
+
         if format == "pdf":
             pdf_presentation_path = convert_pptx_to_pdf(
                 file=presentation_save_path,
                 output=presentation_save_path.replace("pptx", "pdf")
             )
+            logger.info(
+                f"Presentation {data.theme} is saved in pdf format."
+            )
             return pdf_presentation_path
         return presentation_save_path
 
     @staticmethod
-    def get_presentationn_save_path(save_path: str, theme: str) -> str:
+    def get_presentation_save_path(save_path: str, theme: str) -> str:
         text = re.sub(r'[!/:*\\?"<>|+.]', "", theme)
         text = re.sub(r"\s", "_", text)
 

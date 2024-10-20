@@ -420,13 +420,13 @@ MAX_CHARS: dict[str, dict[str, dict[str, dict[str, int]]]] = {
     "flow": {
         "max": {
             "INITIAL": {
-                "TITLE": 60
+                "TITLE": 30
             },
             "END": {
-                "TITLE": 60
+                "TITLE": 30
             },
             "USUAL": {
-                "TITLE": 55,
+                "TITLE": 30,
                 "SUBTITLE": 60,
                 "TEXT": 150,
             },

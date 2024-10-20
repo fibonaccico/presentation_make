@@ -8,3 +8,4 @@ class TextGenModuleEnum(enum.Enum):
 
 class TextApiModuleEnum(enum.Enum):
     GIGACHAT = "GIGACHAT"
+    YANDEXGPT = "YANDEXGPT"

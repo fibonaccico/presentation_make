@@ -1,5 +1,6 @@
-from .text import GigaChatRequest
+from .text import GigaChatRequest, YandexRequest
 
 __all__ = [
     "GigaChatRequest",
+    "YandexRequest",
 ]
