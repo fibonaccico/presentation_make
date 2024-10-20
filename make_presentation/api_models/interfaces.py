@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING, Optional, Protocol
 from make_presentation.config import MAX_TIME_IMAGE_GENERATION
 
 if TYPE_CHECKING:
-    from langchain_core.messages import BaseMessage
-
     from make_presentation.DTO import ImageDTO
 
 
@@ -14,7 +12,7 @@ class TextAPIProtocol(Protocol):
     async def request(
         self,
         text: str
-    ) -> BaseMessage:
+    ) -> str | list[str | dict]:
         raise NotImplementedError
 
 

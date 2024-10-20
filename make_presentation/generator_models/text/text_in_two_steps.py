@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 import re
 from typing import TYPE_CHECKING, Optional
 
@@ -18,6 +20,9 @@ if TYPE_CHECKING:
     from langchain_core.messages import BaseMessage
 
     from make_presentation.api_models.interfaces import TextAPIProtocol
+
+
+logger = logging.getLogger(__name__)
 
 
 class TextInTwoSteps(TextGeneratorProtocol):
@@ -49,20 +54,21 @@ class TextInTwoSteps(TextGeneratorProtocol):
             slides_count=slides_count
         )
         title_list, picture_discription_list = self.__split_text_into_titles_pictures(
-            text=titles_and_picture_descriptions.content,
+            text=titles_and_picture_descriptions,
             slides_count=slides_count
         )
 
         subtitles_1, subtitles_2, subtitles_3 = await self.__get_subtitles(
             api=api,
             theme=context,
-            titles=titles_and_picture_descriptions.content
+            titles=titles_and_picture_descriptions
         )
 
         if len(subtitles_1) < slides_count or (
             len(subtitles_1) < slides_count
         ) or len(subtitles_1) < slides_count:
-            raise InvalidSubtitlesNumberError("Invalid number of generated sutitles.")
+            logger.error("Invalid number of generated subtitles.")
+            raise InvalidSubtitlesNumberError("Invalid number of generated subtitles.")
 
         slides_text_list = await self.__get_list_of_slides_text(
             api=api,
@@ -119,7 +125,7 @@ class TextInTwoSteps(TextGeneratorProtocol):
         )
         ai_answer = await api.request(text=promt)
         subtitles_1, subtitles_2, subtitles_3 = self.__split_text_into_subtitles_lists(
-            text=ai_answer.content
+            text=ai_answer
         )
         return subtitles_1, subtitles_2, subtitles_3
 
@@ -130,13 +136,14 @@ class TextInTwoSteps(TextGeneratorProtocol):
         Return a tuple of title lists and picture descriptions.
         """
 
-        title_list: list[str] = re.findall(r"(?i)Заголовок:\s(.+)", text)
+        title_list: list[str] = re.findall(r"(?i)Заголовок:(.+)", text)
         new_title_list: list[str] = []
         for title in title_list:
-            new_title_list.append(title.strip('"').strip('«').strip('»'))
-        picture_discription_list: list[str] = re.findall(r"(?i)Картинка:\s(.+)", text)
+            new_title_list.append(self.__text_after_processing(text=title))
+        picture_discription_list: list[str] = re.findall(r"(?i)Картинка:(.+)", text)
 
         if len(title_list) != slides_count:
+            logging.error(f"Titles number less than {slides_count}.")
             raise InvalidTitlesNumberError(f"Titles number less than {slides_count}")
 
         return new_title_list, picture_discription_list
@@ -149,22 +156,24 @@ class TextInTwoSteps(TextGeneratorProtocol):
         Return a tuple of subtitles lists.
         """
 
-        subtitles_1: list[str] = re.findall(r"(?i)Подзаголовок 1:\s(.+)", text)
+        subtitles_1: list[str] = re.findall(r"(?i)Подзаголовок 1:(.+)", text)
         new_subtitles_1 = []
         for item in subtitles_1:
             new_subtitles_1.append(self.__text_after_processing(item))
-        subtitles_2: list[str] = re.findall(r"(?i)Подзаголовок 2:\s(.+)", text)
+        subtitles_2: list[str] = re.findall(r"(?i)Подзаголовок 2:(.+)", text)
         new_subtitles_2 = []
         for item in subtitles_2:
             new_subtitles_2.append(self.__text_after_processing(item))
-        subtitles_3: list[str] = re.findall(r"(?i)Подзаголовок 3:\s(.+)", text)
+        subtitles_3: list[str] = re.findall(r"(?i)Подзаголовок 3:(.+)", text)
         new_subtitles_3 = []
         for item in subtitles_3:
             new_subtitles_3.append(self.__text_after_processing(item))
 
         if not any([new_subtitles_1, new_subtitles_2, new_subtitles_3]):
+            logger.error("Subtitles have not been generated.")
             raise NoSubtitlesError("Subtitles have not been generated.")
         elif len(new_subtitles_1) < 3 or len(new_subtitles_2) < 3 or len(new_subtitles_3) < 3:
+            logger.error("Number of subtitles is invalid.")
             raise InvalidSubtitlesNumberError("Number of subtitles is invalid.")
 
         return new_subtitles_1, new_subtitles_2, new_subtitles_3
@@ -182,20 +191,17 @@ class TextInTwoSteps(TextGeneratorProtocol):
         Generate a text for each slide and return a list of slides text.
         """
 
-        list_of_slides_text = []
-
-        for i in range(len(titles)):
-            list_of_slides_text.append(
-                await self.__get_slide_text(
-                    api=api,
-                    theme=theme,
-                    title=titles[i],
-                    num_slide=str(i + 1),
-                    subtitle_1=subtitles_1[i],
-                    subtitle_2=subtitles_2[i],
-                    subtitle_3=subtitles_3[i]
-                )
-            )
+        list_of_slides_text = await asyncio.gather(*(
+            self.__get_slide_text(
+                api=api,
+                theme=theme,
+                title=titles[i],
+                num_slide=str(i + 1),
+                subtitle_1=subtitles_1[i],
+                subtitle_2=subtitles_2[i],
+                subtitle_3=subtitles_3[i]
+            ) for i in range(len(titles)))
+        )
 
         return list_of_slides_text
 
@@ -226,7 +232,7 @@ class TextInTwoSteps(TextGeneratorProtocol):
         generated_text_for_slide = await api.request(
             text=promt_for_slide)
 
-        text = re.findall(r"(?i)Описание:\s(.+)", generated_text_for_slide.content)
+        text = re.findall(r"(?i)Описание:(.+)", generated_text_for_slide)
         new_text = []
         for description in text:
             new_text.append(self.__text_after_processing(description))
@@ -234,13 +240,18 @@ class TextInTwoSteps(TextGeneratorProtocol):
         if new_text and len(new_text) == 3:
             return new_text
         else:
+            logger.error(
+                "A slide text has not been generated. There is no 'Описание:' in AI answer."
+            )
             raise NoSlideTextError(
                 "A slide text has not been generated. There is no 'Описание:' in AI answer."
             )
 
     def __text_after_processing(self, text: str) -> str:
-        text = text.strip('"')
+        text.strip(" ")
+        text.strip('"')
         text.strip("'").strip('"').strip('«').strip('»')
+        text.strip('*').strip('*').strip('*')
         return text
 
     def __get_full_text(
@@ -257,6 +268,9 @@ class TextInTwoSteps(TextGeneratorProtocol):
         """
 
         if len(titles) == 0 or len(slides_text_list) == 0:
+            logger.error(
+                "There are no generated titles or slides descriptions."
+            )
             raise TittleOrSlideTextNotGeneratedError(
                 "There are no generated titles or slides descriptions."
             )

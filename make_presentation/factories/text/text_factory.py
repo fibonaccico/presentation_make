@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from make_presentation.api_models import GigaChatRequest
+from make_presentation.api_models import GigaChatRequest, YandexRequest
 from make_presentation.generator_models import (GenerationFromText,
                                                 TextInTwoSteps)
 
@@ -23,6 +23,8 @@ class TextFactory:
         text_api = self.settings["API"]
         if text_api == TextApiModuleEnum.GIGACHAT.value:
             text_request_model = GigaChatRequest()
+        elif text_api == TextApiModuleEnum.YANDEXGPT.value:
+            text_request_model = YandexRequest()
         else:
             raise InvalidFactoryNameError(
                 f"Incorrect text api module in settings: {text_api}"

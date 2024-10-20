@@ -241,6 +241,7 @@ class Slide:
     def __add_picture(self, shape: Any, num_pic: int, settings: dict[str, str]) -> None:
         if self.img:
             if len(self.img) < num_pic:
+                logger.error("Wrong picteres number.")
                 raise PicturesNumberError("Wrong picteres number.")
             if self.img[num_pic].path:
                 pic = Image.open(self.img[num_pic].path)
