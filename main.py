@@ -19,7 +19,7 @@ async def make_pres():
     pr = Presentation(text_generation_model="TWOSTEP", template="focus")
     task2 = await pr.make_presentation(
         theme="Венчурные инвестиции",
-        number_of_slides=10
+        number_of_slides=6
     )
     return task2
 

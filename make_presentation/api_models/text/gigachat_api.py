@@ -20,6 +20,7 @@ class GigaChatRequest(TextAPIProtocol):
     def __init__(self):
         self.api = GigaChat(
             credentials=os.getenv("GIGACHAT_API_KEY"),
+            scope="GIGACHAT_API_B2B",
             verify_ssl_certs=False
         )
         self.semaphore = asyncio.Semaphore(value=DEFAULT_REQUEST_NUMBER)
