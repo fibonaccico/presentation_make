@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import logging
 import re
 from typing import TYPE_CHECKING, Optional
@@ -190,9 +189,9 @@ class TextInTwoSteps(TextGeneratorProtocol):
         """
         Generate a text for each slide and return a list of slides text.
         """
-
-        list_of_slides_text = await asyncio.gather(*(
-            self.__get_slide_text(
+        list_of_slides_text = []
+        for i in range(len(titles)):
+            resp = await self.__get_slide_text(
                 api=api,
                 theme=theme,
                 title=titles[i],
@@ -200,8 +199,8 @@ class TextInTwoSteps(TextGeneratorProtocol):
                 subtitle_1=subtitles_1[i],
                 subtitle_2=subtitles_2[i],
                 subtitle_3=subtitles_3[i]
-            ) for i in range(len(titles)))
-        )
+            )
+            list_of_slides_text.append(resp)
 
         return list_of_slides_text
 

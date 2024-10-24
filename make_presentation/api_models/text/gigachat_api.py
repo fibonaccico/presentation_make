@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from langchain.chat_models.gigachat import GigaChat
 from langchain.schema import HumanMessage
 
+from make_presentation.api_models.errors import BlacklistError
 from make_presentation.api_models.interfaces import TextAPIProtocol
 from make_presentation.config import (DEFAULT_REQUEST_NUMBER,
                                       DEFAULT_TEMPERATURE)
@@ -36,5 +37,6 @@ class GigaChatRequest(TextAPIProtocol):
         # response = await self.api.ainvoke(self.history)   # noqa E800
         # self.history.append(response)                     # noqa E800
             response = await self.api.ainvoke([HumanMessage(content=text)])
-
+        if "я совсем не хочу говорить на эту тему" in response.content.lower():
+            raise BlacklistError("Request content is in a blacklist")
         return response.content

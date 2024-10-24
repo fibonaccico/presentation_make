@@ -12,3 +12,7 @@ class BadRequestError(Exception):
 
 class ImageGenerationFailedError(Exception):
     ...
+
+
+class BlacklistError(Exception):
+    ...
