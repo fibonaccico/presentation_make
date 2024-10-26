@@ -36,7 +36,14 @@ class GigaChatRequest(TextAPIProtocol):
         # self.history.append(HumanMessage(content=text))   # noqa E800
         # response = await self.api.ainvoke(self.history)   # noqa E800
         # self.history.append(response)                     # noqa E800
+            request_cost = await self.api.atokens_count(input_=[text])
             response = await self.api.ainvoke([HumanMessage(content=text)])
+            response_cost = await self.api.atokens_count(input_=[response.content])
+
+        logger.info(
+            f'Request costs [{request_cost[0]}] tokens.'
+            f'Response costs [{response_cost[0]}] tokens.'
+        )
         if "я совсем не хочу говорить на эту тему" in response.content.lower():
             raise BlacklistError("Request content is in a blacklist")
         return response.content
