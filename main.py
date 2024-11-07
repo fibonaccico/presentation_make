@@ -16,7 +16,7 @@ logging.basicConfig(
 
 
 async def make_pres():
-    pr = Presentation(text_generation_model="TWOSTEP", template="focus")
+    pr = Presentation(text_generation_model="ONESTEP", template="focus")
     task2 = await pr.make_presentation(
         theme="Венчурные инвестиции",
         number_of_slides=6

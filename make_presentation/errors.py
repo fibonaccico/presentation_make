@@ -56,3 +56,7 @@ class InvalidSubtitlesNumberError(Exception):
 
 class InvalidTitlesNumberError(Exception):
     ...
+
+
+class InvalidTextNumberError(Exception):
+    ...

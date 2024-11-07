@@ -56,12 +56,6 @@ class Presentation:
         """
 
         context = None
-        if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.TEXTINTWOSTEP.value:
-            if not theme:
-                logger.error("There is no theme.")
-                raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
-            context = theme
-
         if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.FROMTEXT.value:
             if not text:
                 logger.error(
@@ -78,6 +72,12 @@ class Presentation:
                 logger.error(f"The text length can't be more than {MAX_TEXT_LENGTH}")
                 raise MaxTextLengthError(f"The text length can't be more than {MAX_TEXT_LENGTH}")
             context = text
+
+        else:
+            if not theme:
+                logger.error("There is no theme.")
+                raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
+            context = theme
 
         text_dto = await TextAdapter(settings=self.settings)(
             context=context,

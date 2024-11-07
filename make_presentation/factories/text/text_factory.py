@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from make_presentation.api_models import GigaChatRequest, YandexRequest
 from make_presentation.generator_models import (GenerationFromText,
-                                                TextInTwoSteps)
+                                                TextInOneStep, TextInTwoSteps)
 
 from ..errors import InvalidFactoryNameError
 from .text_module_enum import TextApiModuleEnum, TextGenModuleEnum
@@ -39,6 +39,8 @@ class TextFactory:
             generation_model: TextGeneratorProtocol = TextInTwoSteps()
         elif text_generation_model == TextGenModuleEnum.FROMTEXT.value:
             generation_model = GenerationFromText()
+        elif text_generation_model == TextGenModuleEnum.TEXTINONESTEP.value:
+            generation_model = TextInOneStep()
         else:
             raise InvalidFactoryNameError(
                 f"Incorrect text generation module in settings: {text_generation_model}"
