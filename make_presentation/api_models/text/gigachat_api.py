@@ -15,7 +15,10 @@ if TYPE_CHECKING:
 class GigaChatRequest(TextAPIProtocol):
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.api = GigaChat(credentials=self.api_key, verify_ssl_certs=False)
+        self.api = GigaChat(
+            credentials=self.api_key,
+            scope="GIGACHAT_API_B2B",
+            verify_ssl_certs=False)
         self.api.temperature = DEFAULT_TEMPERATURE
 
     async def request(
