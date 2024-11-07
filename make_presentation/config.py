@@ -3,7 +3,7 @@ import os
 import pkg_resources
 
 DEFAULT_SETTINGS: dict[str, dict[str, str]] = {
-    "TEXT": {"API": "GIGACHAT", "GENMODEL": "TWOSTEP"},
+    "TEXT": {"API": "GIGACHAT", "GENMODEL": "ONESTEP"},
     "IMG": {"API": "KANDINSKY"},
     "PRESENTATION_SETTING": {
         "TEMPLATE_NAME": "minima",
@@ -112,6 +112,28 @@ SECOND_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
 
 SCALING_FACTOR = 0.1     # Меньше значение - более плавное уменьшение шрифта
 
+PROMPT_ONE_STEP_GENERATION = '''
+Ты ИИ для генерации презентаций. Твоя задача:
+1. Сгенерировать NUM_SLIDE заголовков для NUM_SLIDE слайдов в презентации по теме \" THEME \".
+Важно: слайды ведения и заключения не пиши.
+2. На каждый из заголовков придумать по 3 подзаголовка.
+3. На каждый из подзаголовков написать очень краткий информационный текст в одно предложение
+с важными датами, названиями и лицами (описание).
+4. К каждому слайду придумать простое короткое описание для картинки людей, зданий, предметов,
+которая будет изображена на слайде (картинка). Важно: это не должны быть графики или надписи.
+
+Верни ответ в форме:
+Слайд {Номер слайда}
+Заголовок слайда:
+Подзаголовок 1:
+Описание 1:
+Подзаголовок 2:
+Описание 2:
+Подзаголовок 3:
+Описание 3:
+Картинка:
+'''
+
 TITLE_GENERATION_PROMPT = """
 Ты ИИ для генерации презентаций. Твоя задача:
 1. Сгенерировать NUM_SL заголовков для NUM_SL слайдов в презентации по теме \" THEME \".
@@ -204,6 +226,16 @@ def get_general_prompt_for_each_slide(
         "Subtitle_2", subtitle_2
     ). replace("Subtitle_3", subtitle_3)
     return promt_for_slide
+
+
+def get_prompt_for_one_step_generation(
+    theme: str,
+    num_slide: str
+) -> str:
+    prompt = PROMPT_ONE_STEP_GENERATION.replace(
+        "NUM_SLIDE", str(num_slide)
+    ).replace("THEME", theme)
+    return prompt
 
 
 # Путь к проекту

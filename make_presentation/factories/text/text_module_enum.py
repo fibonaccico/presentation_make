@@ -3,6 +3,7 @@ import enum
 
 class TextGenModuleEnum(enum.Enum):
     TEXTINTWOSTEP = "TWOSTEP"
+    TEXTINONESTEP = "ONESTEP"
     FROMTEXT = "FROMTEXT"
 
 
