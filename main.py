@@ -21,7 +21,7 @@ async def make_pres():
         text_api_key=text_api_key,
         image_api_key=image_api_key,
         image_secret_key=image_secret_key,
-        theme="Средневековая Россия"
+        theme="Венчурные инвестиции"
     )
     return task2
 
