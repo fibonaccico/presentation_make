@@ -6,7 +6,6 @@ import re
 import time
 
 from make_presentation.config import (DEFAULT_NUMBER_OF_SLIDES,
-                                      DEFAULT_SETTINGS,
                                       ENDING_PRESENTATION_STATUS,
                                       ENDING_PRESENTATION_TEXT,
                                       MAX_TEXT_LENGTH,
@@ -14,9 +13,8 @@ from make_presentation.config import (DEFAULT_NUMBER_OF_SLIDES,
 from make_presentation.converters import convert_pptx_to_pdf
 from make_presentation.DTO import (  # , ImageInfoDTO # noqa E800
     PresentationDTO, SlideDTO)
-from make_presentation.errors import (MaxTextLengthError,
-                                      TextDoesNotExistError,
-                                      ThemeDoesNotExistError)
+from make_presentation.errors import (ContextDoesNotExistError,
+                                      MaxTextLengthError)
 from make_presentation.factories.text.text_module_enum import TextGenModuleEnum
 from make_presentation.generator_models.pptx import PresentationTemplate
 from make_presentation.image import ImagesAdapter
@@ -29,62 +27,50 @@ class Presentation:
     def __init__(
         self,
         text_generation_model: str,
-        config_data: dict[str, dict[str, str]] = DEFAULT_SETTINGS,
-        template: str = "minima",
+        template: str,
         opening_prentation_theme_title: bool = OPENING_PRESENTATION_THEME_TITLE,
         ending_presentation_status: bool = ENDING_PRESENTATION_STATUS
     ) -> None:
-        self.settings = config_data
-        self.settings["TEXT"]["GENMODEL"] = text_generation_model
-
-        if template:
-            self.settings["PRESENTATION_SETTING"]["TEMPLATE_NAME"] = template
-
+        self.text_generation_model = text_generation_model
+        self.template = template
         self.opening_prentation_theme_title = opening_prentation_theme_title
         self.ending_presentation_status = ending_presentation_status
 
     async def make_presentation(
         self,
+        context: str,
+        number_of_slides: int = DEFAULT_NUMBER_OF_SLIDES,
         save_path_for_images: str | None = None,
         image_style: str = "DEFAULT",
-        theme: str = '',
-        text: str = '',
-        number_of_slides: int = DEFAULT_NUMBER_OF_SLIDES
     ) -> PresentationDTO:
         """
         Main function to create a presentation data transfer object.
         """
 
-        context = None
-        if self.settings["TEXT"]["GENMODEL"] == TextGenModuleEnum.FROMTEXT.value:
-            if not text:
-                logger.error(
-                    "There is no text to create a presentation. \
-                    You should input a text because of you are going to generate a \
-                    presentation from text."
-                )
-                raise TextDoesNotExistError(
-                    "There is no text to create a presentation. \
-                    You should input a text because of you are going to generate a \
-                    presentation from text."
-                )
-            elif len(text) > MAX_TEXT_LENGTH:
+        if self.text_generation_model == TextGenModuleEnum.FROMTEXT.value:
+            if len(context) > MAX_TEXT_LENGTH:
                 logger.error(f"The text length can't be more than {MAX_TEXT_LENGTH}")
                 raise MaxTextLengthError(f"The text length can't be more than {MAX_TEXT_LENGTH}")
-            context = text
 
-        else:
-            if not theme:
-                logger.error("There is no theme.")
-                raise ThemeDoesNotExistError("There is no theme. You should input a theme.")
-            context = theme
+        if not context:
+            logger.error(
+                "There is no text or theme to create a presentation. \
+                You should input a text or a theme."
+            )
+            raise ContextDoesNotExistError(
+                "There is no text or theme to create a presentation. \
+                You should input a text or a theme."
+            )
 
-        text_dto = await TextAdapter(settings=self.settings)(
+        text_dto = await TextAdapter()(
             context=context,
-            number_of_slides=number_of_slides
+            number_of_slides=number_of_slides,
+            template=self.template,
+            text_generation_model=self.text_generation_model
         )
 
-        list_of_image_dto = await ImagesAdapter(settings=self.settings)(
+        list_of_image_dto = await ImagesAdapter()(
+            template=self.template,
             pictures_descriptions=text_dto.picture_discription_list,
             save_path=save_path_for_images,
             image_style=image_style
@@ -159,7 +145,7 @@ class Presentation:
             slide_dto_list.append(slide_dto)
 
         return PresentationDTO(
-            template_name=self.settings["PRESENTATION_SETTING"]["TEMPLATE_NAME"],
+            template_name=self.template,
             theme=text_dto.theme,
             finish_title=finish_title,
             slides=slide_dto_list,
