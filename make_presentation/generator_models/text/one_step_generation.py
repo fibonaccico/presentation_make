@@ -4,7 +4,7 @@ import logging
 import re
 from typing import TYPE_CHECKING, Optional
 
-from make_presentation.config import get_prompt_for_one_step_generation
+from make_presentation.config import get_prompt_result
 from make_presentation.DTO import TextDTO
 from make_presentation.errors import (InvalidTextNumberError,
                                       TittleOrSlideTextNotGeneratedError)
@@ -33,6 +33,9 @@ class TextInOneStep(TextGeneratorProtocol):
     Описание 3:
     Картинка:
     """
+    def __init__(self, prompt: str, theme: bool) -> None:
+        self.prompt = prompt
+        self.theme = theme
 
     async def create_text(
         self,
@@ -47,7 +50,10 @@ class TextInOneStep(TextGeneratorProtocol):
         """
 
         ai_answer = await self.__get_all_ai_answer(
-            api=api, theme=context, slides_count=slides_count
+            prompt=self.prompt,
+            api=api,
+            context=context,
+            num_slide=slides_count
         )
 
         titles = self.__get_list_text(
@@ -84,6 +90,13 @@ class TextInOneStep(TextGeneratorProtocol):
             text=ai_answer,
             num_slides=slides_count
         )
+        if not self.theme:
+            presentation_theme = re.findall(
+                r"(?i)Тема презентации:(.+)",
+                ai_answer
+            )[0]
+        else:
+            presentation_theme = context
 
         return TextDTO(
             titles=titles,
@@ -99,18 +112,19 @@ class TextInOneStep(TextGeneratorProtocol):
                 subtitles_3=subtitles_3,
                 slides_text_list=slides_text_list
                 ),
-            theme=context
+            theme=presentation_theme
         )
 
     async def __get_all_ai_answer(
-        self, api: TextAPIProtocol, theme: str, slides_count: int
+        self, prompt: str, api: TextAPIProtocol, context: str, num_slide: int
     ) -> str | list[str | dict]:
 
-        promt = get_prompt_for_one_step_generation(
-            theme=theme,
-            num_slide=slides_count
+        res_prompt = get_prompt_result(
+            context=context,
+            num_slide=num_slide,
+            prompt=prompt
         )
-        ai_answer = await api.request(promt)
+        ai_answer = await api.request(res_prompt)
         return ai_answer
 
     def __get_list_text(self, text: str,  pattern: str, num_slides: int) -> list[str]:

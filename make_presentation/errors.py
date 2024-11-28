@@ -1,4 +1,4 @@
-class ThemeDoesNotExistError(Exception):
+class ContextDoesNotExistError(Exception):
     ...
 
 
@@ -18,19 +18,11 @@ class PicturesNumberError(Exception):
     ...
 
 
-class TextDoesNotExistError(Exception):
-    ...
-
-
 class InvalidVaraibleForTextGenerationModelError(Exception):
     ...
 
 
 class MaxCountGenerationError(Exception):
-    ...
-
-
-class ContextDoesNotExistError(Exception):
     ...
 
 

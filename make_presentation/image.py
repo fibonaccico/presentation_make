@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
-from make_presentation.config import DEFAULT_SETTINGS
 from make_presentation.factories import ImgFactory
 from make_presentation.utils import get_pictures_sizes
 
@@ -12,13 +11,9 @@ if TYPE_CHECKING:
 
 
 class ImagesAdapter:
-    def __init__(
-        self, settings: dict[str, dict[str, str]] = DEFAULT_SETTINGS
-    ) -> None:
-        self.settings = settings
-
     async def __call__(
         self,
+        template: str,
         pictures_descriptions: list[str],
         save_path: str | None,
         negative_prompt: str = "",
@@ -28,14 +23,13 @@ class ImagesAdapter:
         To create images for a presentation.
         """
 
-        img_factory = ImgFactory(settings=self.settings["IMG"])
+        img_factory = ImgFactory()
         image_api_obj = img_factory.get_img_api()
 
-        template_name = self.settings["PRESENTATION_SETTING"]["TEMPLATE_NAME"]
         slides_count = len(pictures_descriptions)
 
         pictures_sizes = get_pictures_sizes(
-            template_name=template_name, number_of_slides=slides_count
+            template_name=template, number_of_slides=slides_count
         )
 
         results = await asyncio.gather(
