@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from make_presentation.errors import ContextDoesNotExistError
 from make_presentation.factories import TextFactory
@@ -13,7 +13,7 @@ class TextAdapter:
     async def __call__(
         self,
         context: str | None,
-        number_of_slides: int,
+        number_of_slides: Optional[int],
         template: str,
         text_generation_model: str
     ) -> TextDTO:
