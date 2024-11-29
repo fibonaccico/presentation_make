@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import pkg_resources
 
@@ -12,8 +13,6 @@ ENDING_PRESENTATION_STATUS = True
 ENDING_PRESENTATION_TEXT = "Спасибо за внимание!"
 
 DEFAULT_TEMPERATURE = 1.5
-
-DEFAULT_NUMBER_OF_SLIDES = 10
 
 MAX_COUNT_OF_GENERATION = 10
 
@@ -131,10 +130,10 @@ PROMPT_ONE_STEP_GENERATION = '''
 
 PROMPT_GENERATION_FROM_TEXT_ONE_STEP = """
 Ты ИИ для генерации презентаций по тексту. Твоя задача:
-1. Тебе нужно проанализировать, немного сократить и разбить на NUM_SLIDE слайдов
+1. Тебе нужно проанализировать, немного сократить и разбить на 2-8 слайдов
 текст \" CONTEXT \".
 2. Сгенерировать название к презентации (Тема презентации).
-3. Сгенерировать NUM_SLIDE заголовков для NUM_SLIDE слайдов.
+3. Сгенерировать заголовки для слайдов.
 Важно: слайды ведения и заключения не пиши.
 4. На каждый из заголовков придумать по 3 подзаголовка.
 5. На каждый из подзаголовков написать очень краткий информационный текст в одно предложение
@@ -217,7 +216,7 @@ GENERAL_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
 
 def get_titles_generation_prompt(
     theme: str,
-    count_sl: int = DEFAULT_NUMBER_OF_SLIDES
+    count_sl: int
 ) -> str:
     res = TITLE_GENERATION_PROMPT.replace(
         "THEME", theme
@@ -265,12 +264,12 @@ def get_prompt_for_one_step_generation(
 
 def get_prompt_result(
     context: str,
-    num_slide: str,
+    num_slide: Optional[str],
     prompt: str
 ) -> str:
-    return prompt.replace(
-        "NUM_SLIDE", str(num_slide)
-    ).replace("CONTEXT", context)
+    if num_slide is None:
+        return prompt.replace("CONTEXT", context)
+    return prompt.replace("NUM_SLIDE", str(num_slide)).replace("CONTEXT", context)
 
 
 # Путь к проекту

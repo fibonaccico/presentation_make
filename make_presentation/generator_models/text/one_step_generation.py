@@ -39,7 +39,7 @@ class TextInOneStep(TextGeneratorProtocol):
 
     async def create_text(
         self,
-        slides_count: int,
+        slides_count: Optional[int],
         api: TextAPIProtocol,
         context: str,
         template: Optional[str] = None
@@ -116,7 +116,7 @@ class TextInOneStep(TextGeneratorProtocol):
         )
 
     async def __get_all_ai_answer(
-        self, prompt: str, api: TextAPIProtocol, context: str, num_slide: int
+        self, prompt: str, api: TextAPIProtocol, context: str, num_slide: int | None
     ) -> str | list[str | dict]:
 
         res_prompt = get_prompt_result(
@@ -127,21 +127,27 @@ class TextInOneStep(TextGeneratorProtocol):
         ai_answer = await api.request(res_prompt)
         return ai_answer
 
-    def __get_list_text(self, text: str,  pattern: str, num_slides: int) -> list[str]:
+    def __get_list_text(
+        self,
+        text: str,
+        pattern: str,
+        num_slides: Optional[int]
+    ) -> list[str]:
         text_list: list[str] = re.findall(pattern, text)
         new_text_list = []
         for item in text_list:
             new_text_list.append(self.__text_after_processing(item))
 
-        if len(text_list) != num_slides:
-            logging.error(f"Text items less than {num_slides}.")
-            raise InvalidTextNumberError(f"Text items less than {num_slides}")
+        if num_slides:
+            if len(text_list) != num_slides:
+                logging.error(f"Text items less than {num_slides}.")
+                raise InvalidTextNumberError(f"Text items less than {num_slides}")
         return new_text_list
 
     def __get_slide_text(
         self,
         text: str,
-        num_slides: int
+        num_slides: Optional[int]
     ) -> list[list[str]]:
 
         subtitle_text_1 = self.__get_list_text(
@@ -159,6 +165,16 @@ class TextInOneStep(TextGeneratorProtocol):
             pattern=r"(?i)Описание 3:(.+)",
             num_slides=num_slides
         )
+        if not subtitle_text_1 or not subtitle_text_2 or not subtitle_text_3:
+            logging.error("Text has not been generated.")
+            raise InvalidTextNumberError("Text has not been generated.")
+
+        if len(subtitle_text_1) != len(subtitle_text_2) != len(subtitle_text_3):
+            logging.error("Invalid number of subtitles text.")
+            raise InvalidTextNumberError("Invalid number of subtitles text.")
+
+        if num_slides is None:
+            num_slides = len(subtitle_text_1)
 
         try:
             slides_text = []

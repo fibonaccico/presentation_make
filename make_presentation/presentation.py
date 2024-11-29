@@ -4,9 +4,9 @@ import logging
 import os
 import re
 import time
+from typing import Optional
 
-from make_presentation.config import (DEFAULT_NUMBER_OF_SLIDES,
-                                      ENDING_PRESENTATION_STATUS,
+from make_presentation.config import (ENDING_PRESENTATION_STATUS,
                                       ENDING_PRESENTATION_TEXT,
                                       MAX_TEXT_LENGTH,
                                       OPENING_PRESENTATION_THEME_TITLE)
@@ -39,7 +39,7 @@ class Presentation:
     async def make_presentation(
         self,
         context: str,
-        number_of_slides: int = DEFAULT_NUMBER_OF_SLIDES,
+        number_of_slides: Optional[int],
         save_path_for_images: str | None = None,
         image_style: str = "DEFAULT",
     ) -> PresentationDTO:
@@ -77,18 +77,6 @@ class Presentation:
         )
 
         list_of_image_info_dto = list_of_image_dto
-
-        # list_of_image_info_dto: list[list[ImageInfoDTO]] = []     # noqa E800
-
-        # for images_in_slide in list_of_image_dto:                 # noqa E800
-        #     img_info_dto_list_in_slide = []                       # noqa E800
-        #     for image_dto in images_in_slide:                     # noqa E800
-        #         image_info = ImageInfoDTO(                        # noqa E800
-        #             path=image_dto.path, description=image_dto.description        # noqa E800
-        #         )                                                     # noqa E800
-        #         img_info_dto_list_in_slide.append(image_info)         # noqa E800
-
-        #     list_of_image_info_dto.append(img_info_dto_list_in_slide)  # noqa E800
 
         slide_dto_list: list[SlideDTO] = []
 

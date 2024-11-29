@@ -9,6 +9,10 @@ if TYPE_CHECKING:
 
 class TextGeneratorProtocol(Protocol):
     async def create_text(
-        self, slides_count: int, api: TextAPIProtocol, context: str, template: Optional[str]
+        self,
+        slides_count: Optional[int],
+        api: TextAPIProtocol,
+        context: str,
+        template: Optional[str]
     ) -> TextDTO:
         raise NotImplementedError
