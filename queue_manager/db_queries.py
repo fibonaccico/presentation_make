@@ -60,9 +60,10 @@ async def _create_presentation_raw(
             VALUES (:uuid, :presentation_uuid, :number, :title, :text, :subtitle_1, :subtitle_2, :subtitle_3)
             RETURNING uuid
         """)
+        db_slide_uuid = str(uuid.uuid4)
         slide_params = {
-            "uuid": str(uuid.uuid4),
-            "presentation_uuid": presentation_uuid,
+            "uuid": db_slide_uuid,
+            "presentation_uuid": str(presentation_uuid),
             "number": slide.number,
             "title": slide.title,
             "text": slide.text,
@@ -70,8 +71,7 @@ async def _create_presentation_raw(
             "subtitle_2": slide.subtitle_2,
             "subtitle_3": slide.subtitle_3
         }
-        result = await db.execute(slide_query, slide_params)
-        db_slide_uuid = result.scalar()
+        await db.execute(slide_query, slide_params)
 
         image_count = 1
         if slide.images:
@@ -107,7 +107,7 @@ async def _create_presentation_raw(
     update_presentation_params = {
         "title": presentation.theme,
         "status": PresentationStatus.READY.value,
-        "uuid": presentation_uuid
+        "uuid": str(presentation_uuid)
     }
     await db.execute(update_presentation_query, update_presentation_params)
     await db.commit()
@@ -143,7 +143,7 @@ async def reduce_balance_by_user_uuid(user_uuid: str, *, qty: int = -1):
 
 async def create_presentation_adapter(message: EventMessage):
     os.makedirs(message.save_path_for_images, exist_ok=True)
-    print(message.save_path_for_images)
+
     async with AsyncSessionLocal() as db:
         try:
             pr = await Presentation(
@@ -156,7 +156,7 @@ async def create_presentation_adapter(message: EventMessage):
             db_presentation = await _get_presentation_or_none(message.presentation_uuid, db)
 
             await _create_presentation_raw(
-                presentation_uuid=db_presentation,
+                presentation_uuid=db_presentation.uuid,
                 presentation=pr,
                 db=db,
             )
