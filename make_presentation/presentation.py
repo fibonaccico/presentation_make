@@ -4,7 +4,6 @@ import logging
 import os
 import re
 import time
-from typing import Optional
 
 from make_presentation.config import (ENDING_PRESENTATION_STATUS,
                                       ENDING_PRESENTATION_TEXT,
@@ -39,7 +38,7 @@ class Presentation:
     async def make_presentation(
         self,
         context: str,
-        number_of_slides: Optional[int],
+        number_of_slides: int | None = None,
         save_path_for_images: str | None = None,
         image_style: str = "DEFAULT",
     ) -> PresentationDTO:
