@@ -60,7 +60,7 @@ async def _create_presentation_raw(
             VALUES (:uuid, :presentation_uuid, :number, :title, :text, :subtitle_1, :subtitle_2, :subtitle_3)
             RETURNING uuid
         """)
-        db_slide_uuid = str(uuid.uuid4)
+        db_slide_uuid = str(uuid.uuid4())
         slide_params = {
             "uuid": db_slide_uuid,
             "presentation_uuid": str(presentation_uuid),
@@ -88,7 +88,7 @@ async def _create_presentation_raw(
                     VALUES (:uuid, :slide_uuid, :number, :description, :local_file_path, :api_url)
                 """)
                 image_params = {
-                    "uuid": str(uuid.uuid4),
+                    "uuid": str(uuid.uuid4()),
                     "slide_uuid": db_slide_uuid,
                     "number": image_count,
                     "description": image.description,
@@ -146,15 +146,17 @@ async def create_presentation_adapter(message: EventMessage):
 
     async with AsyncSessionLocal() as db:
         try:
+            logger.warning(message.__dict__)
             pr = await Presentation(
                 text_generation_model=message.gen_model, template=message.template
             ).make_presentation(
                 save_path_for_images=message.save_path_for_images,
-                context=message.context
+                context=message.context,
+                number_of_slides=message.number_of_slides,
+                image_style=message.image_style
             )
 
             db_presentation = await _get_presentation_or_none(message.presentation_uuid, db)
-
             await _create_presentation_raw(
                 presentation_uuid=db_presentation.uuid,
                 presentation=pr,

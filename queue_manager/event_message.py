@@ -45,5 +45,13 @@ class EventMessage:
         return self._generation_data.get("presentation_uuid")
 
     @property
+    def number_of_slides(self) -> int:
+        return self._generation_data.get("number_of_slides", 10)
+
+    @property
+    def image_style(self) -> str:
+        return self._generation_data.get("image_style", "DEFAULT")
+
+    @property
     def event_type(self) -> t.Optional[str]:
         return self._event_type if self._event_type and self._event_type in EventType else None
