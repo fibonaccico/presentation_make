@@ -25,7 +25,9 @@ async def on_message(message):
 
 
 async def main():
-    connection = await aiormq.connect(f"amqp://{os.getenv('RABBIT_LOGIN')}:{os.getenv('RABBIT_PASS')}@localhost/")
+    connection = await aiormq.connect(
+        f"amqp://{os.getenv('RABBIT_LOGIN')}:{os.getenv('RABBIT_PASS')}@{os.getenv('RABBIT_HOST')}/"
+    )
 
     channel = await connection.channel()
     await channel.basic_qos(prefetch_count=10)
