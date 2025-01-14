@@ -12,6 +12,7 @@ from sqlalchemy.orm import sessionmaker
 
 from make_presentation import Presentation
 from make_presentation.DTO import PresentationDTO
+from queue_manager.SQL_responses import PresentationSQL
 from queue_manager.event_message import EventMessage
 from queue_manager.schemas import PaySchema
 from queue_manager.schemas import PresentationSchema
@@ -46,6 +47,17 @@ async def _get_presentation_or_none(presentation_uuid: str, db: AsyncSession):
     if row := result.mappings().first():
         return PresentationSchema(**row)
     return None
+
+
+async def get_presentation_path_for_download_or_none(presentation_uuid: str):
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            text("SELECT slides, template, title FROM presentation WHERE uuid = :presentation_uuid"),
+            {"presentation_uuid": presentation_uuid}
+        )
+        if row := result.mappings().first():
+            return PresentationSQL(**row)
+        return None
 
 
 async def _create_presentation_raw(
@@ -180,4 +192,12 @@ async def create_presentation_adapter(message: EventMessage):
             generate_started = False
             logger.error(f"Presentation {message.presentation_uuid} not generated. Reason: {e}")
 
-    return generate_started
+    return generate_started, pr
+
+
+async def telegram_id_by_user_uuid(user_uuid: str):
+    async with AsyncSessionLocal() as db:
+        return (await db.execute(
+            text("SELECT telegram_id FROM public.user WHERE uuid = :user_uuid"),
+            {"user_uuid": user_uuid}
+        )).scalars().first()

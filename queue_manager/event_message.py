@@ -8,6 +8,7 @@ from aiormq.abc import DeliveredMessage
 class EventType(Enum):
     TELEGRAM = "telegram"
     WEB = "web"
+    DOWNLOAD = "download"
 
 
 class EventMessage:
@@ -27,6 +28,10 @@ class EventMessage:
     @property
     def context(self) -> t.Optional[str]:
         return self._generation_data.get("context")
+
+    @property
+    def save_presentation_path(self) -> t.Optional[str]:
+        return self._generation_data.get("save_presentation_path")
 
     @property
     def save_path_for_images(self) -> t.Optional[str]:
@@ -53,5 +58,9 @@ class EventMessage:
         return self._generation_data.get("image_style", "DEFAULT")
 
     @property
+    def format_file(self) -> str:
+        return self._generation_data.get("format_file", "pdf")
+
+    @property
     def event_type(self) -> t.Optional[str]:
-        return self._event_type if self._event_type and self._event_type in EventType else None
+        return self._event_type if self._event_type in EventType else None
