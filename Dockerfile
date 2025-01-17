@@ -19,5 +19,5 @@ VOLUME ["/app/presentations_images/"]
 VOLUME ["/app/presentations_files/"]
 VOLUME ["/app/log/"]
 EXPOSE 5672
-#ENV PATH="/root/.cache/pypoetry/virtualenvs/fibonacci-api-9TtSrW0h-py3.12/bin:$PATH"
+ENV PATH="/root/.cache/pypoetry/virtualenvs/presentation-make-9TtSrW0h-py3.11/bin:$PATH"
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
