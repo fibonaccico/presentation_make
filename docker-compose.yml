@@ -12,6 +12,8 @@ services:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASS}
       - POSTGRES_DB=${DB_NAME}
+      - RABBIT_LOGIN=${RABBIT_LOGIN}
+      - RABBIT_PASS=${RABBIT_PASS}
     ports:
       - "5672:5672"
     restart: always
