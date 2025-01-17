@@ -12,8 +12,8 @@ RUN apt install libreoffice --no-install-recommends -y \
      && rm -rf /var/lib/apt/lists/* \
      && poetry install --no-root --no-interaction --no-ansi \
      && poetry cache list \
-     && poetry cache clear PyPI --all --no-interaction && \
-#RUN rm -rf /root/.cache/pypoetry/virtualenvs/fibonacci-api-9TtSrW0h-py3.12/src 
+     && poetry cache clear PyPI --all --no-interaction \
+#rm -rf /root/.cache/pypoetry/virtualenvs/fibonacci-api-9TtSrW0h-py3.12/src \
      && rm -rf /root/.cache/pypoetry/artifacts/*
 VOLUME ["/app/presentations_images/"]
 VOLUME ["/app/presentations_files/"]
