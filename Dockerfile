@@ -21,3 +21,4 @@ VOLUME ["/app/log/"]
 EXPOSE 5672
 ENV PATH="/root/.cache/pypoetry/virtualenvs/presentation-make-9TtSrW0h-py3.11/bin:$PATH"
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+CMD ["python", "run", "consumer.py"]
