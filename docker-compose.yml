@@ -1,0 +1,53 @@
+services:
+  app:
+    env_file:
+      - ./.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: maker
+    image: maker
+    command: sh -c "python consumer.py"
+    environment:
+      - POSTGRES_HOST=${DB_HOST}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5672:5672"
+    restart: always
+    networks:
+      - main
+    external_links:
+      - network_fibonacci
+    volumes:
+     - images:/app/presentations_images/
+     - files:/app/presentations_files/
+     - log:/app/log/
+
+volumes:
+  images:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/volumes/prod/images
+  files:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/volumes/prod/files  
+  log:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/volumes/prod/log_api 
+networks:
+  main:
+    name: fibonacci
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1500
+      com.docker.network.timeout: 300
