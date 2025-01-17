@@ -7,7 +7,6 @@ services:
       dockerfile: Dockerfile
     container_name: maker
     image: maker
-    command: sh -c "python consumer.py"
     environment:
       - POSTGRES_HOST=${DB_HOST}
       - POSTGRES_USER=${DB_USER}
