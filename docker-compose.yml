@@ -15,9 +15,9 @@ services:
       - POSTGRES_DB=${DB_NAME}
       - RABBITMQ_DEFAULT_USER=${RABBIT_LOGIN}
       - RABBITMQ_DEFAULT_PASS=${RABBIT_PASS}
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+#    ports:
+#      - "5672:5672"
+#      - "15672:15672"
     restart: always
     networks:
       - main
