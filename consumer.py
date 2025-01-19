@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+from pathlib import Path
 
 import aiohttp
 import aiormq
@@ -18,15 +19,29 @@ from queue_manager.db_queries import telegram_id_by_user_uuid
 from queue_manager.event_message import EventMessage
 from queue_manager.event_message import EventType
 
+
+
+
+def get_logger() -> logging.Logger:
+    def log_file(file_path: str = "./fibo_log.log"):
+        if not os.path.exists(file_path):
+            Path(file_path).touch()
+        return file_path
+
+    logger = logging.getLogger("consumer")
+    if logger.hasHandlers():
+        logger.handlers.clear()
+    logger.setLevel(logging.DEBUG)
+    py_handler = logging.FileHandler(log_file(), mode="a")
+    py_formatter = logging.Formatter("%(name)s %(asctime)s %(levelname)s %(message)s")
+    py_handler.setFormatter(py_formatter)
+    logger.addHandler(py_handler)
+
+    return logger
+
+
 load_dotenv()
-absolute_path = os.path.dirname(os.path.dirname(__file__))
-logging.basicConfig(
-    level=logging.INFO,
-    filename=os.path.join(absolute_path, "presentation_make", "log_file.log"),
-    filemode="w",
-    encoding="utf-8"
-)
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 async def send_document(token: str, chat_id: str, file_path: str) -> None:
@@ -140,6 +155,8 @@ async def main():
     connection = await aiormq.connect(
         f"amqp://{os.getenv('RABBIT_LOGIN')}:{os.getenv('RABBIT_PASS')}@{os.getenv('RABBIT_HOST')}/"
     )
+
+    logger.info("Start consuming")
 
     channel_generator = await connection.channel()
     await channel_generator.basic_qos(prefetch_count=10)
