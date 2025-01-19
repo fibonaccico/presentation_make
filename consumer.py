@@ -19,6 +19,13 @@ from queue_manager.event_message import EventMessage
 from queue_manager.event_message import EventType
 
 load_dotenv()
+absolute_path = os.path.dirname(os.path.dirname(__file__))
+logging.basicConfig(
+    level=logging.INFO,
+    filename=os.path.join(absolute_path, "presentation_make", "log_file.log"),
+    filemode="w",
+    encoding="utf-8"
+)
 logger = logging.getLogger(__name__)
 
 
