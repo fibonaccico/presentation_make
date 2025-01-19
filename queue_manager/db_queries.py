@@ -1,5 +1,6 @@
 import logging
 import os
+import typing as t
 import uuid
 from enum import Enum
 
@@ -12,7 +13,9 @@ from sqlalchemy.orm import sessionmaker
 
 from make_presentation import Presentation
 from make_presentation.DTO import PresentationDTO
+from queue_manager.SQL_responses import ImageInfoSQL
 from queue_manager.SQL_responses import PresentationSQL
+from queue_manager.SQL_responses import SlideSQL
 from queue_manager.event_message import EventMessage
 from queue_manager.schemas import PaySchema
 from queue_manager.schemas import PresentationSchema
@@ -49,14 +52,61 @@ async def _get_presentation_or_none(presentation_uuid: str, db: AsyncSession):
     return None
 
 
-async def get_presentation_path_for_download_or_none(presentation_uuid: str):
+async def get_images_dto_list(slide_uuid: str) -> t.List[ImageInfoSQL | None]:
+    images: [ImageInfoSQL] = []
     async with AsyncSessionLocal() as db:
         result = await db.execute(
-            text("SELECT slides, template, title FROM presentation WHERE uuid = :presentation_uuid"),
+            text(
+                "SELECT path, description "
+                "FROM image WHERE slide_uuid = :slide_uuid"
+            ),
+            {"slide_uuid": slide_uuid}
+        )
+        for row in result:
+            image = ImageInfoSQL(
+                path=row[0],
+                description=row[1]
+            )
+            images.append(image)
+
+        return images
+
+
+async def get_slides_dto_list(presentation_uuid: str) -> t.List[SlideSQL | None]:
+    slides: [SlideSQL] = []
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            text(
+                "SELECT uuid, number, title, text, subtitle_1, subtitle_1, subtitle_1 "
+                "FROM slide WHERE presentation_uuid = :presentation_uuid"
+            ),
+            {"presentation_uuid": presentation_uuid}
+        )
+        for row in result:
+            slide_uuid = row[0]
+            slide = SlideSQL(
+                uuid=slide_uuid,
+                number=row[1],
+                title=row[2],
+                text=row[3],
+                subtitle_1=row[4],
+                subtitle_2=row[5],
+                subtitle_3=row[6],
+                images=await get_images_dto_list(slide_uuid)
+            )
+            slides.append(slide)
+
+        return slides
+
+
+async def get_presentation_dto_or_none(presentation_uuid: str) -> t.Optional[PresentationSQL]:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            text("SELECT template, title FROM presentation WHERE uuid = :presentation_uuid"),
             {"presentation_uuid": presentation_uuid}
         )
         if row := result.mappings().first():
-            return PresentationSQL(**row)
+            return PresentationSQL(slides=await get_slides_dto_list(presentation_uuid), **row)
         return None
 
 

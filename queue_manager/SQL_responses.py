@@ -13,6 +13,7 @@ class PresentationSQL:
 
 @dataclass
 class SlideSQL:
+    uuid: str
     number: int
     title: str
     text: list[str]

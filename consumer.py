@@ -13,7 +13,7 @@ from make_presentation.DTO import PresentationDTO
 from make_presentation.DTO import SlideDTO
 from queue_manager.SQL_responses import PresentationSQL
 from queue_manager.db_queries import create_presentation_adapter
-from queue_manager.db_queries import get_presentation_path_for_download_or_none
+from queue_manager.db_queries import get_presentation_dto_or_none
 from queue_manager.db_queries import reduce_balance_by_user_uuid
 from queue_manager.db_queries import telegram_id_by_user_uuid
 from queue_manager.event_message import EventMessage
@@ -57,9 +57,9 @@ async def send_document(token: str, chat_id: str, file_path: str) -> None:
                 await response.text()
 
 
-def create_presentation_dto(db_presentation: PresentationSQL) -> PresentationDTO:
+def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDTO:
     slides_dto = []
-    for slide in db_presentation.slides:
+    for slide in presentation_sql.slides:
         images_dto = [
             ImageInfoDTO(
                 path=image.local_file_path, description=image.description
@@ -75,11 +75,11 @@ def create_presentation_dto(db_presentation: PresentationSQL) -> PresentationDTO
             subtitle_3=slide.subtitle_3,
         )
         slides_dto.append(slide_dto)
-    finish_title = db_presentation.slides[len(db_presentation.slides) - 1].title
+    finish_title = presentation_sql.slides[len(presentation_sql.slides) - 1].title
 
     return PresentationDTO(
-        template_name=db_presentation.template,
-        theme=db_presentation.title,
+        template_name=presentation_sql.template,
+        theme=presentation_sql.title,
         finish_title=finish_title,
         slides=slides_dto
     )
@@ -132,8 +132,7 @@ async def on_download_message(message):
 
     match event_message.event_type:
         case EventType.DOWNLOAD.value:
-            if db_presentation := await get_presentation_path_for_download_or_none(event_message.presentation_uuid):
-
+            if db_presentation := await get_presentation_dto_or_none(event_message.presentation_uuid):
                 try:
                     await send_document(
                         os.getenv("TELEGRAM_API_KEY"),
