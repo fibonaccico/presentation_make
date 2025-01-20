@@ -115,8 +115,10 @@ async def on_generator_message(message):
                     await telegram_id_by_user_uuid(event_message.user_uuid),
                     Presentation.save(
                         data=presentation_data,
-                        save_path=event_message.save_presentation_path
-                    )
+                        save_path=event_message.save_presentation_path,
+                        format=event_message.format_file
+                    ),
+
                 )
             except Exception as e:
                 logger.error(f"Presentation sending failed: {e}")
