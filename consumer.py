@@ -129,6 +129,11 @@ async def on_generator_message(message):
 async def on_download_message(message):
     event_message = EventMessage(message)
     logger.info(f"Starting download from message {event_message.__dict__}")
+    await send_document(
+        os.getenv("TELEGRAM_API_KEY"),
+        await telegram_id_by_user_uuid(event_message.user_uuid),
+        "/app/fibo_log.log"
+    )
 
     match event_message.event_type:
         case EventType.DOWNLOAD.value:
