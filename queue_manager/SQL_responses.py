@@ -26,11 +26,11 @@ class SlideSQL:
 @dataclass
 class ImageSQL:
     image: Image | None
-    path: str | None
+    local_file_path: str | None
     description: str
 
 
 @dataclass
 class ImageInfoSQL:
-    path: str | None
+    local_file_path: str | None
     description: str

@@ -64,7 +64,7 @@ async def get_images_dto_list(db: AsyncSessionLocal, slide_uuid: str) -> t.List[
     )
     for row in result:
         image = ImageInfoSQL(
-            path=row[0],
+            local_file_path=row[0],
             description=row[1]
         )
         images.append(image)
