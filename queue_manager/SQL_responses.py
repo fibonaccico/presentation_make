@@ -18,9 +18,9 @@ class SlideSQL:
     title: str
     text: list[str]
     images: list["ImageInfoSQL"] | None | list["ImageSQL"]
-    subtitle_1: str | None
-    subtitle_2: str | None
-    subtitle_3: str | None
+    subtitle1: str | None
+    subtitle2: str | None
+    subtitle3: str | None
 
 
 @dataclass

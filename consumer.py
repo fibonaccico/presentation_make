@@ -70,9 +70,9 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
             title=slide.title,
             text=slide.text,
             images=images_dto,
-            subtitle_1=slide.subtitle_1,
-            subtitle_2=slide.subtitle_2,
-            subtitle_3=slide.subtitle_3,
+            subtitle_1=slide.subtitle1,
+            subtitle_2=slide.subtitle2,
+            subtitle_3=slide.subtitle3,
         )
         slides_dto.append(slide_dto)
     finish_title = presentation_sql.slides[len(presentation_sql.slides) - 1].title
@@ -129,21 +129,11 @@ async def on_generator_message(message):
 async def on_download_message(message):
     event_message = EventMessage(message)
     logger.info(f"Starting download from message {event_message.__dict__}")
-    user_tg = await telegram_id_by_user_uuid(event_message.user_uuid)
-    logger.info("1")
-    await send_document(
-        os.getenv("TELEGRAM_API_KEY"),
-        user_tg,
-        "/app/fibo_log.log"
-    )
-    logger.info("2")
 
     match event_message.event_type:
         case EventType.DOWNLOAD.value:
-            logger.info("3")
             if db_presentation := await get_presentation_dto_or_none(event_message.presentation_uuid):
                 try:
-                    logger.info("4")
                     await send_document(
                         os.getenv("TELEGRAM_API_KEY"),
                         await telegram_id_by_user_uuid(event_message.user_uuid),
@@ -153,13 +143,10 @@ async def on_download_message(message):
                             format=event_message.format_file
                         )
                     )
-                    logger.info("5")
                 except Exception as e:
-                    logger.info("6")
                     logger.error(f"Presentation sending failed: {e}")
 
         case _:
-            logger.info("7")
             logger.warning(f"Unknown event type {event_message.event_type} in download_presentation_queue")
 
 

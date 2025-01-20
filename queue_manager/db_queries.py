@@ -77,7 +77,7 @@ async def get_slides_dto_list(presentation_uuid: str) -> t.List[SlideSQL | None]
     async with AsyncSessionLocal() as db:
         result = await db.execute(
             text(
-                "SELECT uuid, number, title, text, subtitle_1, subtitle_1, subtitle_1 "
+                "SELECT uuid, number, title, text, subtitle1, subtitle2, subtitle3 "
                 "FROM slide WHERE presentation_uuid = :presentation_uuid"
             ),
             {"presentation_uuid": presentation_uuid}
@@ -89,9 +89,9 @@ async def get_slides_dto_list(presentation_uuid: str) -> t.List[SlideSQL | None]
                 number=row[1],
                 title=row[2],
                 text=row[3],
-                subtitle_1=row[4],
-                subtitle_2=row[5],
-                subtitle_3=row[6],
+                subtitle1=row[4],
+                subtitle2=row[5],
+                subtitle3=row[6],
                 images=await get_images_dto_list(slide_uuid)
             )
             slides.append(slide)
@@ -119,7 +119,7 @@ async def _create_presentation_raw(
         # Insert slide into the database
         slide_query = text("""
             INSERT INTO slide (uuid, presentation_uuid, number, title, text, subtitle1, subtitle2, subtitle3)
-            VALUES (:uuid, :presentation_uuid, :number, :title, :text, :subtitle_1, :subtitle_2, :subtitle_3)
+            VALUES (:uuid, :presentation_uuid, :number, :title, :text, :subtitle1, :subtitle2, :subtitle3)
             RETURNING uuid
         """)
         db_slide_uuid = str(uuid.uuid4())
@@ -129,9 +129,9 @@ async def _create_presentation_raw(
             "number": slide.number,
             "title": slide.title,
             "text": slide.text,
-            "subtitle_1": slide.subtitle_1,
-            "subtitle_2": slide.subtitle_2,
-            "subtitle_3": slide.subtitle_3
+            "subtitle1": slide.subtitle_1,
+            "subtitle2": slide.subtitle_2,
+            "subtitle3": slide.subtitle_3
         }
         await db.execute(slide_query, slide_params)
 
