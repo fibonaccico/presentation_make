@@ -57,7 +57,7 @@ async def get_images_dto_list(slide_uuid: str) -> t.List[ImageInfoSQL | None]:
     async with AsyncSessionLocal() as db:
         result = await db.execute(
             text(
-                "SELECT path, description "
+                "SELECT local_file_path, description "
                 "FROM image WHERE slide_uuid = :slide_uuid"
             ),
             {"slide_uuid": slide_uuid}
