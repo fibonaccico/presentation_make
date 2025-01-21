@@ -156,6 +156,10 @@ async def on_download_message(message):
         case _:
             logger.warning(f"Unknown event type {event_message.event_type} in download_presentation_queue")
 
+    await message.channel.basic_ack(
+        message.delivery.delivery_tag
+    )
+
 
 async def main():
     connection = await aiormq.connect(
