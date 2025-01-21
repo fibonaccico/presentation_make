@@ -136,14 +136,19 @@ async def on_download_message(message):
         case EventType.DOWNLOAD.value:
             if db_presentation := await get_presentation_dto_or_none(event_message.presentation_uuid):
                 try:
+                    logger.info(f"Save presentation to {event_message.save_presentation_path}")
+                    presentation_path = Presentation.save(
+                        data=create_presentation_dto(db_presentation),
+                        save_path=event_message.save_presentation_path,
+                        format=event_message.format_file
+                    )
+
+                    telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
+                    logger.info(f"Sending presentation {event_message.save_presentation_path} to {telegram_id}")
                     await send_document(
                         os.getenv("TELEGRAM_API_KEY"),
-                        await telegram_id_by_user_uuid(event_message.user_uuid),
-                        Presentation.save(
-                            data=create_presentation_dto(db_presentation),
-                            save_path=event_message.save_presentation_path,
-                            format=event_message.format_file
-                        )
+                        telegram_id,
+                        presentation_path
                     )
                 except Exception as e:
                     logger.error(f"Presentation sending failed: {e}")
