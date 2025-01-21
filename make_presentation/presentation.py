@@ -151,28 +151,21 @@ class Presentation:
 
         save_path: str - a path to the folder to save a presentation
         """
-        logger.warning("1")
         output_path = os.path.join(save_path, ("prs_" + str(time.time())))
-        logger.warning("2")
         # create a folder
         os.makedirs(output_path, exist_ok=True)
-        logger.warning("3")
 
         presentation = PresentationTemplate()
-        logger.warning("4")
         presentation.create_presentation(data=data, save_path=output_path)
-        logger.warning("5")
 
         presentation_save_path = Presentation.get_presentation_save_path(
             save_path=output_path,
             theme=data.theme
         )
-        logger.warning("6")
 
         presentation.save_presentation(
             file_save_path=presentation_save_path
         )
-        logger.warning("7")
 
         logger.info(
             f"Presentation {data.theme}, template:{data.template_name} is saved in pptx format."

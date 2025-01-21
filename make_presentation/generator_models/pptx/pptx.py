@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import logging
+# import logging
 import os
 from typing import TypeVar
 
 import fitz
 from pptx import Presentation as PresentationPPTX
 
+from config.logger import get_logger
 from make_presentation.config import path_to_template
 from make_presentation.converters import (convert_pdf_to_pptx,
                                           convert_pptx_to_pdf)
@@ -22,7 +23,7 @@ from make_presentation.templates.template_config import (MAX_CHARS, TEXT_COLOR,
 
 from .slide import Slide
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 T = TypeVar('T')
 
@@ -117,12 +118,15 @@ class PresentationTemplate:
         """
         To create presentation based on a particular template.
         """
+        logger.warning("1")
         number_of_slides = len(data.slides)
+        logger.warning("2")
         self.presentation = self._get_presentation_template(
             template_name=data.template_name,
             slides_count=number_of_slides,
             save_path=save_path
         )
+        logger.warning("3")
         for slide in data.slides:
             if slide.number == 0:
                 slide_type = "INITIAL"
@@ -130,17 +134,17 @@ class PresentationTemplate:
                 slide_type = "END"
             else:
                 slide_type = "USUAL"
-
+            logger.warning("33")
             pictures_setting = get_slides_pictures_setting(
                 template_name=data.template_name,
                 num_slides=number_of_slides,
             )
-
+            logger.warning("44")
             foreground_pictures_setting = get_slides_foreground_pictures_setting(
                 template_name=data.template_name,
                 num_slides=number_of_slides,
             )
-
+            logger.warning("55")
             slide_in_pres = Slide(
                 slide=self.presentation.slides[slide.number],
                 title=slide.title,
@@ -165,7 +169,7 @@ class PresentationTemplate:
                 ),
                 max_chars=MAX_CHARS[data.template_name]["max"]
             )
-
+            logger.warning("66")
             slide_in_pres.make_slide()
 
         logger.info(f"A presentation {data.theme} has been created.")
