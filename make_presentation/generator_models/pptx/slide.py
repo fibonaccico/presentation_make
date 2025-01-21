@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import logging
+# import logging
 import math
 import os
 from io import BytesIO
@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 from PIL import Image
 from pptx.dml.color import RGBColor
 
+from config.logger import get_logger
 from make_presentation.config import (DEFAULT_TEXT_FONT,
                                       DEFAULT_TEXT_FONT_SETTINGS,
                                       DEFAULT_TEXT_SIZE, SCALING_FACTOR,
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
     from pptx.slide import Slide as PptxSlide
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class Slide:
