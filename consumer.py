@@ -143,7 +143,9 @@ async def on_download_message(message):
                         format=event_message.format_file
                     )
 
+                    logger.info(f"Getting telegram of user {event_message.user_uuid} for send presentation")
                     telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
+
                     logger.info(f"Sending presentation {event_message.save_presentation_path} to {telegram_id}")
                     await send_document(
                         os.getenv("TELEGRAM_API_KEY"),
