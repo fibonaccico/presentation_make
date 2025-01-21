@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-# import logging
+import logging
 import os
 import re
 import time
 
-from consumer import get_logger
 from make_presentation.config import (ENDING_PRESENTATION_STATUS,
                                       ENDING_PRESENTATION_TEXT,
                                       MAX_TEXT_LENGTH,
@@ -20,7 +19,7 @@ from make_presentation.generator_models.pptx import PresentationTemplate
 from make_presentation.image import ImagesAdapter
 from make_presentation.text import TextAdapter
 
-logger = get_logger()
+logger = logging.getLogger(__name__)
 
 
 class Presentation:
