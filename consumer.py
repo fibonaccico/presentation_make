@@ -131,6 +131,8 @@ async def on_download_message(message):
     match event_message.event_type:
         case EventType.DOWNLOAD.value:
             if db_presentation := await get_presentation_dto_or_none(event_message.presentation_uuid):
+                telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
+
                 try:
                     logger.info(f"Save presentation to {event_message.save_presentation_path}")
                     presentation_path = Presentation.save(
@@ -140,7 +142,6 @@ async def on_download_message(message):
                     )
 
                     logger.info(f"Getting telegram of user {event_message.user_uuid} for send presentation")
-                    telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
 
                     logger.info(f"Sending presentation {event_message.save_presentation_path} to {telegram_id}")
                     await send_document(
@@ -149,6 +150,11 @@ async def on_download_message(message):
                         presentation_path
                     )
                 except Exception as e:
+                    await send_message(
+                        os.getenv("TELEGRAM_API_KEY"),
+                        telegram_id,
+                        f"Ошибка отправки презентации {event_message.context}.{event_message.format_file}"
+                    )
                     logger.error(f"Presentation sending failed: {e}")
 
         case _:
