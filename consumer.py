@@ -24,16 +24,30 @@ logger = get_logger()
 
 
 async def send_document(token: str, chat_id: str, file_path: str) -> None:
-    url = f'https://api.telegram.org/bot{token}/sendDocument'
+    filename = file_path.split('/')[-1]
 
     async with aiohttp.ClientSession() as session:
-        with open(file_path, 'rb') as file:
+        try:
+            url = f'https://api.telegram.org/bot{token}/sendDocument'
+            with open(file_path, 'rb') as file:
+                data = aiohttp.FormData()
+                data.add_field('chat_id', chat_id)
+                data.add_field('document', file, filename=filename)
+
+                async with session.post(url, data=data) as response:
+                    await response.text()
+
+        except Exception as e:
+            url = f'https://api.telegram.org/bot{token}/sendMessage'
             data = aiohttp.FormData()
             data.add_field('chat_id', chat_id)
-            data.add_field('document', file, filename=file_path.split('/')[-1])
+            data.add_field('text', f"Ошибка отправки презентации {filename}")
 
             async with session.post(url, data=data) as response:
                 await response.text()
+
+            logger.error(f"Error when send file {file_path} to {chat_id}: {e}")
+
 
 
 def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDTO:
