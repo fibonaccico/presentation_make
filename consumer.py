@@ -25,29 +25,28 @@ logger = get_logger()
 
 async def send_document(token: str, chat_id: str, file_path: str) -> None:
     filename = file_path.split('/')[-1]
+    logger.info(f"Sending file {file_path} to {chat_id}")
 
     async with aiohttp.ClientSession() as session:
-        try:
-            url = f'https://api.telegram.org/bot{token}/sendDocument'
-            with open(file_path, 'rb') as file:
-                data = aiohttp.FormData()
-                data.add_field('chat_id', chat_id)
-                data.add_field('document', file, filename=filename)
-
-                async with session.post(url, data=data) as response:
-                    await response.text()
-
-        except Exception as e:
-            url = f'https://api.telegram.org/bot{token}/sendMessage'
+        url = f'https://api.telegram.org/bot{token}/sendDocument'
+        with open(file_path, 'rb') as file:
             data = aiohttp.FormData()
             data.add_field('chat_id', chat_id)
-            data.add_field('text', f"Ошибка отправки презентации {filename}")
+            data.add_field('document', file, filename=filename)
 
             async with session.post(url, data=data) as response:
                 await response.text()
 
-            logger.error(f"Error when send file {file_path} to {chat_id}: {e}")
 
+async def send_message(token: str, chat_id: str, message: str) -> None:
+    async with aiohttp.ClientSession() as session:
+        url = f'https://api.telegram.org/bot{token}/sendMessage'
+        data = aiohttp.FormData()
+        data.add_field('chat_id', chat_id)
+        data.add_field('text', message)
+
+        async with session.post(url, data=data) as response:
+            await response.text()
 
 
 def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDTO:
@@ -99,11 +98,12 @@ async def on_generator_message(message):
                 await message.channel.basic_ack(
                     message.delivery.delivery_tag
                 )
-
+                user_telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
                 try:
+
                     await send_document(
                         os.getenv("TELEGRAM_API_KEY"),
-                        await telegram_id_by_user_uuid(event_message.user_uuid),
+                        user_telegram_id,
                         Presentation.save(
                             data=presentation_data,
                             save_path=event_message.save_presentation_path,
@@ -112,6 +112,11 @@ async def on_generator_message(message):
 
                     )
                 except Exception as e:
+                    await send_message(
+                        os.getenv("TELEGRAM_API_KEY"),
+                        user_telegram_id,
+                        f"Ошибка отправки презентации {event_message.context}.{event_message.format_file}"
+                    )
                     logger.error(f"Presentation sending failed: {e}")
 
         case _:
