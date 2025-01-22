@@ -203,8 +203,9 @@ async def reduce_balance_by_user_uuid(user_uuid: str, *, qty: int = -1):
     return None
 
 
-async def create_presentation_adapter(message: EventMessage):
+async def create_presentation_adapter(message: EventMessage) -> PresentationDTO:
     os.makedirs(message.save_path_for_images, exist_ok=True)
+    pr = None
 
     async with AsyncSessionLocal() as db:
         try:
@@ -225,8 +226,6 @@ async def create_presentation_adapter(message: EventMessage):
                 db=db,
             )
 
-            generate_started = True
-
         except Exception as e:
             err_pr_status_query = text("""
                         UPDATE presentation
@@ -239,10 +238,10 @@ async def create_presentation_adapter(message: EventMessage):
             }
             await db.execute(err_pr_status_query, err_pr_status_query_params)
             await db.commit()
-            generate_started = False
+
             logger.error(f"Presentation {message.presentation_uuid} not generated. Reason: {e}")
 
-    return generate_started, pr
+    return pr
 
 
 async def telegram_id_by_user_uuid(user_uuid: str):

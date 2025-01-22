@@ -71,8 +71,7 @@ async def on_generator_message(message):
 
     match event_message.event_type:
         case EventType.WEB.value:
-            generate_started, presentation_data = await create_presentation_adapter(event_message)
-            if generate_started:
+            if await create_presentation_adapter(event_message):
                 await reduce_balance_by_user_uuid(event_message.user_uuid)
 
             await message.channel.basic_ack(
@@ -80,27 +79,26 @@ async def on_generator_message(message):
             )
 
         case EventType.TELEGRAM.value:
-            generate_started, presentation_data = await create_presentation_adapter(event_message)
-            if generate_started:
+            if presentation_data := await create_presentation_adapter(event_message):
                 await reduce_balance_by_user_uuid(event_message.user_uuid)
 
-            await message.channel.basic_ack(
-                message.delivery.delivery_tag
-            )
-
-            try:
-                await send_document(
-                    os.getenv("TELEGRAM_API_KEY"),
-                    await telegram_id_by_user_uuid(event_message.user_uuid),
-                    Presentation.save(
-                        data=presentation_data,
-                        save_path=event_message.save_presentation_path,
-                        format=event_message.format_file
-                    ),
-
+                await message.channel.basic_ack(
+                    message.delivery.delivery_tag
                 )
-            except Exception as e:
-                logger.error(f"Presentation sending failed: {e}")
+
+                try:
+                    await send_document(
+                        os.getenv("TELEGRAM_API_KEY"),
+                        await telegram_id_by_user_uuid(event_message.user_uuid),
+                        Presentation.save(
+                            data=presentation_data,
+                            save_path=event_message.save_presentation_path,
+                            format=event_message.format_file
+                        ),
+
+                    )
+                except Exception as e:
+                    logger.error(f"Presentation sending failed: {e}")
 
         case _:
             logger.warning(f"Unknown event type {event_message.event_type} in generator_queue")
