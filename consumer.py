@@ -7,17 +7,13 @@ from dotenv import load_dotenv
 
 from config.logger import get_logger
 from make_presentation import Presentation
-from make_presentation.DTO import ImageInfoDTO
-from make_presentation.DTO import PresentationDTO
-from make_presentation.DTO import SlideDTO
+from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
+from queue_manager.db_queries import (create_presentation_adapter,
+                                      get_presentation_dto_or_none,
+                                      reduce_balance_by_user_uuid,
+                                      telegram_id_by_user_uuid)
+from queue_manager.event_message import EventMessage, EventType
 from queue_manager.SQL_responses import PresentationSQL
-from queue_manager.db_queries import create_presentation_adapter
-from queue_manager.db_queries import get_presentation_dto_or_none
-from queue_manager.db_queries import reduce_balance_by_user_uuid
-from queue_manager.db_queries import telegram_id_by_user_uuid
-from queue_manager.event_message import EventMessage
-from queue_manager.event_message import EventType
-
 
 load_dotenv()
 logger = get_logger()
@@ -77,10 +73,13 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
     )
 
 
-# b'{"event_type":"telegram","generation_data":{"save_presentation_path": /path/to/pres, "type":"topic","user_uuid":"ogo","presentation_uuid":"gogo","text_generation_model":"wdef","template":"dsf","save_path_for_images":"sds","context":"dfds"}}'
+# b'{"event_type":"telegram","generation_data":{"save_presentation_path": /path/to/pres, "type":"topic","user_uuid":"ogo","presentation_uuid":"gogo","text_generation_model":"wdef","template":"dsf","save_path_for_images":"sds","context":"dfds"}}'  # noqa E800, E501
 async def on_generator_message(message):
     event_message = EventMessage(message)
     logger.info(f"Starting generate from message {event_message.__dict__}")
+    await message.channel.basic_ack(
+        message.delivery.delivery_tag
+    )
 
     match event_message.event_type:
         case EventType.WEB.value:
@@ -92,36 +91,39 @@ async def on_generator_message(message):
             )
 
         case EventType.TELEGRAM.value:
-            if presentation_data := await create_presentation_adapter(event_message):
-                await reduce_balance_by_user_uuid(event_message.user_uuid)
+            try:
+                presentation_data = await create_presentation_adapter(event_message)
+                if presentation_data:
+                    await reduce_balance_by_user_uuid(event_message.user_uuid)
 
-                await message.channel.basic_ack(
-                    message.delivery.delivery_tag
+                    user_telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
+
+                    file_path_pdf = Presentation.save(
+                        data=presentation_data,
+                        save_path=event_message.save_presentation_path,
+                        format=event_message.format_file
+                    )
+                    for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
+                        await send_document(
+                            os.getenv("TELEGRAM_API_KEY"),
+                            user_telegram_id,
+                            file
+                        )
+
+            except Exception as e:
+                await send_message(
+                    os.getenv("TELEGRAM_API_KEY"),
+                    user_telegram_id,
+                    message="""
+                    Не удалось сгенерировать презентацию.
+                    Сейчас у Giga Chat, с которым я работаю происходят технические сбои.
+                    Мы решаем эту проблему вместе, а пока попробуй ввести свою тему ещё раз,
+                    есть шанс, что тебе повезет😉"""
                 )
-                user_telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
-                try:
-
-                    await send_document(
-                        os.getenv("TELEGRAM_API_KEY"),
-                        user_telegram_id,
-                        Presentation.save(
-                            data=presentation_data,
-                            save_path=event_message.save_presentation_path,
-                            format=event_message.format_file
-                        ),
-
-                    )
-                except Exception as e:
-                    await send_message(
-                        os.getenv("TELEGRAM_API_KEY"),
-                        user_telegram_id,
-                        f"Ошибка отправки презентации {event_message.context}.{event_message.format_file}"
-                    )
-                    logger.error(f"Presentation sending failed: {e}")
+                logger.error(f"Presentation sending failed: {e}")
 
         case _:
             logger.warning(f"Unknown event type {event_message.event_type} in generator_queue")
-
 
 
 async def on_download_message(message):
@@ -130,7 +132,7 @@ async def on_download_message(message):
 
     match event_message.event_type:
         case EventType.DOWNLOAD.value:
-            if db_presentation := await get_presentation_dto_or_none(event_message.presentation_uuid):
+            if db_presentation := await get_presentation_dto_or_none(event_message.presentation_uuid):      # noqa E501
                 telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
 
                 try:
@@ -141,9 +143,9 @@ async def on_download_message(message):
                         format=event_message.format_file
                     )
 
-                    logger.info(f"Getting telegram of user {event_message.user_uuid} for send presentation")
+                    logger.info(f"Getting telegram of user {event_message.user_uuid} for send presentation")   # noqa E501
 
-                    logger.info(f"Sending presentation {event_message.save_presentation_path} to {telegram_id}")
+                    logger.info(f"Sending presentation {event_message.save_presentation_path} to {telegram_id}")   # noqa E501
                     await send_document(
                         os.getenv("TELEGRAM_API_KEY"),
                         telegram_id,
@@ -153,12 +155,12 @@ async def on_download_message(message):
                     await send_message(
                         os.getenv("TELEGRAM_API_KEY"),
                         telegram_id,
-                        f"Ошибка отправки презентации {event_message.context}.{event_message.format_file}"
+                        f"Ошибка отправки презентации {event_message.context}.{event_message.format_file}"    # noqa E501
                     )
                     logger.error(f"Presentation sending failed: {e}")
 
         case _:
-            logger.warning(f"Unknown event type {event_message.event_type} in download_presentation_queue")
+            logger.warning(f"Unknown event type {event_message.event_type} in download_presentation_queue")    # noqa E501
 
     await message.channel.basic_ack(
         message.delivery.delivery_tag
@@ -178,14 +180,14 @@ async def main():
     await channel_generator.basic_consume(declare_ok_generator.queue, on_generator_message)
 
     channel_download = await connection.channel()
-    declare_ok_download = await channel_download.queue_declare("download_presentation_queue", durable=True)
+    declare_ok_download = await channel_download.queue_declare("download_presentation_queue", durable=True)    # noqa E501
     await channel_download.basic_consume(declare_ok_download.queue, on_download_message)
-    # async with AsyncSessionLocal() as db:
-        # a = await get_presentation_or_none("165a57b3-0ef3-4cb2-8818-e91854a68b1b", db)
-        # await reduce_balance_by_user_uuid("5ef0c392-8a5b-41bd-92d1-8344ca5837e5", db)
-    # print(a.title)
-    # print(await db_query())
-    # await create_db_presentation("5ef0c392-8a5b-41bd-92d1-8344ca5837e5", "huy", "classic")
+    # async with AsyncSessionLocal() as db:                                                 # noqa E800
+        # a = await get_presentation_or_none("165a57b3-0ef3-4cb2-8818-e91854a68b1b", db)    # noqa E116
+        # await reduce_balance_by_user_uuid("5ef0c392-8a5b-41bd-92d1-8344ca5837e5", db)     # noqa E116
+    # print(a.title)                                                                        # noqa E800
+    # print(await db_query())                                                               # noqa E800
+    # await create_db_presentation("5ef0c392-8a5b-41bd-92d1-8344ca5837e5", "huy", "classic")   # noqa E800
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
