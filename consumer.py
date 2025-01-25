@@ -14,9 +14,13 @@ from queue_manager.db_queries import (create_presentation_adapter,
                                       telegram_id_by_user_uuid)
 from queue_manager.event_message import EventMessage, EventType
 from queue_manager.SQL_responses import PresentationSQL
+from queue_manager.queue_exceptions import EventTypeException
 
 load_dotenv()
 logger = get_logger()
+
+GENERATOR_EVENT_TYPE = ["web", "telegram"]
+DOWNLOAD_EVENT_TYPE = ["download"]
 
 
 async def send_document(token: str, chat_id: str, file_path: str) -> None:
@@ -85,12 +89,14 @@ async def on_generator_message(message):
     user_telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
 
     try:
+        if event_message.event_type not in GENERATOR_EVENT_TYPE:
+            raise EventTypeException
+
         presentation_data = await create_presentation_adapter(event_message)
         if presentation_data:
             await reduce_balance_by_user_uuid(event_message.user_uuid)
 
-        match event_message.event_type:
-            case EventType.TELEGRAM.value:
+            if EventType.TELEGRAM.value:
                 file_path_pdf = Presentation.save(
                     data=presentation_data,
                     save_path=event_message.save_presentation_path,
@@ -103,9 +109,6 @@ async def on_generator_message(message):
                         file
                     )
 
-            case _:
-                logger.warning(f"Unknown event type {event_message.event_type} in generator_queue")
-
     except Exception as e:
         await send_message(
             os.getenv("TELEGRAM_API_KEY"),
@@ -117,8 +120,6 @@ async def on_generator_message(message):
             есть шанс, что тебе повезет😉"""
         )
         logger.error(f"Presentation sending failed: {e}")
-
-
 
 
 async def on_download_message(message):
@@ -153,7 +154,7 @@ async def on_download_message(message):
                     await send_message(
                         os.getenv("TELEGRAM_API_KEY"),
                         telegram_id,
-                        f"Ошибка отправки презентации {event_message.context}.{event_message.format_file}"    # noqa E501
+                        f"Ошибка отправки презентации. Попробуй еще раз или обратись к администратору."    # noqa E501
                     )
                     logger.error(f"Presentation sending failed: {e}")
 
