@@ -76,63 +76,63 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
 # b'{"event_type":"telegram","generation_data":{"save_presentation_path": /path/to/pres, "type":"topic","user_uuid":"ogo","presentation_uuid":"gogo","text_generation_model":"wdef","template":"dsf","save_path_for_images":"sds","context":"dfds"}}'  # noqa E800, E501
 async def on_generator_message(message):
     event_message = EventMessage(message)
-    logger.info(f"Starting generate from message {event_message.__dict__}")
+
     await message.channel.basic_ack(
         message.delivery.delivery_tag
     )
 
-    match event_message.event_type:
-        case EventType.WEB.value:
-            if await create_presentation_adapter(event_message):
-                await reduce_balance_by_user_uuid(event_message.user_uuid)
+    logger.info(f"Starting generate from message {event_message.__dict__}")
+    user_telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
 
-            await message.channel.basic_ack(
-                message.delivery.delivery_tag
-            )
+    try:
+        presentation_data = await create_presentation_adapter(event_message)
+        if presentation_data:
+            await reduce_balance_by_user_uuid(event_message.user_uuid)
 
-        case EventType.TELEGRAM.value:
-            try:
-                presentation_data = await create_presentation_adapter(event_message)
-                if presentation_data:
-                    await reduce_balance_by_user_uuid(event_message.user_uuid)
-
-                    user_telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
-
-                    file_path_pdf = Presentation.save(
-                        data=presentation_data,
-                        save_path=event_message.save_presentation_path,
-                        format=event_message.format_file
-                    )
-                    for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
-                        await send_document(
-                            os.getenv("TELEGRAM_API_KEY"),
-                            user_telegram_id,
-                            file
-                        )
-
-            except Exception as e:
-                await send_message(
-                    os.getenv("TELEGRAM_API_KEY"),
-                    user_telegram_id,
-                    message="""
-                    Не удалось сгенерировать презентацию.
-                    Сейчас у Giga Chat, с которым я работаю происходят технические сбои.
-                    Мы решаем эту проблему вместе, а пока попробуй ввести свою тему ещё раз,
-                    есть шанс, что тебе повезет😉"""
+        match event_message.event_type:
+            case EventType.TELEGRAM.value:
+                file_path_pdf = Presentation.save(
+                    data=presentation_data,
+                    save_path=event_message.save_presentation_path,
+                    format=event_message.format_file
                 )
-                logger.error(f"Presentation sending failed: {e}")
+                for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
+                    await send_document(
+                        os.getenv("TELEGRAM_API_KEY"),
+                        user_telegram_id,
+                        file
+                    )
 
-        case _:
-            logger.warning(f"Unknown event type {event_message.event_type} in generator_queue")
+            case _:
+                logger.warning(f"Unknown event type {event_message.event_type} in generator_queue")
+
+    except Exception as e:
+        await send_message(
+            os.getenv("TELEGRAM_API_KEY"),
+            user_telegram_id,
+            message="""
+            Не удалось сгенерировать презентацию.
+            Сейчас у Giga Chat, с которым я работаю происходят технические сбои.
+            Мы решаем эту проблему вместе, а пока попробуй ввести свою тему ещё раз,
+            есть шанс, что тебе повезет😉"""
+        )
+        logger.error(f"Presentation sending failed: {e}")
+
+
 
 
 async def on_download_message(message):
     event_message = EventMessage(message)
+    await message.channel.basic_ack(
+        message.delivery.delivery_tag
+    )
+
     logger.info(f"Starting download from message {event_message.__dict__}")
 
     match event_message.event_type:
         case EventType.DOWNLOAD.value:
             if db_presentation := await get_presentation_dto_or_none(event_message.presentation_uuid):      # noqa E501
+                logger.info(f"Getting telegram of user {event_message.user_uuid} for send presentation")  # noqa E501
                 telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
 
                 try:
@@ -142,8 +142,6 @@ async def on_download_message(message):
                         save_path=event_message.save_presentation_path,
                         format=event_message.format_file
                     )
-
-                    logger.info(f"Getting telegram of user {event_message.user_uuid} for send presentation")   # noqa E501
 
                     logger.info(f"Sending presentation {event_message.save_presentation_path} to {telegram_id}")   # noqa E501
                     await send_document(
@@ -161,10 +159,6 @@ async def on_download_message(message):
 
         case _:
             logger.warning(f"Unknown event type {event_message.event_type} in download_presentation_queue")    # noqa E501
-
-    await message.channel.basic_ack(
-        message.delivery.delivery_tag
-    )
 
 
 async def main():
