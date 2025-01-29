@@ -23,7 +23,7 @@ GENERATOR_EVENT_TYPE = ["web", "telegram"]
 DOWNLOAD_EVENT_TYPE = ["download"]
 
 
-async def send_document(token: str, chat_id: str, file_path: str) -> None:
+async def send_document(chat_id: str, file_path: str, token: str = os.getenv("TELEGRAM_API_KEY")) -> None:
     filename = file_path.split('/')[-1]
     logger.info(f"Sending file {file_path} to {chat_id}")
 
@@ -47,6 +47,25 @@ async def send_message(token: str, chat_id: str, message: str) -> None:
 
         async with session.post(url, data=data) as response:
             await response.text()
+
+
+def delete_presentation_file(file_path: str):
+    root_directory = "/app/presentations_files"
+
+    if os.path.isfile(file_path):
+        os.remove(file_path)
+
+    parent_directory = os.path.dirname(file_path)
+
+    while parent_directory != root_directory:
+        if os.path.isdir(parent_directory):
+            try:
+                os.rmdir(parent_directory)
+            except OSError:
+                logger.warning(f"Папка не пустая, удаление остановлено: {parent_directory}")
+                break
+
+        parent_directory = os.path.dirname(parent_directory)
 
 
 def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDTO:
@@ -104,10 +123,11 @@ async def on_generator_message(message):
                 )
                 for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
                     await send_document(
-                        os.getenv("TELEGRAM_API_KEY"),
                         user_telegram_id,
                         file
                     )
+
+                delete_presentation_file(file)
 
     except Exception as e:
         await send_message(
@@ -146,10 +166,10 @@ async def on_download_message(message):
 
                     logger.info(f"Sending presentation {event_message.save_presentation_path} to {telegram_id}")   # noqa E501
                     await send_document(
-                        os.getenv("TELEGRAM_API_KEY"),
                         telegram_id,
                         presentation_path
                     )
+                    delete_presentation_file(presentation_path)
                 except Exception as e:
                     await send_message(
                         os.getenv("TELEGRAM_API_KEY"),
