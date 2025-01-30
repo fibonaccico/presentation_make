@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import logging
+# import logging
 import os
 import re
 import time
-from typing import Optional
 
+from config.logger import get_logger
 from make_presentation.config import (ENDING_PRESENTATION_STATUS,
                                       ENDING_PRESENTATION_TEXT,
                                       MAX_TEXT_LENGTH,
@@ -20,7 +20,7 @@ from make_presentation.generator_models.pptx import PresentationTemplate
 from make_presentation.image import ImagesAdapter
 from make_presentation.text import TextAdapter
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class Presentation:
@@ -39,7 +39,7 @@ class Presentation:
     async def make_presentation(
         self,
         context: str,
-        number_of_slides: Optional[int],
+        number_of_slides: int | None = None,
         save_path_for_images: str | None = None,
         image_style: str = "DEFAULT",
     ) -> PresentationDTO:
@@ -151,7 +151,6 @@ class Presentation:
 
         save_path: str - a path to the folder to save a presentation
         """
-
         output_path = os.path.join(save_path, ("prs_" + str(time.time())))
         # create a folder
         os.makedirs(output_path, exist_ok=True)

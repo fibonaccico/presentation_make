@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import logging
+# import logging
 import math
 import os
 from io import BytesIO
@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 from PIL import Image
 from pptx.dml.color import RGBColor
 
+from config.logger import get_logger
 from make_presentation.config import (DEFAULT_TEXT_FONT,
                                       DEFAULT_TEXT_FONT_SETTINGS,
                                       DEFAULT_TEXT_SIZE, SCALING_FACTOR,
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
     from pptx.slide import Slide as PptxSlide
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class Slide:
@@ -67,11 +68,14 @@ class Slide:
 
         for shape in self.slide.shapes:
             if shape.has_text_frame:
+                logger.warning("1")
                 if shape.text == "TITLE" and self.title is not None:
+                    logger.warning("11")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
                     )
+                    logger.warning("12")
                     self.__add_text_to_placeholder(
                         text_placeholder=shape,
                         text=self.title,
@@ -93,13 +97,18 @@ class Slide:
                         ),
                         max_chars=self.max_chars[self.slide_type]["TITLE"]
                     )
+                    logger.warning("13")
                 elif "TEXT" in shape.text and self.text is not None:
+                    logger.warning("21")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
                     )
+                    logger.warning("22")
                     shape_text = shape.text
+                    logger.warning("23")
                     text_number = int(shape_text[-1])
+                    logger.warning("24")
                     self.__add_text_to_placeholder(
                         text_placeholder=shape,
                         text=self.text[text_number - 1],
@@ -123,18 +132,23 @@ class Slide:
                     )
 
                 elif "SUBTITLE" in shape.text and self.text is not None:
+                    logger.warning("31")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
                     )
+                    logger.warning("32")
                     shape_text = shape.text
+                    logger.warning("33")
                     subtitle_number = int(shape_text[-1])
+                    logger.warning("34")
                     if subtitle_number == 1:
                         subtitle = self.subtitle_1
                     elif subtitle_number == 2:
                         subtitle = self.subtitle_2
                     else:
                         subtitle = self.subtitle_3
+                    logger.warning("35")
                     self.__add_text_to_placeholder(
                         text_placeholder=shape,
                         text=subtitle,
@@ -156,6 +170,7 @@ class Slide:
                         ),
                         max_chars=self.max_chars[self.slide_type]["SUBTITLE"]
                     )
+                    logger.warning("36")
 
                 elif (
                     shape.text == "PIC"
@@ -163,15 +178,19 @@ class Slide:
                     and len(self.img) > num_pic
                     and self.pictures_setting is not None
                 ):
+                    logger.warning("41")
                     self.__add_picture(
                         shape=shape,
                         num_pic=num_pic,
                         settings=self.pictures_setting[num_pic],
                     )
+                    logger.warning("42")
                     num_pic += 1
 
         if self.foreground_pictures_setting is not None:
+            logger.warning("51")
             self.__add_foreground_images(names=self.foreground_pictures_setting)
+            logger.warning("52")
 
     def __calculate_font_size(
         self,

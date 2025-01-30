@@ -8,6 +8,8 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
+aiormq = "6.8.1"
+asyncpg = "0.30.0"
 gigachat = "0.1.13"
 python-dotenv = "1.0.0"
 gigachain-core = "0.1.9.1"
