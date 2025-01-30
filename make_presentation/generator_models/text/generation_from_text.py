@@ -27,6 +27,9 @@ class GenerationFromText(TextGeneratorProtocol):
     """
     Класс для создания текстов для слайдов из переданного пользователем текста.
     """
+    def __init__(self, prompt: str, theme: bool) -> None:
+        self.prompt = prompt
+        self.theme = theme
 
     async def create_text(
         self,
@@ -41,10 +44,10 @@ class GenerationFromText(TextGeneratorProtocol):
         """
 
         generated_theme = await self.__get_presentation_theme(text=context, text_api=api)
-        if "Тема:" in generated_theme.content:
-            presentation_theme = generated_theme.content.split("Тема:")[1].strip()
+        if "Тема:" in generated_theme:
+            presentation_theme = generated_theme.split("Тема:")[1].strip()
         else:
-            presentation_theme = generated_theme.content
+            presentation_theme = generated_theme
 
         list_of_excerpts = self.__split_text(text=context, template=template)
 
@@ -66,7 +69,7 @@ class GenerationFromText(TextGeneratorProtocol):
                 )
 
                 title, text_list, picture_description = self.__get_slide_info(
-                    text=slide_text.content
+                    text=slide_text
                 )
 
                 if not picture_description or not title or not text_list:
@@ -133,7 +136,6 @@ class GenerationFromText(TextGeneratorProtocol):
 
         if current_excerpt:
             excerpts.append(current_excerpt.strip())
-
         return excerpts
 
     def __get_slide_info(self, text: str) -> tuple[list[str], list[str], list[str]]:
@@ -141,16 +143,28 @@ class GenerationFromText(TextGeneratorProtocol):
         Return a tuple of title, slide text and picture description.
         """
 
-        title: list[str] = re.findall(r"(?i)Заголовок:\s(.+)", text)
-        text_list: list[str] = re.findall(r"(?i)Текст:\s(.+)", text)
-        pictures_list: list[str] = re.findall(r"(?i)Картинка:\s(.+)", text)
+        title: list[str] = re.findall(r"(?i)Заголовок:(.+)", text)
+        text_list: list[str] = re.findall(r"(?i)Текст:(.+)", text)
+        pictures_list: list[str] = re.findall(r"(?i)Картинка:(.+)", text)
 
         if not pictures_list:
             picture_discription: list[str] = re.findall(r"(?i)Описание картинки:\s(.+)", text)
         else:
             picture_discription = pictures_list
 
+        title = self.__clean_text(title)
+        text_list = self.__clean_text(text_list)
+        picture_discription = self.__clean_text(picture_discription)
+
         return title, text_list, picture_discription
+
+    def __clean_text(self, text: list[str]) -> list[str]:
+        result = []
+        for item in text:
+            text_item = item.strip().strip("*").strip("*").strip("*")
+            text_item = item.strip('«').strip('»')
+            result.append(text_item)
+        return result
 
     def __get_full_text(self, titles: list[str], slides_text_list: list[str]) -> str:
         """
