@@ -189,7 +189,7 @@ class TextInOneStep(TextGeneratorProtocol):
         text: str,
         num_slides: Optional[int]
     ) -> list[list[str]] | list[str]:
-        if num_slides:
+        if num_slides is not None:
             subtitle_text_1 = self.__get_list_text(
                 text=text,
                 pattern=r"(?i)Описание 1:(.+)",
