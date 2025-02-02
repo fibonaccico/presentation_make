@@ -79,7 +79,7 @@ class TextInOneStep(TextGeneratorProtocol):
             num_slides=slides_count
         )
         if not pictures:
-            titles = self.__get_list_text(
+            pictures = self.__get_list_text(
                 text=ai_answer,
                 pattern=r"(?i)Картинка[:*+]*/s(.+)",
                 num_slides=slides_count
@@ -190,7 +190,6 @@ class TextInOneStep(TextGeneratorProtocol):
         num_slides: Optional[int]
     ) -> list[list[str]] | list[str]:
         if num_slides:
-
             subtitle_text_1 = self.__get_list_text(
                 text=text,
                 pattern=r"(?i)Описание 1:(.+)",
