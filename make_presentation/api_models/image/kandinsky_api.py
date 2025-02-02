@@ -101,7 +101,7 @@ class KandinskyAPI(ImageAPIProtocol):
                 result = await response.json()
 
         if "error" in result:
-            raise BadRequestError(f"Not found: data {result}")
+            raise BadRequestError(f"Not found: data {result}. Cannot generate image - {promt}")
 
         uuid = result["uuid"]
         image_result = await self._check_status(uuid=uuid, max_time=max_time)
