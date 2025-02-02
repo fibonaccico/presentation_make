@@ -189,22 +189,52 @@ class TextInOneStep(TextGeneratorProtocol):
         text: str,
         num_slides: Optional[int]
     ) -> list[list[str]] | list[str]:
-        if num_slides is not None:
-            subtitle_text_1 = self.__get_list_text(
+        if num_slides is None:
+            slides_text = self.__get_list_text(
                 text=text,
-                pattern=r"(?i)Описание 1:(.+)",
+                pattern=r"(?i)Описание[:*+](.+)",
                 num_slides=num_slides
             )
+            if not slides_text:
+                slides_text = self.__get_list_text(
+                    text=text,
+                    pattern=r"(?i)Описание[:*+]/s(.+)",
+                    num_slides=num_slides
+                )
+        else:
+            subtitle_text_1 = self.__get_list_text(
+                text=text,
+                pattern=r"(?i)Описание 1[:*+](.+)",
+                num_slides=num_slides
+            )
+            if not subtitle_text_1:
+                subtitle_text_1 = self.__get_list_text(
+                    text=text,
+                    pattern=r"(?i)Описание 1[:*+]/s(.+)",
+                    num_slides=num_slides
+                )
             subtitle_text_2 = self.__get_list_text(
                 text=text,
                 pattern=r"(?i)Описание 2:(.+)",
                 num_slides=num_slides
             )
+            if not subtitle_text_2:
+                subtitle_text_2 = self.__get_list_text(
+                    text=text,
+                    pattern=r"(?i)Описание 2[:*+]/s(.+)",
+                    num_slides=num_slides
+                )
             subtitle_text_3 = self.__get_list_text(
                 text=text,
                 pattern=r"(?i)Описание 3:(.+)",
                 num_slides=num_slides
             )
+            if not subtitle_text_3:
+                subtitle_text_3 = self.__get_list_text(
+                    text=text,
+                    pattern=r"(?i)Описание 3[:*+]/s(.+)",
+                    num_slides=num_slides
+                )
             if not subtitle_text_1 or not subtitle_text_2 or not subtitle_text_3:
                 logging.error("Text has not been generated.")
                 raise InvalidTextNumberError("Text has not been generated.")
@@ -212,9 +242,6 @@ class TextInOneStep(TextGeneratorProtocol):
             if len(subtitle_text_1) != len(subtitle_text_2) != len(subtitle_text_3):
                 logging.error("Invalid number of subtitles text.")
                 raise InvalidTextNumberError("Invalid number of subtitles text.")
-
-            if num_slides is None:
-                num_slides = len(subtitle_text_1)
 
             try:
                 slides_text = []
@@ -229,12 +256,6 @@ class TextInOneStep(TextGeneratorProtocol):
                 logging.error(f"Text items less than {num_slides}.")
                 raise InvalidTextNumberError(f"Text items less than {num_slides}")
 
-        else:
-            slides_text = self.__get_list_text(
-                text=text,
-                pattern=r"(?i)Описание:(.+)",
-                num_slides=num_slides
-            )
         return slides_text
 
     def __text_after_processing(self, text: str) -> str:
