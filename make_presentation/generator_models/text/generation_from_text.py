@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 from typing import TYPE_CHECKING
 
@@ -9,7 +10,6 @@ from make_presentation.config import (MAX_COUNT_OF_GENERATION,
 from make_presentation.DTO import TextDTO
 from make_presentation.errors import (MaxCountGenerationError,
                                       TittleOrSlideTextNotGeneratedError)
-from make_presentation.logger import logger
 from make_presentation.templates.template_config import MAX_CHARS
 
 from ..interfaces import TextGeneratorProtocol
@@ -18,6 +18,9 @@ if TYPE_CHECKING:
     from langchain.schema import AIMessage
 
     from ...api_models.interfaces import TextAPIProtocol
+
+
+logger = logging.getLogger(__name__)
 
 
 class GenerationFromText(TextGeneratorProtocol):

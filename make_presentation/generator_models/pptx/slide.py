@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import math
 import os
 from io import BytesIO
@@ -14,12 +15,14 @@ from make_presentation.config import (DEFAULT_TEXT_FONT,
                                       path_to_fonts, path_to_foreground_image)
 from make_presentation.DTO import ImageDTO, ImageInfoDTO
 from make_presentation.errors import FontDoesNotExistError, PicturesNumberError
-from make_presentation.logger import logger
 
 from .image_corrector import ImageCorrector
 
 if TYPE_CHECKING:
     from pptx.slide import Slide as PptxSlide
+
+
+logger = logging.getLogger(__name__)
 
 
 class Slide:

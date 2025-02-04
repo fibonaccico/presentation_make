@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 
 from dotenv import load_dotenv
@@ -11,9 +12,9 @@ from make_presentation.api_models.errors import BlacklistError
 from make_presentation.api_models.interfaces import TextAPIProtocol
 from make_presentation.config import (DEFAULT_REQUEST_NUMBER,
                                       DEFAULT_TEMPERATURE)
-from make_presentation.logger import logger
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 class GigaChatRequest(TextAPIProtocol):
