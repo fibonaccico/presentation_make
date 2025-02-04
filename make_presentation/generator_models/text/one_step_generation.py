@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+logger.setLevel("DEBUG")
 
 
 class TextInOneStep(TextGeneratorProtocol):
