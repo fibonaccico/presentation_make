@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import os
 import re
 import time
@@ -18,9 +17,8 @@ from make_presentation.errors import (ContextDoesNotExistError,
 from make_presentation.factories.text.text_module_enum import TextGenModuleEnum
 from make_presentation.generator_models.pptx import PresentationTemplate
 from make_presentation.image import ImagesAdapter
+from make_presentation.logger import logger
 from make_presentation.text import TextAdapter
-
-logger = logging.getLogger(__name__)
 
 
 class Presentation:
