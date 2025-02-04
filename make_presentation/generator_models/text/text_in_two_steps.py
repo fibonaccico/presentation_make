@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import re
 from typing import TYPE_CHECKING, Optional
 
@@ -12,6 +11,7 @@ from make_presentation.errors import (InvalidSubtitlesNumberError,
                                       InvalidTitlesNumberError,
                                       NoSlideTextError, NoSubtitlesError,
                                       TittleOrSlideTextNotGeneratedError)
+from make_presentation.logger import logger
 
 from ..interfaces import TextGeneratorProtocol
 
@@ -19,9 +19,6 @@ if TYPE_CHECKING:
     from langchain_core.messages import BaseMessage
 
     from make_presentation.api_models.interfaces import TextAPIProtocol
-
-
-logger = logging.getLogger(__name__)
 
 
 class TextInTwoSteps(TextGeneratorProtocol):
@@ -142,7 +139,7 @@ class TextInTwoSteps(TextGeneratorProtocol):
         picture_discription_list: list[str] = re.findall(r"(?i)Картинка:(.+)", text)
 
         if len(title_list) != slides_count:
-            logging.error(f"Titles number less than {slides_count}.")
+            logger.error(f"Titles number less than {slides_count}.")
             raise InvalidTitlesNumberError(f"Titles number less than {slides_count}")
 
         return new_title_list, picture_discription_list

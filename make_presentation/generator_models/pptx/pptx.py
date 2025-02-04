@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import os
 from typing import TypeVar
 
@@ -12,6 +11,7 @@ from make_presentation.converters import (convert_pdf_to_pptx,
                                           convert_pptx_to_pdf)
 from make_presentation.DTO import PresentationDTO
 from make_presentation.errors import TemplateConfigDoesNotExistError
+from make_presentation.logger import logger
 from make_presentation.templates.get_settings import (
     get_slides_foreground_pictures_setting, get_slides_pictures_setting)
 from make_presentation.templates.template_config import (MAX_CHARS, TEXT_COLOR,
@@ -21,8 +21,6 @@ from make_presentation.templates.template_config import (MAX_CHARS, TEXT_COLOR,
                                                          USUAL_PICTURES)
 
 from .slide import Slide
-
-logger = logging.getLogger(__name__)
 
 T = TypeVar('T')
 

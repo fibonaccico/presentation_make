@@ -8,15 +8,13 @@ from make_presentation.config import get_prompt_result
 from make_presentation.DTO import TextDTO
 from make_presentation.errors import (InvalidTextNumberError,
                                       TittleOrSlideTextNotGeneratedError)
+from make_presentation.logger import logger
 
 from ..interfaces import TextGeneratorProtocol
 
 if TYPE_CHECKING:
 
     from make_presentation.api_models.interfaces import TextAPIProtocol
-
-
-logger = logging.getLogger(__name__)
 
 
 class TextInOneStep(TextGeneratorProtocol):
