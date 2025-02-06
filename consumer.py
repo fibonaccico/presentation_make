@@ -128,6 +128,12 @@ async def on_generator_message(message):
                     )
 
                 delete_presentation_file(file)
+        else:
+            await send_message(
+                os.getenv("TELEGRAM_API_KEY"),
+                user_telegram_id,
+                f"Ошибка генерации презентации. Попробуй еще раз или обратись к администратору."    # noqa E501
+            )
 
     except Exception as e:
         await send_message(
