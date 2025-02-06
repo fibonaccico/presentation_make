@@ -29,6 +29,9 @@ pre-commit = "3.5.0"
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+py-modules = ["make_presentation"]
+
 [project]
 name = "presentation-make"
 version = "0.1.1"

@@ -100,10 +100,15 @@ class Slide:
                         if self.text_color else None
                     )
                     shape_text = shape.text
-                    text_number = int(shape_text[-1])
+                    if self.subtitle_1 or self.subtitle_2 or self.subtitle_3:
+                        text_number = int(shape_text[-1])
+                        text_for_slide = self.text[text_number - 1]
+                    else:
+                        text_for_slide = self.text
+
                     self.__add_text_to_placeholder(
                         text_placeholder=shape,
-                        text=self.text[text_number - 1],
+                        text=text_for_slide,
                         text_font=(
                             self.text_font[self.slide_type]["TEXT"]
                             if self.text_font else DEFAULT_TEXT_FONT

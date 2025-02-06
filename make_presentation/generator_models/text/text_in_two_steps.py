@@ -142,7 +142,7 @@ class TextInTwoSteps(TextGeneratorProtocol):
         picture_discription_list: list[str] = re.findall(r"(?i)Картинка:(.+)", text)
 
         if len(title_list) != slides_count:
-            logging.error(f"Titles number less than {slides_count}.")
+            logger.error(f"Titles number less than {slides_count}.")
             raise InvalidTitlesNumberError(f"Titles number less than {slides_count}")
 
         return new_title_list, picture_discription_list

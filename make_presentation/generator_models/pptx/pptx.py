@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-# import logging
 import os
 from typing import TypeVar
 
@@ -135,10 +134,12 @@ class PresentationTemplate:
                 template_name=data.template_name,
                 num_slides=number_of_slides,
             )
+
             foreground_pictures_setting = get_slides_foreground_pictures_setting(
                 template_name=data.template_name,
                 num_slides=number_of_slides,
             )
+
             slide_in_pres = Slide(
                 slide=self.presentation.slides[slide.number],
                 title=slide.title,
@@ -163,6 +164,7 @@ class PresentationTemplate:
                 ),
                 max_chars=MAX_CHARS[data.template_name]["max"]
             )
+
             slide_in_pres.make_slide()
 
         logger.info(f"A presentation {data.theme} has been created.")

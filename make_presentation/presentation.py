@@ -87,18 +87,20 @@ class Presentation:
         if self.opening_prentation_theme_title:
             text_dto.titles = [text_dto.theme] + text_dto.titles
             text_dto.slides_text_list = [[""]] + text_dto.slides_text_list
-            text_dto.subtitles_1 = [""] + text_dto.subtitles_1
-            text_dto.subtitles_2 = [""] + text_dto.subtitles_2
-            text_dto.subtitles_3 = [""] + text_dto.subtitles_3
+            if text_dto.subtitles_1 is not None:
+                text_dto.subtitles_1 = [""] + text_dto.subtitles_1
+                text_dto.subtitles_2 = [""] + text_dto.subtitles_2
+                text_dto.subtitles_3 = [""] + text_dto.subtitles_3
             list_of_image_info_dto = [None] + list_of_image_info_dto   # type: ignore
             slides_count += 1
 
         if self.ending_presentation_status:
             text_dto.titles = text_dto.titles + [ENDING_PRESENTATION_TEXT]
             text_dto.slides_text_list = text_dto.slides_text_list + [[""]]
-            text_dto.subtitles_1 = text_dto.subtitles_1 + [""]
-            text_dto.subtitles_2 = text_dto.subtitles_2 + [""]
-            text_dto.subtitles_3 = text_dto.subtitles_3 + [""]
+            if text_dto.subtitles_1 is not None:
+                text_dto.subtitles_1 = text_dto.subtitles_1 + [""]
+                text_dto.subtitles_2 = text_dto.subtitles_2 + [""]
+                text_dto.subtitles_3 = text_dto.subtitles_3 + [""]
             list_of_image_info_dto = list_of_image_info_dto + [None]   # type: ignore
             slides_count += 1
             finish_title = ENDING_PRESENTATION_TEXT
