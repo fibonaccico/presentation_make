@@ -38,7 +38,7 @@ async def send_document(chat_id: str, file_path: str, token: str = os.getenv("TE
                 await response.text()
 
 
-async def send_message(token: str, chat_id: str, message: str) -> None:
+async def send_message(chat_id: str, message: str, token: str = os.getenv("TELEGRAM_API_KEY")) -> None:
     async with aiohttp.ClientSession() as session:
         url = f'https://api.telegram.org/bot{token}/sendMessage'
         data = aiohttp.FormData()
@@ -107,45 +107,36 @@ async def on_generator_message(message):
     logger.info(f"Starting generate from message {event_message.__dict__}")
     user_telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
 
-    try:
-        if event_message.event_type not in GENERATOR_EVENT_TYPE:
-            raise EventTypeException
+    if event_message.event_type not in GENERATOR_EVENT_TYPE:
+        raise EventTypeException
 
-        presentation_data = await create_presentation_adapter(event_message)
-        if presentation_data:
-            await reduce_balance_by_user_uuid(event_message.user_uuid)
+    presentation_data = await create_presentation_adapter(event_message)
+    if presentation_data:
+        await reduce_balance_by_user_uuid(event_message.user_uuid)
 
-            if EventType.TELEGRAM.value:
-                file_path_pdf = Presentation.save(
-                    data=presentation_data,
-                    save_path=event_message.save_presentation_path,
-                    format=event_message.format_file
-                )
-                for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
-                    await send_document(
-                        user_telegram_id,
-                        file
-                    )
-
-                delete_presentation_file(file)
-        else:
-            await send_message(
-                os.getenv("TELEGRAM_API_KEY"),
-                user_telegram_id,
-                f"Ошибка генерации презентации. Попробуй еще раз или обратись к администратору."    # noqa E501
+        if EventType.TELEGRAM.value:
+            file_path_pdf = Presentation.save(
+                data=presentation_data,
+                save_path=event_message.save_presentation_path,
+                format=event_message.format_file
             )
+            for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
+                await send_document(
+                    user_telegram_id,
+                    file
+                )
 
-    except Exception as e:
+            delete_presentation_file(file)
+    else:
         await send_message(
-            os.getenv("TELEGRAM_API_KEY"),
             user_telegram_id,
             message="""
-            Не удалось сгенерировать презентацию.
-            Сейчас у Giga Chat, с которым я работаю происходят технические сбои.
-            Мы решаем эту проблему вместе, а пока попробуй ввести свою тему ещё раз,
-            есть шанс, что тебе повезет😉"""
+                    Не удалось сгенерировать презентацию.
+                    Сейчас у Giga Chat, с которым я работаю происходят технические сбои.
+                    Мы решаем эту проблему вместе, а пока попробуй ввести свою тему ещё раз,
+                    есть шанс, что тебе повезет😉"""
         )
-        logger.error(f"Presentation sending failed: {e}")
+        logger.error(f"Presentation sending failed: {presentation_data.theme}")
 
 
 async def on_download_message(message):
@@ -178,7 +169,6 @@ async def on_download_message(message):
                     delete_presentation_file(presentation_path)
                 except Exception as e:
                     await send_message(
-                        os.getenv("TELEGRAM_API_KEY"),
                         telegram_id,
                         f"Ошибка отправки презентации. Попробуй еще раз или обратись к администратору."    # noqa E501
                     )
