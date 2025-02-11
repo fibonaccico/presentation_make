@@ -136,7 +136,7 @@ async def on_generator_message(message):
                     Мы решаем эту проблему вместе, а пока попробуй ввести свою тему ещё раз,
                     есть шанс, что тебе повезет😉"""
         )
-        logger.error(f"Presentation sending failed: {presentation_data.theme}")
+        logger.error(f"Presentation sending failed: {event_message.presentation_uuid}")
 
 
 async def on_download_message(message):
