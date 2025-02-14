@@ -3,7 +3,7 @@ from typing import Optional
 
 import pkg_resources
 
-TEXT_API = "GIGACHAT"
+TEXT_API = "OPENAI"
 IMAGE_API = "KANDINSKY"
 
 OPENING_PRESENTATION_THEME_TITLE = True
