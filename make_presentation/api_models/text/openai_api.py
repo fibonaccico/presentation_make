@@ -2,7 +2,7 @@ import logging
 import os
 
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
+from openai import AsyncOpenAI
 
 from make_presentation.api_models.interfaces import TextAPIProtocol
 from make_presentation.config import DEFAULT_TEMPERATURE
@@ -13,24 +13,26 @@ logger = logging.getLogger(__name__)
 
 class OpenAIRequest(TextAPIProtocol):
     def __init__(self):
-        self.api = ChatOpenAI(
-            model="gpt-4o-mini",
-            api_key=os.getenv("OPENAI_API_KEY"),
-            temperature=DEFAULT_TEMPERATURE
+        self.api = AsyncOpenAI(
+            api_key=os.getenv("PROXY_API"),
+            base_url="https://api.proxyapi.ru/openai/v1",
         )
 
     async def request(
         self,
         text: str
     ) -> str | list[str | dict]:
-        messages = [("human", text),]
-        response = await self.api.ainvoke(messages)
-        request_cost = response.response_metadata["token_usage"]["prompt_tokens"]
-        response_cost = response.response_metadata["token_usage"]["completion_tokens"]
+        chat_completion = await self.api.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": text}],
+            temperature=DEFAULT_TEMPERATURE
+        )
+        request_cost = chat_completion.usage.prompt_tokens
+        response_cost = chat_completion.usage.completion_tokens
 
         logger.info(
             f'Request costs [{request_cost}] tokens.'
             f'Response costs [{response_cost}] tokens.'
         )
 
-        return response.content
+        return chat_completion.choices[0].message.content
