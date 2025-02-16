@@ -49,14 +49,6 @@ class TextInOneStep(TextGeneratorProtocol):
         To create Text data transfer object (TextTwoStepsDTO) with following parameters:
         titles, text of slide description, picture descriptions, full text
         """
-        print(f"Pompt === {self.prompt}")
-        logger.info(f"Pompt === {self.prompt}")
-        print(f"theme === {self.theme}")
-        logger.info(f"theme === {self.theme}")
-        print(f"Slides count === {slides_count}")
-        logger.info(f"Slides count === {slides_count}")
-        print(f"Context === {context}")
-        logger.info(f"Context === {context}")
         ai_answer = await self.__get_all_ai_answer(
             prompt=self.prompt,
             api=api,
@@ -64,15 +56,12 @@ class TextInOneStep(TextGeneratorProtocol):
             num_slide=slides_count
         )
         logger.info(f"AI answer === {ai_answer}")
-        print(f"AI answer === {ai_answer}")
 
         titles = self.__get_list_text(
             text=ai_answer,
             pattern=r"(?i)Заголовок слайда[:*+]*(.+)",
             num_slides=slides_count
         )
-        logger.info(f"Title === {titles}")
-        print(f"Title === {titles}")
 
         if not titles:
             titles = self.__get_list_text(
@@ -80,40 +69,33 @@ class TextInOneStep(TextGeneratorProtocol):
                 pattern=r"(?i)Заголовок[:*+]*(.+)",
                 num_slides=slides_count
             )
-        logger.info(f"Title === {titles}")
-        print(f"Title === {titles}")
+
         if not titles:
             titles = self.__get_list_text(
                 text=ai_answer,
                 pattern=r"(?i)Заголовок[:*+]*/s(.+)",
                 num_slides=slides_count
             )
-        logger.info(f"Title === {titles}")
-        print(f"Title === {titles}")
 
         pictures = self.__get_list_text(
             text=ai_answer,
             pattern=r"(?i)Картинка[:*+]*(.+)",
             num_slides=slides_count
         )
-        logger.info(f"Picture === {pictures}")
-        print(f"Picture === {pictures}")
+
         if not pictures:
             pictures = self.__get_list_text(
                 text=ai_answer,
                 pattern=r"(?i)Картинка[:*+]*/s(.+)",
                 num_slides=slides_count
             )
-        logger.info(f"Picture === {pictures}")
-        print(f"Picture === {pictures}")
+
         if slides_count:
             subtitles_1 = self.__get_list_text(
                 text=ai_answer,
                 pattern=r"(?i)Подзаголовок 1[:*+]*(.+)",
                 num_slides=slides_count
             )
-            logger.info(f"subtitles_1 === {subtitles_1}")
-            print(f"subtitles_1 === {subtitles_1}")
 
             if not subtitles_1:
                 subtitles_1 = self.__get_list_text(
@@ -121,16 +103,12 @@ class TextInOneStep(TextGeneratorProtocol):
                     pattern=r"(?i)Подзаголовок 1[:*+]*/s(.+)",
                     num_slides=slides_count
                 )
-            logger.info(f"subtitles_1 === {subtitles_1}")
-            print(f"subtitles_1 === {subtitles_1}")
 
             subtitles_2 = self.__get_list_text(
                 text=ai_answer,
                 pattern=r"(?i)Подзаголовок 2[:*+]*(.+)",
                 num_slides=slides_count
             )
-            logger.info(f"subtitles_2 === {subtitles_2}")
-            print(f"subtitles_2 === {subtitles_2}")
 
             if not subtitles_2:
                 subtitles_2 = self.__get_list_text(
@@ -138,36 +116,30 @@ class TextInOneStep(TextGeneratorProtocol):
                     pattern=r"(?i)Подзаголовок 2[:*+]*/s(.+)",
                     num_slides=slides_count
                 )
-            logger.info(f"subtitles_2 === {subtitles_2}")
-            print(f"subtitles_2 === {subtitles_2}")
+
             subtitles_3 = self.__get_list_text(
                 text=ai_answer,
                 pattern=r"(?i)Подзаголовок 3[:*+]*(.+)",
                 num_slides=slides_count
             )
-            logger.info(f"subtitles_3 === {subtitles_3}")
-            print(f"subtitles_3 === {subtitles_3}")
+
             if not subtitles_3:
                 subtitles_3 = self.__get_list_text(
                     text=ai_answer,
                     pattern=r"(?i)Подзаголовок 3[:*+]*/s(.+)",
                     num_slides=slides_count
                 )
-            logger.info(f"subtitles_3 === {subtitles_3}")
-            print(f"subtitles_3 === {subtitles_3}")
+
         else:
             subtitles_1 = None
             subtitles_2 = None
             subtitles_3 = None
-            logger.info(f"subtitles_3 === {subtitles_3}")
-            print(f"subtitles_3 === {subtitles_3}")
 
         slides_text_list = self.__get_slide_text(
             text=ai_answer,
             num_slides=slides_count
         )
-        logger.info(f"slides_text_list === {slides_text_list}")
-        print(f"slides_text_list === {slides_text_list}")
+
         if not self.theme:
             pres_theme = re.findall(
                 r"(?i)Тема презентации:|\*+:(.+)",
@@ -229,79 +201,60 @@ class TextInOneStep(TextGeneratorProtocol):
         text: str,
         num_slides: Optional[int]
     ) -> list[list[str]] | list[str]:
-        logger.info(f"Number of slides is ===========  {num_slides}")
-        print(f"Number of slides is ===========  {num_slides}")
 
         if num_slides is None:
-            logger.info("IS NONE")
-            print("IS NONE")
-
             slides_text = self.__get_list_text(
                 text=text,
                 pattern=r"(?i)Описание[:*+](.+)",
                 num_slides=num_slides
             )
-            logger.info(f"slides_text === {slides_text}")
-            print(f"slides_text ===========  {slides_text}")
+
             if not slides_text:
                 slides_text = self.__get_list_text(
                     text=text,
                     pattern=r"(?i)Описание[:*+]/s(.+)",
                     num_slides=num_slides
                 )
-            logger.info(f"slides_text === {slides_text}")
-            print(f"slides_text ===========  {slides_text}")
         else:
-            logger.info("NOT NONE")
-            print("NOT NONE")
-
             subtitle_text_1 = self.__get_list_text(
                 text=text,
                 pattern=r"(?i)Описание 1[:*+](.+)",
                 num_slides=num_slides
             )
-            logger.info(f"subtitle_text_1 === {subtitle_text_1}")
-            print(f"subtitle_text_1 === {subtitle_text_1}")
+
             if not subtitle_text_1:
                 subtitle_text_1 = self.__get_list_text(
                     text=text,
                     pattern=r"(?i)Описание 1[:*+]/s(.+)",
                     num_slides=num_slides
                 )
-            logger.info(f"subtitle_text_1 === {subtitle_text_1}")
-            print(f"subtitle_text_1 === {subtitle_text_1}")
+
             subtitle_text_2 = self.__get_list_text(
                 text=text,
                 pattern=r"(?i)Описание 2:(.+)",
                 num_slides=num_slides
             )
-            logger.info(f"subtitle_text_2 === {subtitle_text_2}")
-            print(f"subtitle_text_2 === {subtitle_text_2}")
+
             if not subtitle_text_2:
                 subtitle_text_2 = self.__get_list_text(
                     text=text,
                     pattern=r"(?i)Описание 2[:*+]/s(.+)",
                     num_slides=num_slides
                 )
-            logger.info(f"subtitle_text_2 === {subtitle_text_2}")
-            print(f"subtitle_text_2 === {subtitle_text_2}")
+
             subtitle_text_3 = self.__get_list_text(
                 text=text,
                 pattern=r"(?i)Описание 3:(.+)",
                 num_slides=num_slides
             )
-            logger.info(f"subtitle_text_3 === {subtitle_text_3}")
-            print(f"subtitle_text_3 === {subtitle_text_3}")
+
             if not subtitle_text_3:
                 subtitle_text_3 = self.__get_list_text(
                     text=text,
                     pattern=r"(?i)Описание 3[:*+]/s(.+)",
                     num_slides=num_slides
                 )
-            logger.info(f"subtitle_text_3 === {subtitle_text_3}")
-            print(f"subtitle_text_3 === {subtitle_text_3}")
-            logger.info(f"NOT NONE .  {subtitle_text_1}, {subtitle_text_2}, {subtitle_text_3}")
-            print(f"NOT NONE .  {subtitle_text_1}, {subtitle_text_2}, {subtitle_text_3}")
+
             if not subtitle_text_1 or not subtitle_text_2 or not subtitle_text_3:
                 logger.error("Text has not been generated.")
                 raise InvalidTextNumberError("Text has not been generated.")
@@ -349,10 +302,6 @@ class TextInOneStep(TextGeneratorProtocol):
         Return a string with following information for each slide:
         Slide {number of a slide}, title of a slide, generated text of slide.
         """
-        logger.info(f"titles === {titles}")
-        print(f"titles === {titles}")
-        logger.info(f"subtitle === {subtitles_1}, {subtitles_2}, {subtitles_3}")
-        print(f"subtitle === {subtitles_1}, {subtitles_2}, {subtitles_3}")
         if len(titles) == 0 or len(slides_text_list) == 0:
             logger.error(
                 "There are no generated titles or slides descriptions."
