@@ -6,6 +6,7 @@ import aiormq
 from dotenv import load_dotenv
 
 from config.logger import get_logger
+from config.messages import TELEGRAM_CLOSING_MESSAGE
 from make_presentation import Presentation
 from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
 from queue_manager.db_queries import (create_presentation_adapter,
@@ -127,14 +128,15 @@ async def on_generator_message(message):
                 )
 
             delete_presentation_file(file)
+
+            await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
     else:
         await send_message(
             user_telegram_id,
             message="""
-                    Не удалось сгенерировать презентацию.
-                    Сейчас у Giga Chat, с которым я работаю происходят технические сбои.
-                    Мы решаем эту проблему вместе, а пока попробуй ввести свою тему ещё раз,
-                    есть шанс, что тебе повезет😉"""
+                Не удалось сгенерировать презентацию.
+                Сейчас происходят технические работы с моими мозгами.
+                Попробуй ввести свою тему ещё раз попозже, есть шанс, что тебе повезет😉"""
         )
         logger.error(f"Presentation sending failed: {event_message.presentation_uuid}")
 
