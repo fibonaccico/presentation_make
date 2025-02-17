@@ -126,8 +126,7 @@ async def on_generator_message(message):
                     user_telegram_id,
                     file
                 )
-
-            delete_presentation_file(file)
+                delete_presentation_file(file)
 
             await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
     else:
