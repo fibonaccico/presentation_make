@@ -1,5 +1,6 @@
 import logging
 import os
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 
@@ -13,9 +14,14 @@ def get_logger() -> logging.Logger:
     if logger.hasHandlers():
         logger.handlers.clear()
     logger.setLevel(logging.DEBUG)
-    py_handler = logging.FileHandler(log_file(), mode="a")
+    log_file_path = log_file()
+    rotating_handler = RotatingFileHandler(
+        log_file_path,
+        maxBytes=10 * 1024 * 1024,
+        backupCount=10
+    )
     py_formatter = logging.Formatter("%(name)s %(asctime)s %(levelname)s %(message)s")
-    py_handler.setFormatter(py_formatter)
-    logger.addHandler(py_handler)
+    rotating_handler.setFormatter(py_formatter)
+    logger.addHandler(rotating_handler)
 
     return logger
