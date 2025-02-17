@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 def get_logger() -> logging.Logger:
-    def log_file(file_path: str = "./fibo_log.log"):
+    def log_file(file_path: str = "./log/fibo_maker.log"):
         if not os.path.exists(file_path):
             Path(file_path).touch()
         return file_path
