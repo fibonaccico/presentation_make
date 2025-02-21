@@ -54,7 +54,7 @@ TravelTech может достигнуть $12,5 млрд — это на 45% б
 async def make_pres():
     pr = Presentation(text_generation_model="ONESTEP", template="focus")
     task2 = await pr.make_presentation(
-        context="Породы охотничьих собак",
+        context="Породы",
         number_of_slides=4
     )
     return task2
@@ -68,6 +68,7 @@ async def main():
         print(task1)                                   # noqa T201
         task2 = Presentation.save(
             data=task1,
+            no_logo=True,
             save_path=path_to_file
         )
         print(task2)                                  # noqa T201
