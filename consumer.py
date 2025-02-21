@@ -138,7 +138,8 @@ async def on_generator_message(message):
         )
         logger.error(f"Presentation sending failed: {event_message.presentation_uuid}")
         await message.channel.basic_nack(
-            message.delivery.delivery_tag
+            message.delivery.delivery_tag,
+            requeue=False
         )
 
 
