@@ -102,10 +102,6 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
 async def on_generator_message(message):
     event_message = EventMessage(message)
 
-    await message.channel.basic_ack(
-        message.delivery.delivery_tag
-    )
-
     logger.info(f"Starting generate from message {event_message.__dict__}")
     user_telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
 
@@ -117,7 +113,9 @@ async def on_generator_message(message):
         is_paid = False
         if event_message.presentation_type == PresentationType.TEXT.value:
             is_paid = True
-
+        await message.channel.basic_ack(
+            message.delivery.delivery_tag
+        )
         await reduce_balance_by_user_uuid(event_message.user_uuid, is_paid)
 
         if event_message.event_type == EventType.TELEGRAM.value:
@@ -143,6 +141,10 @@ async def on_generator_message(message):
                 Попробуй ввести свою тему ещё раз попозже, есть шанс, что тебе повезет😉"""
         )
         logger.error(f"Presentation sending failed: {event_message.presentation_uuid}")
+        await message.channel.basic_nack(
+            message.delivery.delivery_tag,
+            requeue=False
+        )
 
 
 async def on_download_message(message):
@@ -173,7 +175,6 @@ async def on_download_message(message):
                         telegram_id,
                         presentation_path
                     )
-                    delete_presentation_file(presentation_path)
                 except Exception as e:
                     await send_message(
                         telegram_id,
