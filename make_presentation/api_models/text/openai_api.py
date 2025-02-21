@@ -1,14 +1,15 @@
-import logging
 import os
 
 from dotenv import load_dotenv
-from openai import AsyncOpenAI
+from openai import APIError, AsyncOpenAI
 
+from config.logger import get_logger
 from make_presentation.api_models.interfaces import TextAPIProtocol
 from make_presentation.config import DEFAULT_TEMPERATURE
+from make_presentation.errors import TextAPIError
 
 load_dotenv()
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class OpenAIRequest(TextAPIProtocol):
@@ -22,17 +23,22 @@ class OpenAIRequest(TextAPIProtocol):
         self,
         text: str
     ) -> str | list[str | dict]:
-        chat_completion = await self.api.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": text}],
-            temperature=DEFAULT_TEMPERATURE
-        )
-        request_cost = chat_completion.usage.prompt_tokens
-        response_cost = chat_completion.usage.completion_tokens
+        try:
+            chat_completion = await self.api.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": text}],
+                temperature=DEFAULT_TEMPERATURE
+            )
+            request_cost = chat_completion.usage.prompt_tokens
+            response_cost = chat_completion.usage.completion_tokens
 
-        logger.info(
-            f'Request costs [{request_cost}] tokens.'
-            f'Response costs [{response_cost}] tokens.'
-        )
+            logger.info(
+                f'Request costs [{request_cost}] tokens.'
+                f'Response costs [{response_cost}] tokens.'
+                f'Total costs [{request_cost + response_cost}] tokens.'
+            )
+        except APIError as err:
+            logger.error(f"APIConnection error: [{err}]")
+            raise TextAPIError(f"{err}")
 
         return chat_completion.choices[0].message.content

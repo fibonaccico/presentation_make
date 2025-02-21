@@ -13,9 +13,10 @@ from queue_manager.db_queries import (create_presentation_adapter,
                                       get_presentation_dto_or_none,
                                       reduce_balance_by_user_uuid,
                                       telegram_id_by_user_uuid)
-from queue_manager.event_message import EventMessage, EventType
-from queue_manager.SQL_responses import PresentationSQL
+from queue_manager.event_message import (EventMessage, EventType,
+                                         PresentationType)
 from queue_manager.queue_exceptions import EventTypeException
+from queue_manager.SQL_responses import PresentationSQL
 
 load_dotenv()
 logger = get_logger()
@@ -97,7 +98,7 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
     )
 
 
-# b'{"event_type":"telegram","generation_data":{"save_presentation_path": /path/to/pres, "type":"topic","user_uuid":"ogo","presentation_uuid":"gogo","text_generation_model":"wdef","template":"dsf","save_path_for_images":"sds","context":"dfds"}}'  # noqa E800, E501
+# b'{"event_type":"telegram","generation_data":{"save_presentation_path": /path/to/pres, "type":"topic","user_uuid":"ogo","presentation_uuid":"gogo","text_generation_model":"wdef","template":"dsf","no_logo":true,"save_path_for_images":"sds","context":"dfds"}}'  # noqa E800, E501
 async def on_generator_message(message):
     event_message = EventMessage(message)
 
@@ -109,16 +110,19 @@ async def on_generator_message(message):
 
     presentation_data = await create_presentation_adapter(event_message)
     if presentation_data:
+        is_paid = False
+        if event_message.presentation_type == PresentationType.TEXT.value:
+            is_paid = True
         await message.channel.basic_ack(
             message.delivery.delivery_tag
         )
+        await reduce_balance_by_user_uuid(event_message.user_uuid, is_paid)
 
-        await reduce_balance_by_user_uuid(event_message.user_uuid)
-
-        if EventType.TELEGRAM.value:
+        if event_message.event_type == EventType.TELEGRAM.value:
             file_path_pdf = Presentation.save(
                 data=presentation_data,
                 save_path=event_message.save_presentation_path,
+                no_logo=event_message.no_logo,
                 format=event_message.format_file
             )
             for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
@@ -162,6 +166,7 @@ async def on_download_message(message):
                     presentation_path = Presentation.save(
                         data=create_presentation_dto(db_presentation),
                         save_path=event_message.save_presentation_path,
+                        no_logo=event_message.no_logo,
                         format=event_message.format_file
                     )
 

@@ -145,6 +145,7 @@ class Presentation:
     def save(
         data: PresentationDTO,
         save_path: str,
+        no_logo: bool,
         format: str = "pptx"
     ) -> str:
         """
@@ -158,7 +159,7 @@ class Presentation:
         os.makedirs(output_path, exist_ok=True)
 
         presentation = PresentationTemplate()
-        presentation.create_presentation(data=data, save_path=output_path)
+        presentation.create_presentation(data=data, no_logo=no_logo, save_path=output_path)
 
         presentation_save_path = Presentation.get_presentation_save_path(
             save_path=output_path,

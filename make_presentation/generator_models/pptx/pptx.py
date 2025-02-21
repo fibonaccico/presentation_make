@@ -36,17 +36,24 @@ class PresentationTemplate:
         self,
         template_name: str,
         slides_count: int,
+        no_logo: bool,
         save_path: str
     ) -> T:
         """
         To create presentation object from existing presentation template.
         """
-
-        search_template = os.path.join(
-            path_to_template,
-            template_name,
-            f"_{slides_count}.pptx",
-        )
+        if no_logo:
+            search_template = os.path.join(
+                path_to_template,
+                template_name,
+                f"no_logo_{slides_count}.pptx",
+            )
+        else:
+            search_template = os.path.join(
+                path_to_template,
+                template_name,
+                f"_{slides_count}.pptx",
+            )
         presentation: T = PresentationPPTX(search_template)
         logger.info(f"A presentation template has been created. {search_template}")
 
@@ -113,13 +120,14 @@ class PresentationTemplate:
         result.save(output_file_path)
         return output_file_path
 
-    def create_presentation(self, data: PresentationDTO, save_path: str) -> None:
+    def create_presentation(self, data: PresentationDTO, no_logo: bool, save_path: str) -> None:
         """
         To create presentation based on a particular template.
         """
         number_of_slides = len(data.slides)
         self.presentation = self._get_presentation_template(
             template_name=data.template_name,
+            no_logo=no_logo,
             slides_count=number_of_slides,
             save_path=save_path
         )

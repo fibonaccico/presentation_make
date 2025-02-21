@@ -11,6 +11,7 @@ import aiohttp
 from dotenv import load_dotenv
 from PIL import Image
 
+from config.logger import get_logger
 from make_presentation.api_models.interfaces import ImageAPIProtocol
 from make_presentation.config import (BASE_KANDINSKY_URL, KANDINSKY_URLS,
                                       MAX_TIME_IMAGE_GENERATION)
@@ -18,7 +19,7 @@ from make_presentation.DTO import ImageDTO
 
 from ..errors import BadRequestError, ImageGenerationFailedError, TimeOutError
 
-logger = logging.getLogger(name=__name__)
+logger = get_logger()
 
 load_dotenv()
 
@@ -109,7 +110,7 @@ class KandinskyAPI(ImageAPIProtocol):
         image = Image.open(image_data)
 
         if save_path:
-            path = f"{save_path}/{uuid}.png"
+            path = f"{save_path}/{uuid}.jpg"
             image.save(fp=path)
         else:
             path = None

@@ -1,6 +1,6 @@
 import json
-from enum import Enum
 import typing as t
+from enum import Enum
 
 from aiormq.abc import DeliveredMessage
 
@@ -9,6 +9,11 @@ class EventType(Enum):
     TELEGRAM = "telegram"
     WEB = "web"
     DOWNLOAD = "download"
+
+
+class PresentationType(Enum):
+    TEXT = "text"
+    TOPIC = "topic"
 
 
 class EventMessage:
@@ -24,6 +29,10 @@ class EventMessage:
     @property
     def template(self) -> t.Optional[str]:
         return self._generation_data.get("template")
+
+    @property
+    def no_logo(self) -> bool:
+        return self._generation_data.get("no_logo", False)
 
     @property
     def context(self) -> t.Optional[str]:

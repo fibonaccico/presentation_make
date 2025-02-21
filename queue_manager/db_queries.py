@@ -6,19 +6,14 @@ from enum import Enum
 
 from dotenv import load_dotenv
 from sqlalchemy import text
-
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from make_presentation import Presentation
 from make_presentation.DTO import PresentationDTO
-from queue_manager.SQL_responses import ImageInfoSQL
-from queue_manager.SQL_responses import PresentationSQL
-from queue_manager.SQL_responses import SlideSQL
 from queue_manager.event_message import EventMessage
-from queue_manager.schemas import PaySchema
-from queue_manager.schemas import PresentationSchema
+from queue_manager.schemas import PaySchema, PresentationSchema
+from queue_manager.SQL_responses import ImageInfoSQL, PresentationSQL, SlideSQL
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -175,13 +170,20 @@ async def _create_presentation_raw(
     await db.commit()
 
 
-async def reduce_balance_by_user_uuid(user_uuid: str, *, qty: int = -1):
+async def reduce_balance_by_user_uuid(user_uuid: str, is_paid: bool, *, qty: int = -1):
     query = text("""
     SELECT * FROM pay
     WHERE user_uuid = :user_uuid AND status = 'succeeded' AND paid_qty != 0
     ORDER BY created_at ASC
     LIMIT 1
     """)
+    if is_paid:
+        query = text("""
+        SELECT * FROM pay
+        WHERE user_uuid = :user_uuid AND status = 'succeeded' AND paid_qty != 0 AND sum > 0
+        ORDER BY created_at ASC
+        LIMIT 1
+        """)
     query_param = {"user_uuid": user_uuid}
 
     async with AsyncSessionLocal() as db:
