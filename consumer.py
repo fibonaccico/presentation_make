@@ -33,20 +33,20 @@ async def send_document(chat_id: str, file_path: str, token: str = os.getenv("TE
         url = f'https://api.telegram.org/bot{token}/sendDocument'
         with open(file_path, 'rb') as file:
             data = aiohttp.FormData()
-            reply_markup = [
-                [
-                    {'text': '⭐Поставьте оценку/Rate⭐', 'callback_data': 'none'},
-                ],
-                [
-                    {'text': '1', 'callback_data': 'rev_1'},
-                    {'text': '2', 'callback_data': 'rev_2'},
-                    {'text': '3', 'callback_data': 'rev_3'},
-                    {'text': '4', 'callback_data': 'rev_4'},
-                    {'text': '5', 'callback_data': 'rev_5'},
-                ]
-            ]
+            # reply_markup = [
+            #     [
+            #         {'text': '⭐Поставьте оценку/Rate⭐', 'callback_data': 'none'},
+            #     ],
+            #     [
+            #         {'text': '1', 'callback_data': 'rev_1'},
+            #         {'text': '2', 'callback_data': 'rev_2'},
+            #         {'text': '3', 'callback_data': 'rev_3'},
+            #         {'text': '4', 'callback_data': 'rev_4'},
+            #         {'text': '5', 'callback_data': 'rev_5'},
+            #     ]
+            # ]
 
-            data.add_field('inline_keyboard', reply_markup)
+            # data.add_field('inline_keyboard', reply_markup)
             data.add_field('chat_id', chat_id)
             data.add_field('document', file, filename=filename)
 
