@@ -154,7 +154,7 @@ async def on_generator_message(message):
                 Сейчас происходят технические работы с моими мозгами.
                 Попробуй ввести свою тему ещё раз попозже, есть шанс, что тебе повезет😉"""
         )
-        logger.error(f"Presentation sending failed: {event_message.presentation_uuid}")
+        logger.error(f"Presentation sending failed: {event_message.presentation_uuid}. ")
         await message.channel.basic_nack(
             message.delivery.delivery_tag,
             requeue=False
