@@ -6,10 +6,14 @@ import aiormq
 from dotenv import load_dotenv
 
 from config.logger import get_logger
-from config.messages import TELEGRAM_CLOSING_MESSAGE
+from config.messages import (GENERATION_ERROR_MESSAGE_EN,
+                             GENERATION_ERROR_MESSAGE_RU, SENDING_FAIL_EN,
+                             SENDING_FAIL_RU, TELEGRAM_CLOSING_MESSAGE_EN,
+                             TELEGRAM_CLOSING_MESSAGE_RU)
 from make_presentation import Presentation
 from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
 from queue_manager.db_queries import (create_presentation_adapter,
+                                      get_locale_by_user_uuid,
                                       get_presentation_dto_or_none,
                                       reduce_balance_by_user_uuid,
                                       telegram_id_by_user_uuid)
@@ -118,6 +122,7 @@ async def on_generator_message(message):
 
     logger.info(f"Starting generate from message {event_message.__dict__}")
     user_telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
+    locale = await get_locale_by_user_uuid(user_uuid=event_message.user_uuid)
 
     if event_message.event_type not in GENERATOR_EVENT_TYPE:
         raise EventTypeException
@@ -144,16 +149,18 @@ async def on_generator_message(message):
                     user_telegram_id,
                     file
                 )
-
+            if locale == "ru":
+                TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_RU
+            else:
+                TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_EN
             await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
     else:
-        await send_message(
-            user_telegram_id,
-            message="""
-                Не удалось сгенерировать презентацию.
-                Сейчас происходят технические работы с моими мозгами.
-                Попробуй ввести свою тему ещё раз попозже, есть шанс, что тебе повезет😉"""
-        )
+        if locale == "ru":
+            message = GENERATION_ERROR_MESSAGE_RU
+        else:
+            message = GENERATION_ERROR_MESSAGE_EN
+        await send_message(user_telegram_id, message=message)
+
         logger.error(f"Presentation sending failed: {event_message.presentation_uuid}. ")
         await message.channel.basic_nack(
             message.delivery.delivery_tag,
@@ -174,6 +181,7 @@ async def on_download_message(message):
             if db_presentation := await get_presentation_dto_or_none(event_message.presentation_uuid):      # noqa E501
                 logger.info(f"Getting telegram of user {event_message.user_uuid} for send presentation")  # noqa E501
                 telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
+                locale = await get_locale_by_user_uuid(user_uuid=event_message.user_uuid)
 
                 try:
                     logger.info(f"Save presentation to {event_message.save_presentation_path}")
@@ -190,10 +198,11 @@ async def on_download_message(message):
                         presentation_path
                     )
                 except Exception as e:
-                    await send_message(
-                        telegram_id,
-                        f"Ошибка отправки презентации. Попробуй еще раз или обратись к администратору."    # noqa E501
-                    )
+                    if locale == "ru":
+                        message = SENDING_FAIL_RU
+                    else:
+                        message = SENDING_FAIL_EN
+                    await send_message(telegram_id, message)
                     logger.error(f"Presentation sending failed: {e}")
 
         case _:

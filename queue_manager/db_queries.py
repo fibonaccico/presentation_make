@@ -252,3 +252,11 @@ async def telegram_id_by_user_uuid(user_uuid: str):
             text("SELECT telegram_id FROM public.user WHERE uuid = :user_uuid"),
             {"user_uuid": user_uuid}
         )).scalars().first()
+
+
+async def get_locale_by_user_uuid(user_uuid: str) -> str:
+    async with AsyncSessionLocal() as db:
+        return (await db.execute(
+            text("SELECT settings FROM public.user WHERE uuid = :user_uuid"),
+            {"user_uuid": user_uuid}
+        )).scalars().first().get("locale")
