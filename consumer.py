@@ -156,10 +156,10 @@ async def on_generator_message(message):
             await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
     else:
         if locale == "ru":
-            message = GENERATION_ERROR_MESSAGE_RU
+            generation_error_text = GENERATION_ERROR_MESSAGE_RU
         else:
-            message = GENERATION_ERROR_MESSAGE_EN
-        await send_message(user_telegram_id, message=message)
+            generation_error_text = GENERATION_ERROR_MESSAGE_EN
+        await send_message(user_telegram_id, message=generation_error_text)
 
         logger.error(f"Presentation sending failed: {event_message.presentation_uuid}. ")
         await message.channel.basic_nack(
@@ -199,10 +199,10 @@ async def on_download_message(message):
                     )
                 except Exception as e:
                     if locale == "ru":
-                        message = SENDING_FAIL_RU
+                        sending_fail_text = SENDING_FAIL_RU
                     else:
-                        message = SENDING_FAIL_EN
-                    await send_message(telegram_id, message)
+                        sending_fail_text = SENDING_FAIL_EN
+                    await send_message(telegram_id, sending_fail_text)
                     logger.error(f"Presentation sending failed: {e}")
 
         case _:
