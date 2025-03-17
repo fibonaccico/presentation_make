@@ -149,10 +149,11 @@ class TextInOneStep(TextGeneratorProtocol):
                     presentation_theme = context
                 break
             except Exception as error:
-                logger.info(f"Generation fail. Reason: [{error}]")
+                logger.error(f"Generation fail. Reason: [{error}]")
                 flag += 1
 
         else:
+            logger.error(f"The number of text generation exceeds the permissible value - {MAX_COUNT_OF_GENERATION}.")
             raise MaxCountGenerationError(
                 "The number of text generation exceeds the permissible value."
             )
@@ -199,7 +200,7 @@ class TextInOneStep(TextGeneratorProtocol):
 
         if num_slides is not None:
             if len(text_list) != num_slides:
-                logging.error(f"Text items less than {num_slides}.")
+                logger.error(f"Text items less than {num_slides}.")
                 raise InvalidTextNumberError(f"Text items less than {num_slides}")
         return new_text_list
 
