@@ -1,4 +1,3 @@
-import logging
 import os
 import typing as t
 import uuid
@@ -9,6 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+from config.logger import get_logger
 from make_presentation import Presentation
 from make_presentation.DTO import PresentationDTO
 from queue_manager.event_message import EventMessage
@@ -16,7 +16,7 @@ from queue_manager.schemas import PaySchema, PresentationSchema
 from queue_manager.SQL_responses import ImageInfoSQL, PresentationSQL, SlideSQL
 
 load_dotenv()
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 DB_HOST = os.getenv("DB_HOST")
 DB_PORT = os.getenv("DB_PORT")
