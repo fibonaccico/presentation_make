@@ -6,10 +6,14 @@ import aiormq
 from dotenv import load_dotenv
 
 from config.logger import get_logger
-from config.messages import TELEGRAM_CLOSING_MESSAGE
+from config.messages import (GENERATION_ERROR_MESSAGE_EN,
+                             GENERATION_ERROR_MESSAGE_RU, SENDING_FAIL_EN,
+                             SENDING_FAIL_RU, TELEGRAM_CLOSING_MESSAGE_EN,
+                             TELEGRAM_CLOSING_MESSAGE_RU)
 from make_presentation import Presentation
 from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
 from queue_manager.db_queries import (create_presentation_adapter,
+                                      get_locale_by_user_uuid,
                                       get_presentation_dto_or_none,
                                       reduce_balance_by_user_uuid,
                                       telegram_id_by_user_uuid)
@@ -33,20 +37,20 @@ async def send_document(chat_id: str, file_path: str, token: str = os.getenv("TE
         url = f'https://api.telegram.org/bot{token}/sendDocument'
         with open(file_path, 'rb') as file:
             data = aiohttp.FormData()
-            reply_markup = [
-                [
-                    {'text': '⭐Поставьте оценку/Rate⭐', 'callback_data': 'none'},
-                ],
-                [
-                    {'text': '1', 'callback_data': 'rev_1'},
-                    {'text': '2', 'callback_data': 'rev_2'},
-                    {'text': '3', 'callback_data': 'rev_3'},
-                    {'text': '4', 'callback_data': 'rev_4'},
-                    {'text': '5', 'callback_data': 'rev_5'},
-                ]
-            ]
+            # reply_markup = [
+            #     [
+            #         {'text': '⭐Поставьте оценку/Rate⭐', 'callback_data': 'none'},
+            #     ],
+            #     [
+            #         {'text': '1', 'callback_data': 'rev_1'},
+            #         {'text': '2', 'callback_data': 'rev_2'},
+            #         {'text': '3', 'callback_data': 'rev_3'},
+            #         {'text': '4', 'callback_data': 'rev_4'},
+            #         {'text': '5', 'callback_data': 'rev_5'},
+            #     ]
+            # ]
 
-            data.add_field('inline_keyboard', reply_markup)
+            # data.add_field('inline_keyboard', reply_markup)
             data.add_field('chat_id', chat_id)
             data.add_field('document', file, filename=filename)
 
@@ -118,6 +122,7 @@ async def on_generator_message(message):
 
     logger.info(f"Starting generate from message {event_message.__dict__}")
     user_telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
+    locale = await get_locale_by_user_uuid(user_uuid=event_message.user_uuid)
 
     if event_message.event_type not in GENERATOR_EVENT_TYPE:
         raise EventTypeException
@@ -144,17 +149,19 @@ async def on_generator_message(message):
                     user_telegram_id,
                     file
                 )
-
+            if locale == "ru":
+                TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_RU
+            else:
+                TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_EN
             await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
     else:
-        await send_message(
-            user_telegram_id,
-            message="""
-                Не удалось сгенерировать презентацию.
-                Сейчас происходят технические работы с моими мозгами.
-                Попробуй ввести свою тему ещё раз попозже, есть шанс, что тебе повезет😉"""
-        )
-        logger.error(f"Presentation sending failed: {event_message.presentation_uuid}")
+        if locale == "ru":
+            generation_error_text = GENERATION_ERROR_MESSAGE_RU
+        else:
+            generation_error_text = GENERATION_ERROR_MESSAGE_EN
+        await send_message(user_telegram_id, message=generation_error_text)
+
+        logger.error(f"Presentation sending failed: {event_message.presentation_uuid}. ")
         await message.channel.basic_nack(
             message.delivery.delivery_tag,
             requeue=False
@@ -174,6 +181,7 @@ async def on_download_message(message):
             if db_presentation := await get_presentation_dto_or_none(event_message.presentation_uuid):      # noqa E501
                 logger.info(f"Getting telegram of user {event_message.user_uuid} for send presentation")  # noqa E501
                 telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
+                locale = await get_locale_by_user_uuid(user_uuid=event_message.user_uuid)
 
                 try:
                     logger.info(f"Save presentation to {event_message.save_presentation_path}")
@@ -190,10 +198,11 @@ async def on_download_message(message):
                         presentation_path
                     )
                 except Exception as e:
-                    await send_message(
-                        telegram_id,
-                        f"Ошибка отправки презентации. Попробуй еще раз или обратись к администратору."    # noqa E501
-                    )
+                    if locale == "ru":
+                        sending_fail_text = SENDING_FAIL_RU
+                    else:
+                        sending_fail_text = SENDING_FAIL_EN
+                    await send_message(telegram_id, sending_fail_text)
                     logger.error(f"Presentation sending failed: {e}")
 
         case _:
