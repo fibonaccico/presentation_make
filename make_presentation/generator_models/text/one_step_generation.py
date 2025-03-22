@@ -43,6 +43,7 @@ class TextInOneStep(TextGeneratorProtocol):
         slides_count: Optional[int],
         api: TextAPIProtocol,
         context: str,
+        language: str,
         template: Optional[str] = None
     ) -> TextDTO:
         """
@@ -57,7 +58,8 @@ class TextInOneStep(TextGeneratorProtocol):
                     prompt=self.prompt,
                     api=api,
                     context=context,
-                    num_slide=slides_count
+                    num_slide=slides_count,
+                    language=language
                 )
                 logger.debug(f"AI answer for theme [{self.theme}]: {ai_answer}")
 
@@ -176,13 +178,15 @@ class TextInOneStep(TextGeneratorProtocol):
         )
 
     async def __get_all_ai_answer(
-        self, prompt: str, api: TextAPIProtocol, context: str, num_slide: int | None
+        self, prompt: str, api: TextAPIProtocol, context: str, num_slide: int | None,
+        language: str
     ) -> str | list[str | dict]:
 
         res_prompt = get_prompt_result(
             context=context,
             num_slide=num_slide,
-            prompt=prompt
+            prompt=prompt,
+            language=language
         )
         ai_answer = await api.request(res_prompt)
         return ai_answer

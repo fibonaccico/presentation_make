@@ -35,6 +35,10 @@ class EventMessage:
         return self._generation_data.get("no_logo", False)
 
     @property
+    def language(self) -> str:
+        return self._generation_data.get("language", "Русский")
+
+    @property
     def context(self) -> t.Optional[str]:
         return self._generation_data.get("context")
 

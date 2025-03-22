@@ -15,7 +15,8 @@ class TextAdapter:
         context: str | None,
         number_of_slides: Optional[int],
         template: str,
-        text_generation_model: str
+        text_generation_model: str,
+        language: str
     ) -> TextDTO:
         """
         To create text for each slide.
@@ -34,6 +35,7 @@ class TextAdapter:
             slides_count=number_of_slides,
             api=text_api,
             context=context,
-            template=template
+            template=template,
+            language=language
         )
         return text_dto

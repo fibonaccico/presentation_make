@@ -42,6 +42,7 @@ class Presentation:
         number_of_slides: int | None = None,
         save_path_for_images: str | None = None,
         image_style: str = "DEFAULT",
+        language: str = "Русский"
     ) -> PresentationDTO:
         """
         Main function to create a presentation data transfer object.
@@ -66,7 +67,8 @@ class Presentation:
             context=context,
             number_of_slides=number_of_slides,
             template=self.template,
-            text_generation_model=self.text_generation_model
+            text_generation_model=self.text_generation_model,
+            language=language
         )
 
         list_of_image_dto = await ImagesAdapter()(

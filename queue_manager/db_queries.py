@@ -218,7 +218,8 @@ async def create_presentation_adapter(message: EventMessage) -> PresentationDTO:
                 save_path_for_images=message.save_path_for_images,
                 context=message.context,
                 number_of_slides=message.number_of_slides,
-                image_style=message.image_style
+                image_style=message.image_style,
+                language=message.language
             )
 
             db_presentation = await _get_presentation_or_none(message.presentation_uuid, db)
