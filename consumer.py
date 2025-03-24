@@ -217,7 +217,7 @@ async def main():
     logger.info("Start consuming")
 
     channel_generator = await connection.channel()
-    await channel_generator.basic_qos(prefetch_count=10)
+    await channel_generator.basic_qos(prefetch_count=40)
     declare_ok_generator = await channel_generator.queue_declare("generator_queue", durable=True)
     await channel_generator.basic_consume(declare_ok_generator.queue, on_generator_message)
 
