@@ -36,7 +36,7 @@ class EventMessage:
 
     @property
     def language(self) -> str:
-        return self._generation_data.get("language", "Русский")
+        return self._generation_data.get("language", "ru")
 
     @property
     def context(self) -> t.Optional[str]:
