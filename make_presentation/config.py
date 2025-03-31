@@ -10,7 +10,35 @@ OPENING_PRESENTATION_THEME_TITLE = True
 
 ENDING_PRESENTATION_STATUS = True
 
-ENDING_PRESENTATION_TEXT = "Спасибо за внимание!"
+ENDING_PRESENTATION_TEXT = {
+    "ru": "Спасибо за внимание!",
+    "en": "Thank you for your attention",
+    "zh": "谢谢关照",
+    "es": "Gracias por su atención",
+    "hi": "सुनने के लिए आपका बहुत शुक्रिया",
+    "pt": "Obrigado pela atenção",
+    "ar": " شكرًا لكم على اهتمامكم",
+    "fr": "Merci pour votre attention",
+    "ja": "ご清聴ありがとうございます",
+    "de": "Danke für Ihre Aufmerksamkeit",
+    "ko": "경청해주셔서 감사합니다",
+    "id": "Terima kasih atas perhatian"
+}
+
+GENERATION_LANGUAGES = {
+    "ru": "Русский",
+    "en": "Английский",
+    "zh": "Китайский",
+    "es": "Испанский",
+    "hi": "Хинди",
+    "pt": "Португальский",
+    "ar": "Арабский",
+    "fr": "Французский",
+    "ja": "Японский",
+    "de": "Немецкий",
+    "ko": "Корейский",
+    "id": "Индонезийский"
+}
 
 DEFAULT_TEMPERATURE = 0.7
 

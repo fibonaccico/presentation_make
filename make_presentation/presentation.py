@@ -42,7 +42,7 @@ class Presentation:
         number_of_slides: int | None = None,
         save_path_for_images: str | None = None,
         image_style: str = "DEFAULT",
-        language: str = "Русский"
+        language: str = "ru"
     ) -> PresentationDTO:
         """
         Main function to create a presentation data transfer object.
@@ -97,7 +97,7 @@ class Presentation:
             slides_count += 1
 
         if self.ending_presentation_status:
-            text_dto.titles = text_dto.titles + [ENDING_PRESENTATION_TEXT]
+            text_dto.titles = text_dto.titles + [ENDING_PRESENTATION_TEXT.get(language, "Спасибо за внимание!")]
             text_dto.slides_text_list = text_dto.slides_text_list + [[""]]
             if text_dto.subtitles_1 is not None:
                 text_dto.subtitles_1 = text_dto.subtitles_1 + [""]
@@ -105,7 +105,7 @@ class Presentation:
                 text_dto.subtitles_3 = text_dto.subtitles_3 + [""]
             list_of_image_info_dto = list_of_image_info_dto + [None]   # type: ignore
             slides_count += 1
-            finish_title = ENDING_PRESENTATION_TEXT
+            finish_title = ENDING_PRESENTATION_TEXT.get(language, "Спасибо за внимание!")
         else:
             finish_title = None
 

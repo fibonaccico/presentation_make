@@ -5,7 +5,9 @@ import re
 from typing import TYPE_CHECKING, Optional
 
 from config.logger import get_logger
-from make_presentation.config import MAX_COUNT_OF_GENERATION, get_prompt_result
+from make_presentation.config import (GENERATION_LANGUAGES,
+                                      MAX_COUNT_OF_GENERATION,
+                                      get_prompt_result)
 from make_presentation.DTO import TextDTO
 from make_presentation.errors import (InvalidTextNumberError,
                                       MaxCountGenerationError,
@@ -59,7 +61,7 @@ class TextInOneStep(TextGeneratorProtocol):
                     api=api,
                     context=context,
                     num_slide=slides_count,
-                    language=language
+                    language=GENERATION_LANGUAGES.get(language, "Русский")
                 )
                 logger.debug(f"AI answer for theme [{self.theme}]: {ai_answer}")
 
