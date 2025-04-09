@@ -93,7 +93,7 @@ class KandinskyAPI(ImageAPIProtocol):
             content_type="application/json",
         )
 
-        data.add_field("model_id", str(model))
+        data.add_field("pipeline_id", str(model))
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
