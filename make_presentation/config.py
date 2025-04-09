@@ -51,7 +51,7 @@ BASE_KANDINSKY_URL = "https://api-key.fusionbrain.ai/"
 KANDINSKY_URLS: dict[str, str] = {
     "run": f"{BASE_KANDINSKY_URL}key/api/v1/pipelines/run",
     "status": f"{BASE_KANDINSKY_URL}key/api/v1/pipelines/status/$uuid",
-    "styles": "https://cdn.fusionbrain.ai/static/styles/api",
+    "styles": "https://cdn.fusionbrain.ai/static/styles/key",
     "models": f"{BASE_KANDINSKY_URL}key/api/v1/pipelines",
 }
 
