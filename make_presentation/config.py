@@ -49,10 +49,10 @@ DEFAULT_REQUEST_NUMBER = 5
 BASE_KANDINSKY_URL = "https://api-key.fusionbrain.ai/"
 
 KANDINSKY_URLS: dict[str, str] = {
-    "run": f"{BASE_KANDINSKY_URL}key/api/v1/text2image/run",
-    "status": f"{BASE_KANDINSKY_URL}key/api/v1/text2image/status/$uuid",
+    "run": f"{BASE_KANDINSKY_URL}key/api/v1/pipelines/run",
+    "status": f"{BASE_KANDINSKY_URL}key/api/v1/pipelines/status/$uuid",
     "styles": "https://cdn.fusionbrain.ai/static/styles/api",
-    "models": f"{BASE_KANDINSKY_URL}key/api/v1/models",
+    "models": f"{BASE_KANDINSKY_URL}key/api/v1/pipelines",
 }
 
 DEFAULT_TEXT_SIZE = 16
