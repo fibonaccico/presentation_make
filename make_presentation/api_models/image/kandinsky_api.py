@@ -6,6 +6,7 @@ import os
 import time
 from io import BytesIO
 from typing import Optional
+from uuid import UUID
 
 import aiohttp
 from dotenv import load_dotenv
@@ -22,6 +23,14 @@ from ..errors import BadRequestError, ImageGenerationFailedError, TimeOutError
 logger = get_logger()
 
 load_dotenv()
+
+
+class UUIDEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, UUID):
+            # if the obj is uuid, we simply return the value of uuid
+            return obj.hex
+        return json.JSONEncoder.default(self, obj)
 
 
 class KandinskyAPI(ImageAPIProtocol):
@@ -74,17 +83,15 @@ class KandinskyAPI(ImageAPIProtocol):
             model = await self.get_model()
 
         width, height = map(int, width_height.split(" "))
-
         params = {
             "type": "GENERATE",
             "numImages": images,
             "style": style,
             "width": width,
             "height": height,
-            "censor": {"useGigaBeautificator": art_gpt},
             "generateParams": {"query": promt},
-            "negativePromptDecoder": negative_prompt,
         }
+        pipeline_id = str(model)
 
         data = aiohttp.FormData()
         data.add_field(
@@ -93,7 +100,7 @@ class KandinskyAPI(ImageAPIProtocol):
             content_type="application/json",
         )
 
-        data.add_field("pipeline_id", str(model))
+        data.add_field("pipeline_id", pipeline_id)
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
@@ -150,15 +157,15 @@ class KandinskyAPI(ImageAPIProtocol):
                     else:
                         result = await resp.json()
                     if result["status"] == "DONE":
-                        if result["censored"]:
+                        if result["result"]["censored"]:
                             logger.info(f"CENSORED PICTURE: UUID = {uuid}")
                             return {
-                                "data": BytesIO(base64.b64decode(result["images"][0])),
+                                "data": BytesIO(base64.b64decode(result["result"]["files"][0])),
                             }
                         else:
                             logger.info(f"PICTURE HAS BEEN GENERATED: UUID = {uuid}")
                             return {
-                                "data": BytesIO(base64.b64decode(result["images"][0])),
+                                "data": BytesIO(base64.b64decode(result["result"]["files"][0])),
                             }
                     elif result["status"] == "FAIL":
                         logger.error(f"FATAL GENERATION PICTURE: UUID = {uuid}")

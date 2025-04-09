@@ -151,9 +151,9 @@ Do not sell or share my personal information.
 
 
 async def make_pres():
-    pr = Presentation(text_generation_model="FROMTEXT", template="focus")
+    pr = Presentation(text_generation_model="ONESTEP", template="focus")
     task2 = await pr.make_presentation(
-        context=context,
+        context="Породы котов",
         number_of_slides=None
     )
     return task2
