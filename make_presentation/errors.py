@@ -56,3 +56,7 @@ class InvalidTextNumberError(Exception):
 
 class TextAPIError(Exception):
     ...
+
+
+class MaxNumberOfSlidesExceededError(Exception):
+    ...

@@ -46,6 +46,8 @@ MAX_COUNT_OF_GENERATION = 3
 
 DEFAULT_REQUEST_NUMBER = 5
 
+MAX_NUMBER_OF_SLIDES = 10
+
 BASE_KANDINSKY_URL = "https://api-key.fusionbrain.ai/"
 
 KANDINSKY_URLS: dict[str, str] = {

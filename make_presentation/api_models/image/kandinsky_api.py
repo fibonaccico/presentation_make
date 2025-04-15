@@ -1,7 +1,6 @@
 import asyncio
 import base64
 import json
-import logging
 import os
 import time
 from io import BytesIO
@@ -59,11 +58,10 @@ class KandinskyAPI(ImageAPIProtocol):
         save_path: Optional[str],
         promt: str = "Cat",
         width_height="1024 1024",
-        negative_prompt: str = "",
         images: int = 1,
         model: Optional[int] = None,
         style: str = "DEFAULT",
-        art_gpt: bool = False,
+        negative_prompt="",
         max_time: int = MAX_TIME_IMAGE_GENERATION,
     ) -> ImageDTO:
         """

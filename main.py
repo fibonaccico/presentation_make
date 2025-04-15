@@ -151,9 +151,9 @@ Do not sell or share my personal information.
 
 
 async def make_pres():
-    pr = Presentation(text_generation_model="ONESTEP", template="focus")
+    pr = Presentation(text_generation_model="FROMTEXT", template="focus")
     task2 = await pr.make_presentation(
-        context="Породы котов",
+        context=context,
         number_of_slides=None
     )
     return task2
@@ -161,6 +161,14 @@ async def make_pres():
 
 async def main():
         print("START")                                 # noqa T201
+        # pic = await Presentation.generate_picture(
+        #      discription="природа Антарктиды",
+        #      width=1024,
+        #      height=825,
+        #      style="DEFAULT",
+        #      save_path=save_path_for_images
+        # )
+        # print(pic)
         import time
         st = time.time()
         task1 = await make_pres()

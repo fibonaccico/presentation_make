@@ -11,10 +11,10 @@ from make_presentation.config import (ENDING_PRESENTATION_STATUS,
                                       MAX_TEXT_LENGTH,
                                       OPENING_PRESENTATION_THEME_TITLE)
 from make_presentation.converters import convert_pptx_to_pdf
-from make_presentation.DTO import (  # , ImageInfoDTO # noqa E800
-    PresentationDTO, SlideDTO)
+from make_presentation.DTO import ImageDTO, PresentationDTO, SlideDTO
 from make_presentation.errors import (ContextDoesNotExistError,
                                       MaxTextLengthError)
+from make_presentation.factories import ImgFactory
 from make_presentation.factories.text.text_module_enum import TextGenModuleEnum
 from make_presentation.generator_models.pptx import PresentationTemplate
 from make_presentation.image import ImagesAdapter
@@ -200,3 +200,26 @@ class Presentation:
 
         presentation_save_path = os.path.join(save_path, save_name)
         return presentation_save_path
+
+    @staticmethod
+    async def generate_picture(
+        discription: str,
+        width: int,
+        height: int,
+        style: str,
+        save_path: str
+    ) -> ImageDTO:
+        """
+        For picture regeneration.
+        """
+
+        img_factory = ImgFactory()
+        image_api_obj = img_factory.get_img_api()
+
+        result = await image_api_obj.create_image(
+            save_path=save_path,
+            promt=discription,
+            width_height=f"{width} {height}",
+            style=style
+        )
+        return result

@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-import logging
 import re
 from typing import TYPE_CHECKING, Optional
 
 from config.logger import get_logger
 from make_presentation.config import (GENERATION_LANGUAGES,
                                       MAX_COUNT_OF_GENERATION,
-                                      get_prompt_result)
+                                      MAX_NUMBER_OF_SLIDES, get_prompt_result)
 from make_presentation.DTO import TextDTO
 from make_presentation.errors import (InvalidTextNumberError,
                                       MaxCountGenerationError,
+                                      MaxNumberOfSlidesExceededError,
                                       TittleOrSlideTextNotGeneratedError)
 
 from ..interfaces import TextGeneratorProtocol
@@ -208,6 +208,9 @@ class TextInOneStep(TextGeneratorProtocol):
             if len(text_list) != num_slides:
                 logger.error(f"Text items less than {num_slides}.")
                 raise InvalidTextNumberError(f"Text items less than {num_slides}")
+        if len(text_list) > MAX_NUMBER_OF_SLIDES:
+            logger.error(f"Text items less than {num_slides}.")
+            raise MaxNumberOfSlidesExceededError(f"AI generated {len(text_list)} items: {pattern}. It is more than allowed {MAX_NUMBER_OF_SLIDES}.")
         return new_text_list
 
     def __get_slide_text(

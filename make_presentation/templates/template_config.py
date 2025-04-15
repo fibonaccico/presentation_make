@@ -392,7 +392,7 @@ MAX_CHARS: dict[str, dict[str, dict[str, dict[str, int]]]] = {
     "focus":  {
         "max": {
             "INITIAL": {
-                "TITLE": 30
+                "TITLE": 80
             },
             "END": {
                 "TITLE": 30
@@ -420,7 +420,7 @@ MAX_CHARS: dict[str, dict[str, dict[str, dict[str, int]]]] = {
     "flow": {
         "max": {
             "INITIAL": {
-                "TITLE": 30
+                "TITLE": 80
             },
             "END": {
                 "TITLE": 30
