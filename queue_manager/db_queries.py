@@ -189,6 +189,7 @@ async def _create_presentation_raw(
             "subtitle3": slide.subtitle_3
         }
         await db.execute(slide_query, slide_params)
+        await db.commit()
 
         image_count = 1
         if slide.images:
