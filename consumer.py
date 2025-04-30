@@ -232,7 +232,7 @@ async def on_regenerate_image(message):
         os.path.dirname(current_image_db.local_file_path)
     )
 
-    await create_image_db(new_image, str(current_image_db.slide_uuid), current_image_db.number)
+    await create_image_db(new_image, str(current_image_db.slide_uuid), current_image_db.number, is_regenerate=True)
     await change_regenerating_status_image(current_image_db)
 
 

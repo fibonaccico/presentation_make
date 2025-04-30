@@ -132,7 +132,9 @@ async def get_presentation_dto_or_none(presentation_uuid: str) -> t.Optional[Pre
         return None
 
 
-async def create_image_db(new_image_data: ImageInfoDTO, slide_uuid: str, slide_number: int):
+async def create_image_db(
+        new_image_data: ImageInfoDTO, slide_uuid: str, slide_number: int, is_regenerate: bool = False
+) -> None:
     async with AsyncSessionLocal() as db:
         path_list = new_image_data.path.split("/")
         user_dir, presentation_dir, filename = (
@@ -152,7 +154,7 @@ async def create_image_db(new_image_data: ImageInfoDTO, slide_uuid: str, slide_n
             "local_file_path": new_image_data.path,
             "api_url": f"https://fibonaccico.ru/api/image/{user_dir}/{presentation_dir}/{filename}",
             "style": new_image_data.style,
-            "regenerate_status": "CANDIDATE"
+            "regenerate_status": "CANDIDATE" if is_regenerate else "ACTIV"
         }
         await db.execute(image_query, image_params)
 
