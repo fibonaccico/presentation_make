@@ -11,9 +11,10 @@ from sqlalchemy.orm import sessionmaker
 from config.logger import get_logger
 from make_presentation import Presentation
 from make_presentation.DTO import PresentationDTO
+from make_presentation.DTO.image_dto import ImageInfoDTO
 from queue_manager.event_message import EventMessage
 from queue_manager.schemas import PaySchema, PresentationSchema
-from queue_manager.SQL_responses import ImageInfoSQL, PresentationSQL, SlideSQL
+from queue_manager.SQL_responses import ImageInfoSQL, PresentationSQL, SlideSQL, ImageSQL
 
 load_dotenv()
 logger = get_logger()
@@ -37,6 +38,32 @@ class PresentationStatus(str, Enum):
     ERROR = "error"
 
 
+async def get_image_by_uuid(image_uuid: str) -> t.Optional[ImageSQL]:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(
+            text(
+                """
+                    SELECT 
+                        local_file_path, 
+                        description, 
+                        slide_uuid,
+                        number,
+                        style, 
+                        regenerate_status, 
+                        regenerate_attempts 
+                    FROM 
+                        image 
+                    WHERE 
+                        uuid = :image_uuid
+                """
+            ),
+            {"image_uuid": image_uuid}
+        )
+        if row := result.mappings().first():
+            return ImageSQL(**row)
+        return None
+
+
 async def _get_presentation_or_none(presentation_uuid: str, db: AsyncSession):
     result = await db.execute(
         text("SELECT * FROM presentation WHERE uuid = :presentation_uuid"),
@@ -48,7 +75,7 @@ async def _get_presentation_or_none(presentation_uuid: str, db: AsyncSession):
 
 
 async def get_images_dto_list(db: AsyncSessionLocal, slide_uuid: str) -> t.List[ImageInfoSQL | None]:
-    images: [ImageInfoSQL] = []
+    images: t.List[ImageInfoSQL] = []
 
     result = await db.execute(
         text(
@@ -68,7 +95,7 @@ async def get_images_dto_list(db: AsyncSessionLocal, slide_uuid: str) -> t.List[
 
 
 async def get_slides_dto_list(db: AsyncSessionLocal, presentation_uuid: str) -> t.List[SlideSQL | None]:
-    slides: [SlideSQL] = []
+    slides: t.List[SlideSQL] = []
 
     result = await db.execute(
         text(
@@ -105,6 +132,38 @@ async def get_presentation_dto_or_none(presentation_uuid: str) -> t.Optional[Pre
         return None
 
 
+async def create_image_db(new_image_data: ImageInfoDTO, slide_uuid: str, slide_number: int):
+    async with AsyncSessionLocal() as db:
+        path_list = new_image_data.path.split("/")
+        user_dir, presentation_dir, filename = (
+            path_list[-3],
+            path_list[-2],
+            path_list[-1],
+        )
+        image_query = text("""
+            INSERT INTO image (uuid, slide_uuid, number, description, local_file_path, api_url, style, 'CANDIDATE')
+            VALUES (:uuid, :slide_uuid, :number, :description, :local_file_path, :api_url, :style)
+        """)
+        image_params = {
+            "uuid": str(uuid.uuid4()),
+            "slide_uuid": slide_uuid,
+            "number": slide_number,
+            "description": new_image_data.description,
+            "local_file_path": new_image_data.path,
+            "api_url": f"https://fibonaccico.ru/api/image/{user_dir}/{presentation_dir}/{filename}",
+            "style": new_image_data.style
+        }
+        await db.execute(image_query, image_params)
+
+
+async def change_regenerating_status_image(image_db: ImageSQL):
+    async with AsyncSessionLocal() as db:
+        image_db.regenerate_attempts -= 1
+        image_db.regenerate_status = "REGENERATING"
+        await db.commit()
+        await db.refresh(image_db)
+
+
 async def _create_presentation_raw(
     presentation_uuid: uuid.UUID,
     presentation: PresentationDTO,
@@ -133,26 +192,8 @@ async def _create_presentation_raw(
         image_count = 1
         if slide.images:
             for image in slide.images:
-                path_list = image.path.split("/")
-                user_dir, presentation_dir, filename = (
-                    path_list[-3],
-                    path_list[-2],
-                    path_list[-1],
-                )
-                # Insert image into the database
-                image_query = text("""
-                    INSERT INTO image (uuid, slide_uuid, number, description, local_file_path, api_url)
-                    VALUES (:uuid, :slide_uuid, :number, :description, :local_file_path, :api_url)
-                """)
-                image_params = {
-                    "uuid": str(uuid.uuid4()),
-                    "slide_uuid": db_slide_uuid,
-                    "number": image_count,
-                    "description": image.description,
-                    "local_file_path": image.path,
-                    "api_url": f"https://fibonaccico.ru/api/image/{user_dir}/{presentation_dir}/{filename}",
-                }
-                await db.execute(image_query, image_params)
+                await create_image_db(image, db_slide_uuid, image_count)
+
                 image_count += 1
 
     # Update presentation title and status

@@ -77,3 +77,13 @@ class EventMessage:
     @property
     def event_type(self) -> t.Optional[str]:
         return self._event_type if self._event_type in EventType._value2member_map_ else None
+
+
+class RegenerateImageEventMessage:
+    def __init__(self, message: DeliveredMessage):
+        self._message_data = json.loads(message.body.decode('utf-8'))
+        self._generation_data = self._message_data.get("generation_data")
+
+    @property
+    def image_uuid(self) -> t.Optional[str]:
+        return self._generation_data.get("image_uuid")

@@ -3,6 +3,7 @@ import os
 
 import aiohttp
 import aiormq
+from PIL import Image
 from dotenv import load_dotenv
 
 from config.logger import get_logger
@@ -16,9 +17,10 @@ from queue_manager.db_queries import (create_presentation_adapter,
                                       get_locale_by_user_uuid,
                                       get_presentation_dto_or_none,
                                       reduce_balance_by_user_uuid,
-                                      telegram_id_by_user_uuid)
+                                      telegram_id_by_user_uuid, get_image_by_uuid, create_image_db,
+                                      change_regenerating_status_image)
 from queue_manager.event_message import (EventMessage, EventType,
-                                         PresentationType)
+                                         PresentationType, RegenerateImageEventMessage)
 from queue_manager.queue_exceptions import EventTypeException
 from queue_manager.SQL_responses import PresentationSQL
 
@@ -93,7 +95,7 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
     for slide in presentation_sql.slides:
         images_dto = [
             ImageInfoDTO(
-                path=image.local_file_path, description=image.description
+                path=image.local_file_path, description=image.description, style=image.style
             ) for image in slide.images
         ]
         slide_dto = SlideDTO(
@@ -209,6 +211,31 @@ async def on_download_message(message):
             logger.warning(f"Unknown event type {event_message.event_type} in download_presentation_queue")    # noqa E501
 
 
+async def on_regenerate_image(message):
+    event_message = RegenerateImageEventMessage(message)
+    await message.channel.basic_ack(
+        message.delivery.delivery_tag
+    )
+
+    logger.info(f"Starting regenerate image {event_message.__dict__}")
+
+    await message.channel.basic_ack(message.delivery.delivery_tag)
+
+    current_image_db = await get_image_by_uuid(event_message.image_uuid)
+    with Image.open(current_image_db.local_file_path) as img:
+        width, height = img.size
+
+    new_image = await Presentation.generate_picture(
+        current_image_db.description,
+        width, height,
+        current_image_db.style,
+        os.path.dirname(current_image_db.local_file_path)
+    )
+
+    await create_image_db(new_image, str(current_image_db.slide_uuid), current_image_db.number)
+    await change_regenerating_status_image(current_image_db)
+
+
 async def main():
     connection = await aiormq.connect(
         f"amqp://{os.getenv('RABBIT_LOGIN')}:{os.getenv('RABBIT_PASS')}@{os.getenv('RABBIT_HOST')}/"
@@ -224,6 +251,10 @@ async def main():
     channel_download = await connection.channel()
     declare_ok_download = await channel_download.queue_declare("download_presentation_queue", durable=True)    # noqa E501
     await channel_download.basic_consume(declare_ok_download.queue, on_download_message)
+
+    channel_download = await connection.channel()
+    declare_ok_download = await channel_download.queue_declare("regenerate_image", durable=True)  # noqa E501
+    await channel_download.basic_consume(declare_ok_download.queue, on_regenerate_image)
     # async with AsyncSessionLocal() as db:                                                 # noqa E800
         # a = await get_presentation_or_none("165a57b3-0ef3-4cb2-8818-e91854a68b1b", db)    # noqa E116
         # await reduce_balance_by_user_uuid("5ef0c392-8a5b-41bd-92d1-8344ca5837e5", db)     # noqa E116

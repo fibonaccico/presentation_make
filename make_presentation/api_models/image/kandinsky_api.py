@@ -120,7 +120,7 @@ class KandinskyAPI(ImageAPIProtocol):
         else:
             path = None
 
-        return ImageDTO(image=image, path=path, description=promt)
+        return ImageDTO(image=image, path=path, description=promt, style=style)
 
     async def get_styles(self) -> list[dict[str, str]]:
         async with aiohttp.ClientSession() as session:

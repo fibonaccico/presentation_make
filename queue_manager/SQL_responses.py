@@ -1,4 +1,5 @@
 import typing as t
+import uuid
 from dataclasses import dataclass
 
 from PIL.Image import Image
@@ -24,13 +25,15 @@ class SlideSQL:
 
 
 @dataclass
-class ImageSQL:
-    image: Image | None
+class ImageInfoSQL:
     local_file_path: str | None
     description: str
 
 
 @dataclass
-class ImageInfoSQL:
-    local_file_path: str | None
-    description: str
+class ImageSQL(ImageInfoSQL):
+    slide_uuid: uuid.UUID
+    number: int
+    style: str
+    regenerate_status: str
+    regenerate_attempts: int

@@ -22,7 +22,7 @@ class ImageAPIProtocol(Protocol):
         save_path: Optional[str],
         promt: str,
         width_height: str,
-        negative_prompt: str,
+        negative_prompt: str = "",
         images: int = 1,
         model: Optional[int] = None,
         style: str = "DEFAULT",
