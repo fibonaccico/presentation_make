@@ -163,12 +163,22 @@ async def create_image_db(
 
 async def change_regenerating_status_image(image_db: ImageSQL):
     async with AsyncSessionLocal() as db:
-        image_db.regenerate_attempts -= 1
-        image_db.regenerate_status = "REGENERATING"
-
-        db.add(image_db)
+        update_query = text("""
+                    UPDATE 
+                        image
+                    SET 
+                        regenerate_attempts = :regenerate_attempts,
+                        regenerate_status = :regenerate_status
+                    WHERE 
+                        uuid = :image_uuid
+                    """)
+        update_query_params = {
+            "new_pairegenerate_attemptsd_qty": image_db.regenerate_attempts - 1,
+            "regenerate_status": "REGENERATING",
+            "image_uuid": str(image_db.uuid)
+        }
+        await db.execute(update_query, update_query_params)
         await db.commit()
-        await db.refresh(image_db)
 
 
 async def _create_presentation_raw(

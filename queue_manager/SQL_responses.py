@@ -1,8 +1,6 @@
 import typing as t
-import uuid
+from uuid import UUID
 from dataclasses import dataclass
-
-from PIL.Image import Image
 
 
 @dataclass
@@ -32,7 +30,8 @@ class ImageInfoSQL:
 
 @dataclass
 class ImageSQL(ImageInfoSQL):
-    slide_uuid: uuid.UUID
+    uuid: UUID
+    slide_uuid: UUID
     number: int
     style: str
     regenerate_status: str
