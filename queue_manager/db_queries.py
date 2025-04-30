@@ -165,6 +165,8 @@ async def change_regenerating_status_image(image_db: ImageSQL):
     async with AsyncSessionLocal() as db:
         image_db.regenerate_attempts -= 1
         image_db.regenerate_status = "REGENERATING"
+
+        db.add(image_db)
         await db.commit()
         await db.refresh(image_db)
 
