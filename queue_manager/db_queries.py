@@ -157,6 +157,7 @@ async def create_image_db(
             "regenerate_status": "CANDIDATE" if is_regenerate else "ACTIV"
         }
         await db.execute(image_query, image_params)
+        await db.commit
 
 
 async def change_regenerating_status_image(image_db: ImageSQL):
