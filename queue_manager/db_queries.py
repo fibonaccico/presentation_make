@@ -141,8 +141,8 @@ async def create_image_db(new_image_data: ImageInfoDTO, slide_uuid: str, slide_n
             path_list[-1],
         )
         image_query = text("""
-            INSERT INTO image (uuid, slide_uuid, number, description, local_file_path, api_url, style, 'CANDIDATE')
-            VALUES (:uuid, :slide_uuid, :number, :description, :local_file_path, :api_url, :style)
+            INSERT INTO image (uuid, slide_uuid, number, description, local_file_path, api_url, style, regenerate_status)
+            VALUES (:uuid, :slide_uuid, :number, :description, :local_file_path, :api_url, :style, :regenerate_status)
         """)
         image_params = {
             "uuid": str(uuid.uuid4()),
@@ -151,7 +151,8 @@ async def create_image_db(new_image_data: ImageInfoDTO, slide_uuid: str, slide_n
             "description": new_image_data.description,
             "local_file_path": new_image_data.path,
             "api_url": f"https://fibonaccico.ru/api/image/{user_dir}/{presentation_dir}/{filename}",
-            "style": new_image_data.style
+            "style": new_image_data.style,
+            "regenerate_status": "CANDIDATE"
         }
         await db.execute(image_query, image_params)
 
