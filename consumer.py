@@ -213,13 +213,9 @@ async def on_download_message(message):
 
 async def on_regenerate_image(message):
     event_message = RegenerateImageEventMessage(message)
-    await message.channel.basic_ack(
-        message.delivery.delivery_tag
-    )
+    await message.channel.basic_ack(message.delivery.delivery_tag)
 
     logger.info(f"Starting regenerate image {event_message.__dict__}")
-
-    await message.channel.basic_ack(message.delivery.delivery_tag)
 
     current_image_db = await get_image_by_uuid(event_message.image_uuid)
     with Image.open(current_image_db.local_file_path) as img:
@@ -232,8 +228,11 @@ async def on_regenerate_image(message):
         os.path.dirname(current_image_db.local_file_path)
     )
 
+    logger.debug(f"Create new image in db {new_image.__dict__}")
     await create_image_db(new_image, str(current_image_db.slide_uuid), current_image_db.number, is_regenerate=True)
+    logger.debug(f"Change status in current image {current_image_db.__dict__}")
     await change_regenerating_status_image(current_image_db)
+    logger.debug(f"Current image is {current_image_db.__dict__}")
 
 
 async def main():
