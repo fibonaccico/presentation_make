@@ -26,13 +26,12 @@ class SlideSQL:
 class ImageInfoSQL:
     local_file_path: str | None
     description: str
-
+    style: str
 
 @dataclass
 class ImageSQL(ImageInfoSQL):
     uuid: UUID
     slide_uuid: UUID
     number: int
-    style: str
     regenerate_status: str
     regenerate_attempts: int
