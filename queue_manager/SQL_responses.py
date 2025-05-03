@@ -16,7 +16,7 @@ class SlideSQL:
     number: int
     title: str
     text: list[str]
-    images: list["ImageInfoSQL"] | None | list["ImageSQL"]
+    images: list[t.Union["ImageInfoSQL", "ImageSQL"]] | None
     subtitle1: str | None
     subtitle2: str | None
     subtitle3: str | None
