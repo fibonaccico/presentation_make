@@ -17,8 +17,8 @@ from queue_manager.db_queries import (create_presentation_adapter,
                                       get_locale_by_user_uuid,
                                       get_presentation_dto_or_none,
                                       reduce_balance_by_user_uuid,
-                                      telegram_id_by_user_uuid, get_image_by_uuid, create_image_db,
-                                      change_regenerating_status_image)
+                                      telegram_id_by_user_uuid, get_image_by_uuid,
+                                      update_candidate_image_db)
 from queue_manager.event_message import (EventMessage, EventType,
                                          PresentationType, RegenerateImageEventMessage)
 from queue_manager.queue_exceptions import EventTypeException
@@ -217,7 +217,7 @@ async def on_regenerate_image(message):
 
     logger.info(f"Starting regenerate image {event_message.__dict__}")
 
-    current_image_db = await get_image_by_uuid(event_message.image_uuid)
+    current_image_db = await get_image_by_uuid(event_message.current_image_uuid)
     with Image.open(current_image_db.local_file_path) as img:
         width, height = img.size
 
@@ -229,10 +229,7 @@ async def on_regenerate_image(message):
     )
 
     logger.debug(f"Create new image in db {new_image.__dict__}")
-    await create_image_db(new_image, str(current_image_db.slide_uuid), current_image_db.number, is_regenerate=True)
-    logger.debug(f"Change status in current image {current_image_db.__dict__}")
-    await change_regenerating_status_image(current_image_db)
-    logger.debug(f"Current image is {current_image_db.__dict__}")
+    await update_candidate_image_db(event_message.candidate_image_uuid, new_image)
 
 
 async def main():

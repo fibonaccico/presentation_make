@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from config.logger import get_logger
 from make_presentation import Presentation
 from make_presentation.DTO import PresentationDTO
+from make_presentation.DTO.image_dto import ImageDTO
 from make_presentation.DTO.image_dto import ImageInfoDTO
 from queue_manager.event_message import EventMessage
 from queue_manager.schemas import PaySchema, PresentationSchema
@@ -44,6 +45,7 @@ async def get_image_by_uuid(image_uuid: str) -> t.Optional[ImageSQL]:
             text(
                 """
                     SELECT 
+                        uuid,
                         local_file_path, 
                         description, 
                         slide_uuid,
@@ -133,52 +135,53 @@ async def get_presentation_dto_or_none(presentation_uuid: str) -> t.Optional[Pre
         return None
 
 
-async def create_image_db(
-        new_image_data: ImageInfoDTO, slide_uuid: str, slide_number: int, is_regenerate: bool = False
-) -> None:
-    async with AsyncSessionLocal() as db:
-        path_list = new_image_data.path.split("/")
-        user_dir, presentation_dir, filename = (
-            path_list[-3],
-            path_list[-2],
-            path_list[-1],
-        )
-        image_query = text("""
-            INSERT INTO image (uuid, slide_uuid, number, description, local_file_path, api_url, style, regenerate_status)
-            VALUES (:uuid, :slide_uuid, :number, :description, :local_file_path, :api_url, :style, :regenerate_status)
-        """)
-        image_params = {
-            "uuid": str(uuid.uuid4()),
-            "slide_uuid": slide_uuid,
-            "number": slide_number,
-            "description": new_image_data.description,
-            "local_file_path": new_image_data.path,
-            "api_url": f"https://fibonaccico.ru/api/image/{user_dir}/{presentation_dir}/{filename}",
-            "style": new_image_data.style,
-            "regenerate_status": "CANDIDATE" if is_regenerate else "ACTIV"
-        }
+async def create_image_db(new_image_data: ImageInfoDTO, slide_uuid: str, slide_number: int) -> None:
+    path_list = new_image_data.path.split("/")
+    user_dir, presentation_dir, filename = (
+        path_list[-3],
+        path_list[-2],
+        path_list[-1],
+    )
+    image_query = text("""
+        INSERT INTO image (uuid, slide_uuid, number, description, local_file_path, api_url, style, regenerate_status)
+        VALUES (:uuid, :slide_uuid, :number, :description, :local_file_path, :api_url, :style, :regenerate_status)
+    """)
+    image_params = {
+        "uuid": str(uuid.uuid4()),
+        "slide_uuid": slide_uuid,
+        "number": slide_number,
+        "description": new_image_data.description,
+        "local_file_path": new_image_data.path,
+        "api_url": f"https://fibonaccico.ru/api/image/{user_dir}/{presentation_dir}/{filename}",
+        "style": new_image_data.style,
+        "regenerate_status": "ACTIV"
+    }
 
+    async with AsyncSessionLocal() as db:
         await db.execute(image_query, image_params)
         await db.commit()
 
 
-async def change_regenerating_status_image(image_db: ImageSQL):
+async def update_candidate_image_db(image_uuid: str, new_image_data: ImageDTO) -> None:
+    path_list = new_image_data.path.split("/")
+    user_dir, presentation_dir, filename = (
+        path_list[-3],
+        path_list[-2],
+        path_list[-1],
+    )
+    update_image_query = text("""
+            UPDATE image
+            SET local_file_path = :local_file_path, api_url = :api_url
+            WHERE uuid = :image_uuid
+        """)
+    update_image_params = {
+        "local_file_path": new_image_data.path,
+        "api_url": f"https://fibonaccico.ru/api/image/{user_dir}/{presentation_dir}/{filename}",
+        "image_uuid": image_uuid
+    }
+
     async with AsyncSessionLocal() as db:
-        update_query = text("""
-                    UPDATE 
-                        image
-                    SET 
-                        regenerate_attempts = :regenerate_attempts,
-                        regenerate_status = :regenerate_status
-                    WHERE 
-                        uuid = :image_uuid
-                    """)
-        update_query_params = {
-            "new_pairegenerate_attemptsd_qty": image_db.regenerate_attempts - 1,
-            "regenerate_status": "REGENERATING",
-            "image_uuid": str(image_db.uuid)
-        }
-        await db.execute(update_query, update_query_params)
+        await db.execute(update_image_query, update_image_params)
         await db.commit()
 
 

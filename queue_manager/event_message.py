@@ -85,5 +85,9 @@ class RegenerateImageEventMessage:
         self._generation_data = self._message_data.get("generation_data")
 
     @property
-    def image_uuid(self) -> t.Optional[str]:
-        return self._generation_data.get("image_uuid")
+    def current_image_uuid(self) -> t.Optional[str]:
+        return self._generation_data.get("current_image_uuid")
+
+    @property
+    def candidate_image_uuid(self) -> t.Optional[str]:
+        return self._generation_data.get("candidate_image_uuid")
