@@ -28,6 +28,21 @@ TEXT_FONT: dict[str, dict[str, dict[str, str]]] = {
             "TEXT": "Arial"
         },
     },
+    "creative": {
+        "INITIAL": {
+            "TITLE": "Arial Black",
+            "TEXT": "Arial"
+        },
+        "END": {
+            "TITLE": "Arial Black",
+            "TEXT": "Arial"
+        },
+        "USUAL": {
+            "TITLE": "Arial Black",
+	        "SUBTITLE": "Arial",
+            "TEXT": "Arial"
+        },
+    },
     "focus": {
         "INITIAL": {
             "TITLE": "Arial",
@@ -183,6 +198,21 @@ TEXT_FONT_SIZE: dict[str, dict[str, dict[str, int]]] = {
         },
         "USUAL": {
             "TITLE": 22,
+            "SUBTITLE": 14,
+            "TEXT": 11
+        },
+    },
+    "creative": {
+        "INITIAL": {
+            "TITLE": 66,
+            "TEXT": 12
+        },
+        "END": {
+            "TITLE": 66,
+            "TEXT": 12
+        },
+        "USUAL": {
+            "TITLE": 24,
             "SUBTITLE": 14,
             "TEXT": 11
         },
@@ -417,6 +447,34 @@ MAX_CHARS: dict[str, dict[str, dict[str, dict[str, int]]]] = {
             },
         }
     },
+    "creative":  {
+        "max": {
+            "INITIAL": {
+                "TITLE": 45
+            },
+            "END": {
+                "TITLE": 45
+            },
+            "USUAL": {
+                "TITLE": 40,
+                "TEXT": 140,
+                "SUBTITLE": 50
+            },
+        },
+        "min": {
+            "INITIAL": {
+                "TITLE": 5
+            },
+            "END": {
+                "TITLE": 10
+            },
+            "USUAL": {
+                "TITLE": 10,
+                "TEXT": 30,
+                "SUBTITLE": 10
+            },
+        }
+    },
     "flow": {
         "max": {
             "INITIAL": {
@@ -478,6 +536,22 @@ TEXT_FONT_SETTINGS: dict[str, dict[str, dict[str, dict[str, bool]]]] = {
             "TITLE": {"BOLD": False, "ITALIC": False},
             "TEXT": {"BOLD": False, "ITALIC": False},
             "SUBTITLE": {"BOLD": False, "ITALIC": False},
+        },
+    },
+    "creative": {
+        "INITIAL": {
+            "TITLE": {"BOLD": True, "ITALIC": False},
+            "TEXT": {"BOLD": False, "ITALIC": False},
+
+        },
+        "END": {
+            "TITLE": {"BOLD": True, "ITALIC": False},
+            "TEXT": {"BOLD": False, "ITALIC": False}
+        },
+        "USUAL": {
+            "TITLE": {"BOLD": True, "ITALIC": False},
+            "SUBTITLE": {"BOLD": False, "ITALIC": False},
+            "TEXT": {"BOLD": False, "ITALIC": False},
         },
     },
     "flow": {
@@ -588,6 +662,18 @@ USUAL_PICTURES: dict[str, list[list[dict[str, str]]]] = {
         [{"FIGURE": "RECTANGLE", "SIZE": "683 1079"}],
         [{"FIGURE": "RECTANGLE", "SIZE": "683 1079"}],
     ],
+    "creative": [
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "774 734"}],
+        [],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "631 748"}],
+        [],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "774 734"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "1920 490"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "802 971"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "1920 489"}],
+        [],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "659 748"}],
+    ],
     "flow": [
         [],
         [{"FIGURE": "RECTANGLE", "SIZE": "1918 412"}],
@@ -678,6 +764,21 @@ TEXT_COLOR: dict[str, dict[str, dict[str, list[int]]]] = {
             "TITLE": [53, 66, 89],
             "SUBTITLE": [125, 133, 163],
             "TEXT": [53, 66, 89]
+        },
+    },
+    "creative": {
+        "INITIAL": {
+            "TITLE": [255, 250, 0],
+            "TEXT": [20, 33, 17]
+        },
+        "END": {
+            "TITLE": [255, 250, 0],
+            "TEXT": [20, 33, 17]
+        },
+        "USUAL": {
+            "TITLE": [20, 33, 17],
+            "SUBTITLE": [20, 33, 17],
+            "TEXT": [62, 68, 62]
         },
     },
     "flow": {
