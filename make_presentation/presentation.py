@@ -136,12 +136,14 @@ class Presentation:
             )
             slide_dto_list.append(slide_dto)
 
-        return PresentationDTO(
+        res = PresentationDTO(
             template_name=self.template,
             theme=text_dto.theme,
             finish_title=finish_title,
             slides=slide_dto_list,
         )
+        logger.info(res)
+        return res
 
     @staticmethod
     def save(
