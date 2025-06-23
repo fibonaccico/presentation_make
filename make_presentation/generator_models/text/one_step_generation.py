@@ -70,6 +70,12 @@ class TextInOneStep(TextGeneratorProtocol):
                     pattern=r"(?i)Заголовок слайда[:*+]*(.+)",
                     num_slides=slides_count
                 )
+                if not titles:
+                    titles = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Заголовок слайда[:*+]*\s*\n(.+)",
+                        num_slides=slides_count
+                    )
 
                 if not titles:
                     titles = self.__get_list_text(
@@ -97,6 +103,12 @@ class TextInOneStep(TextGeneratorProtocol):
                         pattern=r"(?i)Картинка[:*+]*/s(.+)",
                         num_slides=slides_count
                     )
+                if not pictures:
+                    pictures = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Картинка[:*+]*\s*\n(.+)",
+                        num_slides=slides_count
+                    )
 
                 subtitles_1 = self.__get_list_text(
                     text=ai_answer,
@@ -107,7 +119,13 @@ class TextInOneStep(TextGeneratorProtocol):
                 if not subtitles_1:
                     subtitles_1 = self.__get_list_text(
                         text=ai_answer,
-                        pattern=r"(?i)Подзаголовок 1[:*+]*/s(.+)",
+                        pattern=r"(?i)Подзаголовок 1[:*+]*\s*(.+)",
+                        num_slides=slides_count
+                    )
+                if not subtitles_1:
+                    subtitles_1 = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Подзаголовок 1[:*+]*\s*\n(.+)",
                         num_slides=slides_count
                     )
 
@@ -120,7 +138,13 @@ class TextInOneStep(TextGeneratorProtocol):
                 if not subtitles_2:
                     subtitles_2 = self.__get_list_text(
                         text=ai_answer,
-                        pattern=r"(?i)Подзаголовок 2[:*+]*/s(.+)",
+                        pattern=r"(?i)Подзаголовок 2[:*+]*\s*(.+)",
+                        num_slides=slides_count
+                    )
+                if not subtitles_2:
+                    subtitles_2 = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Подзаголовок 2[:*+]*\s*\n(.+)",
                         num_slides=slides_count
                     )
 
@@ -133,7 +157,13 @@ class TextInOneStep(TextGeneratorProtocol):
                 if not subtitles_3:
                     subtitles_3 = self.__get_list_text(
                         text=ai_answer,
-                        pattern=r"(?i)Подзаголовок 3[:*+]*/s(.+)",
+                        pattern=r"(?i)Подзаголовок 3[:*+]*\s*(.+)",
+                        num_slides=slides_count
+                    )
+                if not subtitles_3:
+                    subtitles_3 = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Подзаголовок 3[:*+]*\s*\n(.+)",
                         num_slides=slides_count
                     )
 
@@ -147,6 +177,11 @@ class TextInOneStep(TextGeneratorProtocol):
                         r"(?i)Тема презентации:\s(.+)",
                         ai_answer
                     )[0]
+                    if not pres_theme:
+                        pres_theme = re.findall(
+                            r"(?i)Тема презентации:\s*\n(.+)",
+                            ai_answer
+                        )[0]
                     presentation_theme = self.__text_after_processing(pres_theme)
 
                 else:
@@ -227,7 +262,13 @@ class TextInOneStep(TextGeneratorProtocol):
         if not subtitle_text_1:
             subtitle_text_1 = self.__get_list_text(
                 text=text,
-                pattern=r"(?i)Описание 1[:*+]/s(.+)",
+                pattern=r"(?i)Описание 1[:*+]\s*(.+)",
+                num_slides=num_slides
+            )
+        if not subtitle_text_1:
+            subtitle_text_1 = self.__get_list_text(
+                text=text,
+                pattern=r"(?i)Описание 1[:*+]\s*\n(.+)",
                 num_slides=num_slides
             )
 
@@ -240,7 +281,13 @@ class TextInOneStep(TextGeneratorProtocol):
         if not subtitle_text_2:
             subtitle_text_2 = self.__get_list_text(
                 text=text,
-                pattern=r"(?i)Описание 2[:*+]/s(.+)",
+                pattern=r"(?i)Описание 2[:*+]\s*(.+)",
+                num_slides=num_slides
+            )
+        if not subtitle_text_2:
+            subtitle_text_2 = self.__get_list_text(
+                text=text,
+                pattern=r"(?i)Описание 2[:*+]\s*\n(.+)",
                 num_slides=num_slides
             )
 
@@ -253,7 +300,13 @@ class TextInOneStep(TextGeneratorProtocol):
         if not subtitle_text_3:
             subtitle_text_3 = self.__get_list_text(
                 text=text,
-                pattern=r"(?i)Описание 3[:*+]/s(.+)",
+                pattern=r"(?i)Описание 3[:*+]\s*(.+)",
+                num_slides=num_slides
+            )
+        if not subtitle_text_3:
+            subtitle_text_3 = self.__get_list_text(
+                text=text,
+                pattern=r"(?i)Описание 3[:*+]\s*\n(.+)",
                 num_slides=num_slides
             )
 
