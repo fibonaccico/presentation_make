@@ -70,6 +70,7 @@ class Presentation:
             text_generation_model=self.text_generation_model,
             language=language
         )
+        logger.info(text_dto)
 
         list_of_image_dto = await ImagesAdapter()(
             template=self.template,
@@ -136,14 +137,12 @@ class Presentation:
             )
             slide_dto_list.append(slide_dto)
 
-        res = PresentationDTO(
+        return PresentationDTO(
             template_name=self.template,
             theme=text_dto.theme,
             finish_title=finish_title,
             slides=slide_dto_list,
         )
-        logger.info(res)
-        return res
 
     @staticmethod
     def save(
