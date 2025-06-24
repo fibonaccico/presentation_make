@@ -179,7 +179,12 @@ class TextInOneStep(TextGeneratorProtocol):
                     )[0]
                     if not pres_theme:
                         pres_theme = re.findall(
-                            r"(?i)Тема презентации:\s*\n(.+)",
+                            r"(?i)Тема презентации[:*+]*\s*(.+)",
+                            ai_answer
+                        )[0]
+                    if not pres_theme:
+                        pres_theme = re.findall(
+                            r"(?i)Тема презентации[:*+]*\s*\n(.+)",
                             ai_answer
                         )[0]
                     presentation_theme = self.__text_after_processing(pres_theme)
