@@ -233,11 +233,14 @@ class TextInOneStep(TextGeneratorProtocol):
         text: str,
         pattern: str,
         num_slides: Optional[int]
-    ) -> list[str]:
+    ) -> Optional[list[str]]:
         text_list: list[str] = re.findall(pattern, text)
         new_text_list = []
         for item in text_list:
-            new_text_list.append(self.__text_after_processing(item))
+            new_item = self.__text_after_processing(item)
+            if not new_item:
+                return None
+            new_text_list.append(new_item)
 
         if num_slides is not None:
             if len(text_list) != num_slides:
