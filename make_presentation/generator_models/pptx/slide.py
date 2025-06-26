@@ -268,7 +268,7 @@ class Slide:
 
             # Получите байтовые данные изображения
             image_data = BytesIO()
-            pic.save(image_data, format="PNG")
+            pic.save(image_data, format="JPEG")
             image_data.seek(0)
 
             # Вставляем в призентацию

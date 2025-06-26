@@ -112,7 +112,7 @@ class KandinskyAPI(ImageAPIProtocol):
         uuid = result["uuid"]
         image_result = await self._check_status(uuid=uuid, max_time=max_time)
         image_data = BytesIO(image_result["data"].getvalue())
-        image = Image.open(image_data)
+        image = Image.open(image_data).convert('RGB')
 
         if save_path:
             path = f"{save_path}/{uuid}.jpg"
