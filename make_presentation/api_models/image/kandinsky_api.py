@@ -51,7 +51,8 @@ class KandinskyAPI(ImageAPIProtocol):
                 url=self.urls["models"], headers=self.AUTH_HEADERS
             ) as response:
                 data = await response.json()
-                return data[0]["id"]
+                logger.info(f"Kandinsky used model: = {data[1].get('version')}")
+                return data[1]["id"]
 
     async def create_image(
         self,

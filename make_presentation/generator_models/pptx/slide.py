@@ -266,6 +266,10 @@ class Slide:
             img_corrector = ImageCorrector(pillow_img=pic, setting=settings)
             pic = img_corrector.correct()
 
+            #добавил две строки:
+            if pic.mode == 'RGBA':
+                pic = pic.convert('RGB')
+
             # Получите байтовые данные изображения
             image_data = BytesIO()
             pic.save(image_data, format="JPEG")
