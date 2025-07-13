@@ -50,8 +50,9 @@ class KandinskyAPI(ImageAPIProtocol):
             async with session.get(
                 url=self.urls["models"], headers=self.AUTH_HEADERS
             ) as response:
-                logger.info(f"Response after get model: = {response}")
+                logger.info(f"Response after get model: {response}")
                 data = await response.json()
+                logger.info(f"Model data: {data}")
                 logger.info(f"Kandinsky used model: = {data[1].get('version')}")
                 return data[1]["id"]
 
