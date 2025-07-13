@@ -77,6 +77,7 @@ class KandinskyAPI(ImageAPIProtocol):
                    only model available for API connection);
         max_time - max time generation max time before function returns error
         """
+        logger.warning("Start create image using Kandinsky")
 
         if not model:
             model = await self.get_model()

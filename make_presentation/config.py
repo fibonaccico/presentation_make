@@ -57,6 +57,12 @@ KANDINSKY_URLS: dict[str, str] = {
     "models": f"{BASE_KANDINSKY_URL}key/api/v1/pipelines",
 }
 
+BASE_FLUX_URL = "https://api.studio.nebius.com/v1"
+FLUX_URLS: dict[str, str] = {
+    "run": f"{BASE_FLUX_URL}/images/generations",
+}
+
+
 DEFAULT_TEXT_SIZE = 16
 
 DEFAULT_TEXT_FONT = "Arial"

@@ -78,6 +78,7 @@ class Presentation:
             save_path=save_path_for_images,
             image_style=image_style
         )
+        logger.info(list_of_image_dto)
 
         list_of_image_info_dto = list_of_image_dto
 
