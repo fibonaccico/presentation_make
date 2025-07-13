@@ -50,6 +50,7 @@ class KandinskyAPI(ImageAPIProtocol):
             async with session.get(
                 url=self.urls["models"], headers=self.AUTH_HEADERS
             ) as response:
+                logger.info(f"Response after get model: = {response}")
                 data = await response.json()
                 logger.info(f"Kandinsky used model: = {data[1].get('version')}")
                 return data[1]["id"]
@@ -79,8 +80,9 @@ class KandinskyAPI(ImageAPIProtocol):
         """
         logger.warning("Start create image using Kandinsky")
 
-        if not model:
+        if model is None:
             model = await self.get_model()
+        logger.warning(f"Kandinsky model is {model}")
 
         width, height = map(int, width_height.split(" "))
         params = {
