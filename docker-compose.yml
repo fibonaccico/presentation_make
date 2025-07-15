@@ -21,6 +21,9 @@ services:
     restart: always
     networks:
       - main
+    #  - vpn
+    #cap_add:
+    #  - NET_ADMIN
     external_links:
       - network_fibonacci
     volumes:
@@ -54,3 +57,6 @@ networks:
     driver_opts:
       com.docker.network.driver.mtu: 1500
       com.docker.network.timeout: 300
+  #vpn:
+  #  external: true
+
