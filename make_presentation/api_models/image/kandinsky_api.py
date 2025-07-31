@@ -52,8 +52,13 @@ class KandinskyAPI(ImageAPIProtocol):
             ) as response:
                 data = await response.json()
                 logger.info(f"Model data: {data}")
-                logger.info(f"Kandinsky used model: = {data[0].get('version')}")
-                return data[0]["id"]
+                try:
+                    logger.info(f"Kandinsky used model: = {data[1].get('version')}")
+                    return data[1]["id"]
+                except IndexError as err:
+                    logger.error(f"Error after geting Kandinsky model 3.1: reason: {err}")
+                    logger.info(f"Kandinsky used model: = {data[0].get('version')}")
+                    return data[0]["id"]
 
     async def create_image(
         self,
