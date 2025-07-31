@@ -80,6 +80,16 @@ MAX_NUMBER_OF_SLIDES_IN_TEMPLATES = 98
 
 MAX_TEXT_LENGTH = MAX_NUMBER_OF_SLIDES_IN_TEMPLATES * MAX_SLIDE_TEXT_LENGTH
 
+image_style_choice = {
+    "Детальное фото": "UHD",
+    "Аниме": "ANIME",
+    "Кандинский": "KANDINSKY",
+    "Не важно": "DEFAULT",
+    'Detailed photo': "UHD",
+    'Anime': "ANIME",
+    'Kandinsky': "KANDINSKY",
+    'Default': "DEFAULT"
+}
 
 PROMPT_FOR_GENERATION_FROM_TEXT = '''
 Ты ИИ для генерации презентаций. Тебе будет дан отрывок [TEXT] из презентации на тему \" THEME \",

@@ -4,6 +4,8 @@ from enum import Enum
 
 from aiormq.abc import DeliveredMessage
 
+from make_presentation.config import image_style_choice
+
 
 class EventType(Enum):
     TELEGRAM = "telegram"
@@ -68,7 +70,7 @@ class EventMessage:
 
     @property
     def image_style(self) -> str:
-        return self._generation_data.get("image_style", "DEFAULT")
+        return image_style_choice.get(self._generation_data.get("image_style", "DEFAULT"), "DEFAULT")
 
     @property
     def format_file(self) -> str:

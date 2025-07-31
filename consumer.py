@@ -3,8 +3,8 @@ import os
 
 import aiohttp
 import aiormq
-from PIL import Image
 from dotenv import load_dotenv
+from PIL import Image
 
 from config.logger import get_logger
 from config.messages import (GENERATION_ERROR_MESSAGE_EN,
@@ -12,15 +12,18 @@ from config.messages import (GENERATION_ERROR_MESSAGE_EN,
                              SENDING_FAIL_RU, TELEGRAM_CLOSING_MESSAGE_EN,
                              TELEGRAM_CLOSING_MESSAGE_RU)
 from make_presentation import Presentation
+from make_presentation.config import image_style_choice
 from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
 from queue_manager.db_queries import (create_presentation_adapter,
+                                      get_image_by_uuid,
                                       get_locale_by_user_uuid,
                                       get_presentation_dto_or_none,
                                       reduce_balance_by_user_uuid,
-                                      telegram_id_by_user_uuid, get_image_by_uuid,
+                                      telegram_id_by_user_uuid,
                                       update_candidate_image_db)
 from queue_manager.event_message import (EventMessage, EventType,
-                                         PresentationType, RegenerateImageEventMessage)
+                                         PresentationType,
+                                         RegenerateImageEventMessage)
 from queue_manager.queue_exceptions import EventTypeException
 from queue_manager.SQL_responses import PresentationSQL
 
@@ -125,7 +128,6 @@ async def on_generator_message(message):
     logger.info(f"Starting generate from message {event_message.__dict__}")
     user_telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
     locale = await get_locale_by_user_uuid(user_uuid=event_message.user_uuid)
-
     if event_message.event_type not in GENERATOR_EVENT_TYPE:
         raise EventTypeException
 
