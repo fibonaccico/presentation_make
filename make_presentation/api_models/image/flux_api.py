@@ -1,29 +1,18 @@
-# import asyncio
-# import base64
-# import json
+import base64
 import os
-# import time
-# from io import BytesIO
+from io import BytesIO
 from typing import Optional
 
-# from uuid import UUID
-from openai import OpenAI
+from dotenv import load_dotenv
+from openai import AsyncOpenAI
+from PIL import Image
 
-# import aiohttp
-# from dotenv import load_dotenv
-# from PIL import Image
+from config.logger import get_logger
+from make_presentation.api_models.interfaces import ImageAPIProtocol
+from make_presentation.DTO import ImageDTO
 
-# from config.logger import get_logger
-# from make_presentation.api_models.interfaces import ImageAPIProtocol
-# from make_presentation.config import (BASE_FLUX_URL, FLUX_URLS,
-#                                       MAX_TIME_IMAGE_GENERATION)
-# from make_presentation.DTO import ImageDTO
-
-# from ..errors import BadRequestError, ImageGenerationFailedError, TimeOutError
-
-# logger = get_logger()
-
-# load_dotenv()
+logger = get_logger()
+load_dotenv()
 
 
 BASE_FLUX_URL = "https://api.studio.nebius.com/v1/"
@@ -32,22 +21,22 @@ FLUX_URLS: dict[str, str] = {
 }
 
 
-class FluxAPI():
+class FluxAPI(ImageAPIProtocol):
     def __init__(self) -> None:
         self.base_url = BASE_FLUX_URL
         self.urls = FLUX_URLS
 
-    def create_image(
+    async def create_image(
         self,
-        # save_path: Optional[str],
+        save_path: Optional[str],
         promt: str = "Cat",
-        width_height="1024 1024",
+        width_height: str = "1024 1024",
         images: int = 1,
         model: Optional[int] = None,
         style: str = "DEFAULT",
         negative_prompt="",
-        max_time: int = 2,
-    ):
+        max_time: int = 2
+    ) -> ImageDTO:
         """
         The main function for image generation.
         Return image data transfer object.
@@ -60,19 +49,39 @@ class FluxAPI():
                    only model available for API connection);
         max_time - max time generation max time before function returns error
         """
+        logger.warning("Start create image using Flux")
 
         width, height = map(int, width_height.split(" "))
-        client = OpenAI(
+        api_key = os.getenv("NEBIUS_API_KEY")
+
+        if not api_key:
+            logger.error("NEBIUS_API_KEY is not set.")
+            return None
+
+        client = AsyncOpenAI(
             base_url=self.base_url,
-            api_key=os.environ.get("NEBIUS_API_KEY"),
+            api_key=api_key
         )
 
-        completion = client.images.generate(
+        # OpenAI(
+        #     base_url=self.base_url,
+        #     api_key=os.environ.get("NEBIUS_API_KEY"),
+        # )
+
+        # async with aiohttp.ClientSession() as session:
+        #     async with session.post(
+        #         url=self.urls["run"], headers=self.AUTH_HEADERS, data=data
+        #     ) as response:
+        #         result = await response.json()
+
+        completion = await client.images.generate(
             model="black-forest-labs/flux-schnell",
             prompt=promt,
+            n=images,
             response_format="b64_json",
+            quality='standard',
             extra_body={
-                "response_extension": "jpeg",
+                "response_extension": "jpg",
                 "width": width,
                 "height": height,
                 "num_inference_steps": 1,
@@ -81,8 +90,26 @@ class FluxAPI():
             }
         )
 
-        print(completion.to_json())
+        logger.warning(f"Flux response {completion}")
+        result = completion.to_json()
+
+        logger.warning(f"Flux result {result}")
+        image_data = BytesIO(base64.b64decode(result.get("b64_json")))
+
+        # image_data = BytesIO(image_result.getvalue())
+        image = Image.open(image_data).convert('RGB')
+
+        if save_path:
+            path = f"{save_path}/{result.get('id')}.jpg"
+            image.save(fp=path)
+        else:
+            path = None
+
+        logger.warning(f"Flux result {ImageDTO(image=image, path=path, description=promt, style=style)}")
+        return ImageDTO(image=image, path=path, description=promt, style=style)
+
+#         print(completion.to_json())
 
 
-d = FluxAPI()
-d.create_image(promt="Котик в очках и ковбойской шляпе", width_height="1024 1024")
+# d = FluxAPI()
+# d.create_image(promt="Котик в очках и ковбойской шляпе", width_height="1024 1024")
