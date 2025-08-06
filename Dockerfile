@@ -4,7 +4,8 @@ COPY . /app
 RUN apt update \
      && apt install libreoffice --no-install-recommends -y \
      && apt install curl python3 -y \
-     && apt install default-jre libreoffice-java-common -y \
+     && apt install default-jre libreoffice-java-common -y && \
+     && apt-get install -ytraceroute iproute2 inetutils-ping &&\
      && apt-get clean \
      && curl -sSL https://install.python-poetry.org | python3 - \
      && export PATH="/root/.local/bin:$PATH" \
@@ -22,4 +23,5 @@ VOLUME ["/app/log/"]
 #COPY rabbitmq.conf /etc/rabbitmq/
 #EXPOSE 5672 15672
 #CMD ["python /app/consumer.py"]
-CMD ["python", "/app/consumer.py"]
+#CMD ["python", "/app/consumer.py"]
+CMD sh -c "ip route add 195.242.11.3 via 172.29.0.2 && python /app/consumer.py"
