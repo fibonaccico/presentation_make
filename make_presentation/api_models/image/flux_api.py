@@ -80,7 +80,6 @@ class FluxAPI(ImageAPIProtocol):
                     "negative_prompt": negative_prompt
                 }
             )
-            logger.info(f"Flux response: {completion}")
         except Exception as err:
             logger.error(f"Image generation error. Reason: {err}")
             raise ImageGenerationFailedError(f"Image generation error: {err}. Cannot generate image - {promt}")
@@ -90,7 +89,7 @@ class FluxAPI(ImageAPIProtocol):
         image = Image.open(image_data).convert('RGB')
 
         if save_path:
-            path = f"{save_path}/{result.get('id')}.jpg"
+            path = f"{save_path}/{completion.id}.jpg"
             image.save(fp=path)
         else:
             path = None
