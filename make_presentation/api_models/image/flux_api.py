@@ -11,6 +11,8 @@ from config.logger import get_logger
 from make_presentation.api_models.interfaces import ImageAPIProtocol
 from make_presentation.DTO import ImageDTO
 
+from ..errors import ImageGenerationFailedError
+
 logger = get_logger()
 load_dotenv()
 
@@ -62,41 +64,28 @@ class FluxAPI(ImageAPIProtocol):
             base_url=self.base_url,
             api_key=api_key
         )
+        try:
+            completion = await client.images.generate(
+                model="black-forest-labs/flux-schnell",
+                prompt=promt,
+                n=images,
+                response_format="b64_json",
+                quality='standard',
+                extra_body={
+                    "response_extension": "jpg",
+                    "width": width,
+                    "height": height,
+                    "num_inference_steps": 1,
+                    "seed": -1,
+                    "negative_prompt": negative_prompt
+                }
+            )
+        except Exception as err:
+            logger.error(f"Image generation error. Reason: {err}")
+            raise ImageGenerationFailedError(f"Image generation error: {err}. Cannot generate image - {promt}")
 
-        # OpenAI(
-        #     base_url=self.base_url,
-        #     api_key=os.environ.get("NEBIUS_API_KEY"),
-        # )
-
-        # async with aiohttp.ClientSession() as session:
-        #     async with session.post(
-        #         url=self.urls["run"], headers=self.AUTH_HEADERS, data=data
-        #     ) as response:
-        #         result = await response.json()
-
-        completion = await client.images.generate(
-            model="black-forest-labs/flux-schnell",
-            prompt=promt,
-            n=images,
-            response_format="b64_json",
-            quality='standard',
-            extra_body={
-                "response_extension": "jpg",
-                "width": width,
-                "height": height,
-                "num_inference_steps": 1,
-                "seed": -1,
-                "negative_prompt": negative_prompt
-            }
-        )
-
-        logger.warning(f"Flux response {completion}")
-        result = completion.to_json()
-
-        logger.warning(f"Flux result {result}")
-        image_data = BytesIO(base64.b64decode(result.get("b64_json")))
-
-        # image_data = BytesIO(image_result.getvalue())
+        result = completion.data[0]
+        image_data = BytesIO(base64.b64decode(result.b64_json))
         image = Image.open(image_data).convert('RGB')
 
         if save_path:
@@ -107,9 +96,3 @@ class FluxAPI(ImageAPIProtocol):
 
         logger.warning(f"Flux result {ImageDTO(image=image, path=path, description=promt, style=style)}")
         return ImageDTO(image=image, path=path, description=promt, style=style)
-
-#         print(completion.to_json())
-
-
-# d = FluxAPI()
-# d.create_image(promt="Котик в очках и ковбойской шляпе", width_height="1024 1024")

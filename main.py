@@ -19,7 +19,7 @@ async def make_pres():
     pr = Presentation(text_generation_model="ONESTEP", template="creative")
     task2 = await pr.make_presentation(
         context="Травы Алтая",
-        number_of_slides=10
+        number_of_slides=5
     )
     return task2
 
