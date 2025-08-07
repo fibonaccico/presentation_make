@@ -80,6 +80,7 @@ class FluxAPI(ImageAPIProtocol):
                     "negative_prompt": negative_prompt
                 }
             )
+            logger.info(f"Flux response: {completion}")
         except Exception as err:
             logger.error(f"Image generation error. Reason: {err}")
             raise ImageGenerationFailedError(f"Image generation error: {err}. Cannot generate image - {promt}")
