@@ -4,8 +4,8 @@ COPY . /app
 RUN apt update \
      && apt install libreoffice --no-install-recommends -y \
      && apt install curl python3 -y \
-     && apt install default-jre libreoffice-java-common -y && \
-     && apt-get install -ytraceroute iproute2 inetutils-ping &&\
+     && apt install default-jre libreoffice-java-common -y  \
+     && apt-get install -y traceroute iproute2 inetutils-ping \
      && apt-get clean \
      && curl -sSL https://install.python-poetry.org | python3 - \
      && export PATH="/root/.local/bin:$PATH" \
