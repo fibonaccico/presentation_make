@@ -69,6 +69,7 @@ class Slide:
         for shape in self.slide.shapes:
             if shape.has_text_frame:
                 if shape.text == "TITLE" and self.title is not None:
+                    logger.info(f"TITLE frame is found. Slide number: {self.slide_number}")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
@@ -95,6 +96,7 @@ class Slide:
                         max_chars=self.max_chars[self.slide_type]["TITLE"]
                     )
                 elif "TEXT" in shape.text and self.text is not None:
+                    logger.info(f"TEXT frame is found. Slide number: {self.slide_number}")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
@@ -129,6 +131,7 @@ class Slide:
                     )
 
                 elif "SUBTITLE" in shape.text and self.text is not None:
+                    logger.info(f"SUBTITLE frame is found. Slide number: {self.slide_number}")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
@@ -169,6 +172,7 @@ class Slide:
                     and len(self.img) > num_pic
                     and self.pictures_setting is not None
                 ):
+                    logger.info(f"PIC frame is found. Slide number: {self.slide_number}")
                     self.__add_picture(
                         shape=shape,
                         num_pic=num_pic,
@@ -253,30 +257,33 @@ class Slide:
                 pic = Image.open(self.img[num_pic].path)
             else:
                 pic = self.img[num_pic].image
+        try:
+            # Удаляет и восстанавливает объект картинки
+            shape.element.getparent().remove(shape.element)
+            left = shape.left
+            top = shape.top
+            width = shape.width
+            height = shape.height
 
-        # Удаляет и восстанавливает объект картинки
-        shape.element.getparent().remove(shape.element)
-        left = shape.left
-        top = shape.top
-        width = shape.width
-        height = shape.height
+            if pic:
+                # Кoрректирует форму картинки для вставки в презентацию
+                img_corrector = ImageCorrector(pillow_img=pic, setting=settings)
+                pic = img_corrector.correct()
 
-        if pic:
-            # Кoрректирует форму картинки для вставки в презентацию
-            img_corrector = ImageCorrector(pillow_img=pic, setting=settings)
-            pic = img_corrector.correct()
+                logger.info(f"Picture mode: {pic.mode}. Slide number: {self.slide_number}")
+                #добавил две строки:
+                if pic.mode == 'RGBA':
+                    pic = pic.convert('RGB')
 
-            #добавил две строки:
-            if pic.mode == 'RGBA':
-                pic = pic.convert('RGB')
+                # Получите байтовые данные изображения
+                image_data = BytesIO()
+                pic.save(image_data, format="JPEG")
+                image_data.seek(0)
 
-            # Получите байтовые данные изображения
-            image_data = BytesIO()
-            pic.save(image_data, format="JPEG")
-            image_data.seek(0)
-
-            # Вставляем в призентацию
-            self.slide.shapes.add_picture(image_data, left, top, width, height)
+                # Вставляем в призентацию
+                self.slide.shapes.add_picture(image_data, left, top, width, height)
+        except Exception as err:
+            logger.error(f"Could not add picture. Reason: {err}. Slide number: {self.slide_number}")
 
     def __add_foreground_images(self, names: list[str]) -> None:
         for shape in self.slide.shapes:

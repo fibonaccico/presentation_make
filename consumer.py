@@ -12,7 +12,6 @@ from config.messages import (GENERATION_ERROR_MESSAGE_EN,
                              SENDING_FAIL_RU, TELEGRAM_CLOSING_MESSAGE_EN,
                              TELEGRAM_CLOSING_MESSAGE_RU)
 from make_presentation import Presentation
-from make_presentation.config import image_style_choice
 from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
 from queue_manager.db_queries import (create_presentation_adapter,
                                       get_image_by_uuid,
@@ -165,7 +164,7 @@ async def on_generator_message(message):
             generation_error_text = GENERATION_ERROR_MESSAGE_EN
         await send_message(user_telegram_id, message=generation_error_text)
 
-        logger.error(f"Presentation sending failed: {event_message.presentation_uuid}. ")
+        logger.error(f"Presentation generation failed: {event_message.presentation_uuid}. ")
         await message.channel.basic_nack(
             message.delivery.delivery_tag,
             requeue=False
