@@ -238,9 +238,9 @@ async def on_download_message_directly(message):
                     )
 
                     logger.info(f"Download presentation {event_message.save_presentation_path} into {event_message.save_path}")   # noqa E501
-                    with open(presentation_path) as presentation:
+                    with open(presentation_path, "rb") as presentation:
                         f = presentation.read()
-                        with open(event_message.save_path, "w") as saved_file:
+                        with open(event_message.save_path, "wb") as saved_file:
                             saved_file.write(f)
                 except Exception as e:
                     logger.error(f"Presentation download failed: {e}")
