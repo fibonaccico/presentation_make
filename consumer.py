@@ -59,7 +59,8 @@ async def send_document(chat_id: str, file_path: str, token: str = os.getenv("TE
             data.add_field('document', file, filename=filename)
             try:
                 async with session.post(url, data=data) as response:
-                    await response.text()
+                    result = await response.text()
+                    logger.info(f"Send file: [{file_path}] to user {chat_id}. Result: {result}")
 
             except Exception as err:
                 logger.error(f"Cannot send file: [{file_path}] to user {chat_id}. Reason: {err}")
