@@ -81,6 +81,42 @@ class EventMessage:
         return self._event_type if self._event_type in EventType._value2member_map_ else None
 
 
+
+class DownloadDirectlyEventMessage:
+    def __init__(self, message: DeliveredMessage):
+        self._message_data = json.loads(message.body.decode('utf-8'))
+        self._event_type = self._message_data.get("event_type")
+        self._generation_data = self._message_data.get("generation_data")
+
+    @property
+    def event_type(self) -> t.Optional[str]:
+        return self._event_type if self._event_type in EventType._value2member_map_ else Noneage_uuid")
+
+    @property
+    def save_presentation_path(self) -> t.Optional[str]:
+        return self._generation_data.get("save_presentation_path")
+    
+    @property
+    def format_file(self) -> str:
+        return self._generation_data.get("format_file", "pdf")
+    
+    @property
+    def user_uuid(self) -> t.Optional[str]:
+        return self._generation_data.get("user_uuid")
+    
+    @property
+    def presentation_uuid(self) -> t.Optional[str]:
+        return self._generation_data.get("presentation_uuid")
+    
+    @property
+    def save_path(self) -> t.Optional[str]:
+        return self._generation_data.get("save_path")
+    
+    @property
+    def no_logo(self) -> bool:
+        return self._generation_data.get("no_logo", True)
+
+
 class RegenerateImageEventMessage:
     def __init__(self, message: DeliveredMessage):
         self._message_data = json.loads(message.body.decode('utf-8'))

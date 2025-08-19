@@ -20,7 +20,8 @@ from queue_manager.db_queries import (create_presentation_adapter,
                                       reduce_balance_by_user_uuid,
                                       telegram_id_by_user_uuid,
                                       update_candidate_image_db)
-from queue_manager.event_message import (EventMessage, EventType,
+from queue_manager.event_message import (DownloadDirectlyEventMessage,
+                                         EventMessage, EventType,
                                          PresentationType,
                                          RegenerateImageEventMessage)
 from queue_manager.queue_exceptions import EventTypeException
@@ -216,6 +217,38 @@ async def on_download_message(message):
             logger.warning(f"Unknown event type {event_message.event_type} in download_presentation_queue")    # noqa E501
 
 
+async def on_download_message_directly(message):
+    event_message = DownloadDirectlyEventMessage(message)
+    await message.channel.basic_ack(
+        message.delivery.delivery_tag
+    )
+
+    logger.info(f"Starting download directly from message {event_message.__dict__}")
+
+    match event_message.event_type:
+        case EventType.DOWNLOAD.value:
+            if db_presentation := await get_presentation_dto_or_none(event_message.presentation_uuid):      # noqa E501
+                try:
+                    logger.info(f"Save presentation to {event_message.save_presentation_path}")
+                    presentation_path = Presentation.save(
+                        data=create_presentation_dto(db_presentation),
+                        save_path=event_message.save_presentation_path,
+                        no_logo=event_message.no_logo,
+                        format=event_message.format_file
+                    )
+
+                    logger.info(f"Download presentation {event_message.save_presentation_path} into {event_message.save_path}")   # noqa E501
+                    with open(presentation_path) as presentation:
+                        f = presentation.read()
+                        with open(event_message.save_path, "w") as saved_file:
+                            saved_file.write(f)
+                except Exception as e:
+                    logger.error(f"Presentation download failed: {e}")
+
+        case _:
+            logger.warning(f"Unknown event type {event_message.event_type} in download_presentation_directly_queue")    # noqa E501
+
+
 async def on_regenerate_image(message):
     event_message = RegenerateImageEventMessage(message)
     await message.channel.basic_ack(message.delivery.delivery_tag)
@@ -256,6 +289,10 @@ async def main():
     channel_download = await connection.channel()
     declare_ok_download = await channel_download.queue_declare("regenerate_image", durable=True)  # noqa E501
     await channel_download.basic_consume(declare_ok_download.queue, on_regenerate_image)
+
+    channel_download = await connection.channel()
+    declare_ok_download = await channel_download.queue_declare("download_presentation_directly_queue", durable=True)  # noqa E501
+    await channel_download.basic_consume(declare_ok_download.queue, on_download_message_directly)
     # async with AsyncSessionLocal() as db:                                                 # noqa E800
         # a = await get_presentation_or_none("165a57b3-0ef3-4cb2-8818-e91854a68b1b", db)    # noqa E116
         # await reduce_balance_by_user_uuid("5ef0c392-8a5b-41bd-92d1-8344ca5837e5", db)     # noqa E116
