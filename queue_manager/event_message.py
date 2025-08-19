@@ -90,7 +90,7 @@ class DownloadDirectlyEventMessage:
 
     @property
     def event_type(self) -> t.Optional[str]:
-        return self._event_type if self._event_type in EventType._value2member_map_ else Noneage_uuid")
+        return self._event_type if self._event_type in EventType._value2member_map_ else None
 
     @property
     def save_presentation_path(self) -> t.Optional[str]:
