@@ -237,7 +237,7 @@ async def on_download_message_directly(message):
                         format=event_message.format_file
                     )
 
-                    logger.info(f"Save presentation path {event_message.save_presentation_path} in DB")   # noqa E501
+                    logger.info(f"Save presentation path {presentation_path} in DB")   # noqa E501
                     await set_presentation_local_file_path(
                         presentation_uuid=event_message.presentation_uuid,
                         local_file_path=presentation_path)
