@@ -74,7 +74,7 @@ async def set_presentation_local_file_path(presentation_uuid: str, local_file_pa
                 WHERE uuid = :presentation_uuid
             """
         )
-    update_params = {"local_file_path": local_file_path, "uuid": presentation_uuid}
+    update_params = {"local_file_path": local_file_path, "presentation_uuid": presentation_uuid}
     async with AsyncSessionLocal() as db:
         await db.execute(update_query, update_params)
         await db.commit()
