@@ -11,11 +11,11 @@ from sqlalchemy.orm import sessionmaker
 from config.logger import get_logger
 from make_presentation import Presentation
 from make_presentation.DTO import PresentationDTO
-from make_presentation.DTO.image_dto import ImageDTO
-from make_presentation.DTO.image_dto import ImageInfoDTO
+from make_presentation.DTO.image_dto import ImageDTO, ImageInfoDTO
 from queue_manager.event_message import EventMessage
 from queue_manager.schemas import PaySchema, PresentationSchema
-from queue_manager.SQL_responses import ImageInfoSQL, PresentationSQL, SlideSQL, ImageSQL
+from queue_manager.SQL_responses import (ImageInfoSQL, ImageSQL,
+                                         PresentationSQL, SlideSQL)
 
 load_dotenv()
 logger = get_logger()
@@ -64,6 +64,20 @@ async def get_image_by_uuid(image_uuid: str) -> t.Optional[ImageSQL]:
         if row := result.mappings().first():
             return ImageSQL(**row)
         return None
+
+
+async def set_presentation_local_file_path(presentation_uuid: str, local_file_path: str):
+    update_query = text(
+            """
+                UPDATE presentation
+                SET local_file_path = :local_file_path
+                WHERE uuid = :presentation_uuid
+            """
+        )
+    update_params = {"uuid": presentation_uuid, "local_file_path": local_file_path}
+    async with AsyncSessionLocal(update_query, update_params) as db:
+        await db.execute()
+        await db.commit()
 
 
 async def _get_presentation_or_none(presentation_uuid: str, db: AsyncSession):

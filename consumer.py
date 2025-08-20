@@ -18,10 +18,10 @@ from queue_manager.db_queries import (create_presentation_adapter,
                                       get_locale_by_user_uuid,
                                       get_presentation_dto_or_none,
                                       reduce_balance_by_user_uuid,
+                                      set_presentation_local_file_path,
                                       telegram_id_by_user_uuid,
                                       update_candidate_image_db)
-from queue_manager.event_message import (DownloadDirectlyEventMessage,
-                                         EventMessage, EventType,
+from queue_manager.event_message import (EventMessage, EventType,
                                          PresentationType,
                                          RegenerateImageEventMessage)
 from queue_manager.queue_exceptions import EventTypeException
@@ -218,7 +218,7 @@ async def on_download_message(message):
 
 
 async def on_download_message_directly(message):
-    event_message = DownloadDirectlyEventMessage(message)
+    event_message = EventMessage(message)
     await message.channel.basic_ack(
         message.delivery.delivery_tag
     )
@@ -233,17 +233,16 @@ async def on_download_message_directly(message):
                     presentation_path = Presentation.save(
                         data=create_presentation_dto(db_presentation),
                         save_path=event_message.save_presentation_path,
-                        no_logo=event_message.no_logo,
+                        no_logo=True,
                         format=event_message.format_file
                     )
 
-                    logger.info(f"Download presentation {event_message.save_presentation_path} into {event_message.save_path}")   # noqa E501
-                    with open(presentation_path, "rb") as presentation:
-                        f = presentation.read()
-                        with open(event_message.save_path, "wb") as saved_file:
-                            saved_file.write(f)
+                    logger.info(f"Save presentation path {event_message.save_presentation_path} in DB")   # noqa E501
+                    await set_presentation_local_file_path(
+                        presentation_uuid=event_message.presentation_uuid,
+                        local_file_path=presentation_path)
                 except Exception as e:
-                    logger.error(f"Presentation download failed: {e}")
+                    logger.error(f"Presentation save failed or presentation local file path save failed: {e}")
 
         case _:
             logger.warning(f"Unknown event type {event_message.event_type} in download_presentation_directly_queue")    # noqa E501
