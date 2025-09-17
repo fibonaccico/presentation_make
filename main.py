@@ -19,7 +19,7 @@ async def make_pres():
     pr = Presentation(text_generation_model="ONESTEP", template="creative")
     task2 = await pr.make_presentation(
         context="Травы Алтая",
-        number_of_slides=5
+        number_of_slides=2
     )
     return task2
 
@@ -41,7 +41,8 @@ async def main():
         task2 = Presentation.save(
             data=task1,
             no_logo=False,
-            save_path=path_to_file
+            save_path=path_to_file,
+            format="pdf"
         )
         print(task2)                                  # noqa T201
 
