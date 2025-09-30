@@ -22,6 +22,7 @@ langchain-core = "^0.3.35"
 langchain-openai = "^0.3.5"
 langchain-community = "^0.3.17"
 aiohttp = "^3.9.5"
+fpdf = "^1.7.2"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "3.5.0"

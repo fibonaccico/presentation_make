@@ -34,6 +34,17 @@ class TextInTwoSteps(TextGeneratorProtocol):
 
     Затем для каждого слайда генерируется текст согласно сгенерированному ранее описанию.
     """
+    async def __generate_slides_speech(
+            self,
+            api: TextAPIProtocol,
+            presentation_content: str
+    ) -> str:
+        """
+        Генерация текста доклада по презентации.
+        """
+        prompt = f"Напиши связанный и логичный текст для доклада по презентации, по 3-4 предложения на каждый слайд. Текст презентации: {presentation_content}"
+        response = await api.request(prompt)
+        return response
 
     async def create_text(
         self,
@@ -77,6 +88,17 @@ class TextInTwoSteps(TextGeneratorProtocol):
             subtitles_2=subtitles_2,
             subtitles_3=subtitles_3
         )
+
+        fulltext = self.__get_full_text(
+            titles=title_list,
+            subtitles_1=subtitles_1,
+            subtitles_2=subtitles_2,
+            subtitles_3=subtitles_3,
+            slides_text_list=slides_text_list
+        )
+        
+        speech_text = await self.__generate_speech(api, fulltext)
+
         return TextDTO(
             titles=title_list,
             slides_text_list=slides_text_list,
@@ -91,7 +113,8 @@ class TextInTwoSteps(TextGeneratorProtocol):
                 subtitles_3=subtitles_3,
                 slides_text_list=slides_text_list
                 ),
-            theme=context
+            theme=context,
+            speech_text=speech_text
         )
 
     async def __get_titles_and_picture_descriptions(
