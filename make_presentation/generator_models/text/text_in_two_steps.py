@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING, Optional
 
 from make_presentation.config import (get_general_prompt_for_each_slide,
                                       get_subtitles_generation_prompt,
-                                      get_titles_generation_prompt)
+                                      get_titles_generation_prompt,
+                                      get_speech_generation_prompt)  # Добавить импорт
 from make_presentation.DTO import TextDTO
 from make_presentation.errors import (InvalidSubtitlesNumberError,
                                       InvalidTitlesNumberError,
@@ -42,7 +43,7 @@ class TextInTwoSteps(TextGeneratorProtocol):
         """
         Генерация текста доклада по презентации.
         """
-        prompt = f"Напиши связанный и логичный текст для доклада по презентации, по 3-4 предложения на каждый слайд. Текст презентации: {presentation_content}"
+        prompt = get_speech_generation_prompt(presentation_content)
         response = await api.request(prompt)
         return response
 
@@ -97,7 +98,7 @@ class TextInTwoSteps(TextGeneratorProtocol):
             slides_text_list=slides_text_list
         )
         
-        speech_text = await self.__generate_speech(api, fulltext)
+        speech_text = await self.__generate_slides_speech(api, fulltext)
 
         return TextDTO(
             titles=title_list,

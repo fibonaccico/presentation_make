@@ -245,6 +245,14 @@ GENERAL_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
 
 """
 
+SPEECH_GENERATION_PROMPT = """
+Напиши связанный и логичный текст для доклада по презентации, по 3-4 предложения на каждый слайд. 
+Текст должен быть структурированным и подходить для устного выступления.
+
+Текст презентации: 
+PRESENTATION_CONTENT
+"""
+
 
 def get_titles_generation_prompt(
     theme: str,
@@ -304,6 +312,18 @@ def get_prompt_result(
         return prompt.replace("[CONTEXT]", context)
     return prompt.replace("NUM_SLIDE", str(num_slide)).replace("CONTEXT", context).replace("LANGUAGE", language)
 
+
+def get_speech_generation_prompt(presentation_content: str) -> str:
+    """
+    Генерирует промпт для создания текста доклада.
+    
+    Args:
+        presentation_content: str - содержание презентации
+    
+    Returns:
+        str - готовый промпт для API
+    """
+    return SPEECH_GENERATION_PROMPT.replace("PRESENTATION_CONTENT", presentation_content)
 
 # Путь к проекту
 path_to_project = os.path.dirname(
