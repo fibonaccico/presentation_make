@@ -20,8 +20,9 @@ services:
 #      - "15672:15672"
     restart: always
     networks:
-      - main
-      - openvpn_VPN
+      main:
+      openvpn_VPN:
+        ipv4_address: 172.29.0.3
     cap_add:
       - NET_ADMIN
     external_links:
