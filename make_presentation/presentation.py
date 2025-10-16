@@ -144,6 +144,7 @@ class Presentation:
             theme=text_dto.theme,
             finish_title=finish_title,
             slides=slide_dto_list,
+            speech_text=None
         )
 
     @staticmethod

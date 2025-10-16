@@ -11,4 +11,3 @@ class TextDTO:
     subtitles_1: list[str] = None
     subtitles_2: list[str] = None
     subtitles_3: list[str] = None
-    speech_text: str = None
