@@ -43,23 +43,32 @@ class KandinskyAPI(ImageAPIProtocol):
 
     async def get_model(self) -> int:
         """
-        Retriev the list of available models and select Kandinsky 3.0
-        (currently this is the only model available for API connection)
+        Retrieve the list of available models and prefer Kandinsky 4.1.
+        Falls back to other versions returned by the API if unavailable.
         """
+        preferred_versions = ("Kandinsky 4.1", "Kandinsky 3.1", "Kandinsky 3.0")
+
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 url=self.urls["models"], headers=self.AUTH_HEADERS
             ) as response:
                 data = await response.json()
                 logger.info(f"Model data: {data}")
-                try:
-                    logger.info(f"Kandinsky used model: = {data[1].get('version')}")
-                    return data[1]["id"]
-                except IndexError as err:
-                    logger.error(f"Error after geting Kandinsky model 3.1: reason: {err}")
-                    logger.info(f"Kandinsky used model: = {data[0].get('version')}")
-                    return data[0]["id"]
 
+        for version in preferred_versions:
+            model = next((item for item in data if item.get("version") == version), None)
+            if model:
+                logger.info(f"Kandinsky used model: = {model.get('version')}")
+                return model["id"]
+
+        if data:
+            logger.warning(
+                "Preferred Kandinsky versions not available, falling back to first API entry"
+            )
+            logger.info(f"Kandinsky used model: = {data[0].get('version')}")
+            return data[0]["id"]
+
+        raise ImageGenerationFailedError("No Kandinsky models available from API response")
     async def create_image(
         self,
         save_path: Optional[str],
@@ -183,3 +192,4 @@ class KandinskyAPI(ImageAPIProtocol):
             await asyncio.sleep(4)
 
         raise TimeOutError(f"Max allowed time is {max_time} seconds")
+
