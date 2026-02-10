@@ -78,6 +78,15 @@ async def send_message(chat_id: str, message: str, token: str = os.getenv("TELEG
             await response.text()
 
 
+def get_telegram_files_to_send(artifacts: dict[str, str | None]) -> list[str]:
+    file_paths: list[str] = []
+    for key in ("main", "pptx", "txt"):
+        path = artifacts.get(key)
+        if path and os.path.isfile(path) and path not in file_paths:
+            file_paths.append(path)
+    return file_paths
+
+
 def delete_presentation_file(file_path: str):
     root_directory = "/app/presentations_files"
 
@@ -146,13 +155,15 @@ async def on_generator_message(message):
         await reduce_balance_by_user_uuid(event_message.user_uuid, is_paid)
 
         if event_message.event_type == EventType.TELEGRAM.value:
-            file_path_pdf = Presentation.save(
+            artifacts = Presentation.save_with_artifacts(
                 data=presentation_data,
                 save_path=event_message.save_presentation_path,
                 no_logo=event_message.no_logo,
-                format=event_message.format_file
+                format=event_message.format_file,
+                save_text=True
             )
-            for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
+            files_to_send = get_telegram_files_to_send(artifacts)
+            for file in files_to_send:
                 await send_document(
                     user_telegram_id,
                     file
@@ -193,18 +204,22 @@ async def on_download_message(message):
 
                 try:
                     logger.info(f"Save presentation to {event_message.save_presentation_path}")
-                    presentation_path = Presentation.save(
-                        data=create_presentation_dto(db_presentation),
+                    presentation_dto = create_presentation_dto(db_presentation)
+                    artifacts = Presentation.save_with_artifacts(
+                        data=presentation_dto,
                         save_path=event_message.save_presentation_path,
                         no_logo=event_message.no_logo,
-                        format=event_message.format_file
+                        format=event_message.format_file,
+                        save_text=True
                     )
 
                     logger.info(f"Sending presentation {event_message.save_presentation_path} to {telegram_id}")   # noqa E501
-                    await send_document(
-                        telegram_id,
-                        presentation_path
-                    )
+                    files_to_send = get_telegram_files_to_send(artifacts)
+                    for file in files_to_send:
+                        await send_document(
+                            telegram_id,
+                            file
+                        )
                 except Exception as e:
                     if locale == "ru":
                         sending_fail_text = SENDING_FAIL_RU

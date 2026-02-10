@@ -19,6 +19,7 @@ from make_presentation.factories.text.text_module_enum import TextGenModuleEnum
 from make_presentation.generator_models.pptx import PresentationTemplate
 from make_presentation.image import ImagesAdapter
 from make_presentation.text import TextAdapter
+from presentation_text_export import save_presentation_text
 
 logger = get_logger()
 
@@ -188,6 +189,41 @@ class Presentation:
             )
             return pdf_presentation_path
         return presentation_save_path
+
+    @staticmethod
+    def save_with_artifacts(
+        data: PresentationDTO,
+        save_path: str,
+        no_logo: bool,
+        format: str = "pptx",
+        save_text: bool = False
+    ) -> dict[str, str | None]:
+        pptx_path = Presentation.save(
+            data=data,
+            save_path=save_path,
+            no_logo=no_logo,
+            format="pptx"
+        )
+
+        pdf_path = None
+        if format == "pdf":
+            pdf_path = convert_pptx_to_pdf(
+                file=pptx_path,
+                output=pptx_path.replace("pptx", "pdf")
+            )
+            logger.info(f"Presentation {data.theme} is saved in pdf format.")
+
+        txt_path = None
+        if save_text:
+            text_base_path = pdf_path if pdf_path else pptx_path
+            txt_path = save_presentation_text(data=data, presentation_path=text_base_path)
+
+        return {
+            "main": pdf_path if pdf_path else pptx_path,
+            "pptx": pptx_path,
+            "pdf": pdf_path,
+            "txt": txt_path
+        }
 
     @staticmethod
     def get_presentation_save_path(save_path: str, theme: str) -> str:
