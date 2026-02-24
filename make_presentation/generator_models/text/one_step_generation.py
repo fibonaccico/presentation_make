@@ -249,10 +249,10 @@ class TextInOneStep(TextGeneratorProtocol):
 
         if num_slides is not None:
             if len(text_list) != num_slides:
-                logger.error(f"Text items less than {num_slides}.")
+                logger.error(f"Text items: [{text_list}] less than {num_slides}.")
                 raise InvalidTextNumberError(f"Text items less than {num_slides}")
         if len(text_list) > MAX_NUMBER_OF_SLIDES:
-            logger.error(f"Text items less than {num_slides}.")
+            logger.error(f"Text items: [{text_list}] more than {num_slides}.")
             raise MaxNumberOfSlidesExceededError(f"AI generated {len(text_list)} items: {pattern}. It is more than allowed {MAX_NUMBER_OF_SLIDES}.")
         return new_text_list
 

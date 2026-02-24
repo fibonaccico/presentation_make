@@ -25,7 +25,7 @@ class OpenAIRequest(TextAPIProtocol):
     ) -> str | list[str | dict]:
         try:
             chat_completion = await self.api.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4.1-nano",
                 messages=[{"role": "user", "content": text}],
                 temperature=DEFAULT_TEMPERATURE
             )
