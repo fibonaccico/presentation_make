@@ -63,7 +63,6 @@ class TextInOneStep(TextGeneratorProtocol):
                     num_slide=slides_count,
                     language=GENERATION_LANGUAGES.get(language, "Русский")
                 )
-                logger.debug(f"AI answer for theme [{self.theme}]: {ai_answer}")
 
                 titles = self.__get_list_text(
                     text=ai_answer,
@@ -91,6 +90,13 @@ class TextInOneStep(TextGeneratorProtocol):
                         num_slides=slides_count
                     )
 
+                if titles is None:
+                    logger.error(f"Titiles items: [{titles}] less than {slides_count}.")
+                    raise InvalidTextNumberError(f"Text items less than {slides_count}")
+                if len(titles) > slides_count:
+                    logger.error(f"Titles items: [{titles}] more than {slides_count}.")
+                    raise MaxNumberOfSlidesExceededError(f"AI generated {len(titles)} items of titles. It is more than needed {slides_count}.")
+
                 pictures = self.__get_list_text(
                     text=ai_answer,
                     pattern=r"(?i)Картинка[:*+]*(.+)",
@@ -109,6 +115,12 @@ class TextInOneStep(TextGeneratorProtocol):
                         pattern=r"(?i)Картинка[:*+]*\s*\n(.+)",
                         num_slides=slides_count
                     )
+                if pictures is None:
+                    logger.error(f"Pictures items: [{pictures}] less than {slides_count}.")
+                    raise InvalidTextNumberError(f"Pictures items less than {slides_count}")
+                if len(pictures) > slides_count:
+                    logger.error(f"Pictures items: [{pictures}] more than {slides_count}.")
+                    raise MaxNumberOfSlidesExceededError(f"AI generated {len(pictures)} items of Pictures. It is more than needed {slides_count}.")
 
                 subtitles_1 = self.__get_list_text(
                     text=ai_answer,
@@ -128,6 +140,12 @@ class TextInOneStep(TextGeneratorProtocol):
                         pattern=r"(?i)Подзаголовок 1[:*+]*\s*\n(.+)",
                         num_slides=slides_count
                     )
+                if subtitles_1 is None:
+                    logger.error(f"subtitles_1 items: [{subtitles_1}] less than {slides_count}.")
+                    raise InvalidTextNumberError(f"subtitles_1 items less than {slides_count}")
+                if len(subtitles_1) > slides_count:
+                    logger.error(f"subtitles_1 items: [{subtitles_1}] more than {slides_count}.")
+                    raise MaxNumberOfSlidesExceededError(f"AI generated {len(subtitles_1)} items of subtitles_1. It is more than needed {slides_count}.")
 
                 subtitles_2 = self.__get_list_text(
                     text=ai_answer,
@@ -147,6 +165,12 @@ class TextInOneStep(TextGeneratorProtocol):
                         pattern=r"(?i)Подзаголовок 2[:*+]*\s*\n(.+)",
                         num_slides=slides_count
                     )
+                if subtitles_2 is None:
+                    logger.error(f"subtitles_2 items: [{subtitles_2}] less than {slides_count}.")
+                    raise InvalidTextNumberError(f"subtitles_2 items less than {slides_count}")
+                if len(subtitles_2) > slides_count:
+                    logger.error(f"subtitles_2 items: [{subtitles_2}] more than {slides_count}.")
+                    raise MaxNumberOfSlidesExceededError(f"AI generated {len(subtitles_2)} items of subtitles_2. It is more than needed {slides_count}.")
 
                 subtitles_3 = self.__get_list_text(
                     text=ai_answer,
@@ -166,6 +190,12 @@ class TextInOneStep(TextGeneratorProtocol):
                         pattern=r"(?i)Подзаголовок 3[:*+]*\s*\n(.+)",
                         num_slides=slides_count
                     )
+                if subtitles_3 is None:
+                    logger.error(f"subtitles_3 items: [{subtitles_3}] less than {slides_count}.")
+                    raise InvalidTextNumberError(f"subtitles_3 items less than {slides_count}")
+                if len(subtitles_3) > slides_count:
+                    logger.error(f"subtitles_3 items: [{subtitles_3}] more than {slides_count}.")
+                    raise MaxNumberOfSlidesExceededError(f"AI generated {len(subtitles_3)} items of subtitles_3. It is more than needed {slides_count}.")
 
                 slides_text_list = self.__get_slide_text(
                     text=ai_answer,
@@ -246,14 +276,6 @@ class TextInOneStep(TextGeneratorProtocol):
             if not new_item:
                 return None
             new_text_list.append(new_item)
-
-        if num_slides is not None:
-            if len(text_list) != num_slides:
-                logger.error(f"Text items: [{text_list}] less than {num_slides}.")
-                raise InvalidTextNumberError(f"Text items less than {num_slides}")
-        if len(text_list) > MAX_NUMBER_OF_SLIDES:
-            logger.error(f"Text items: [{text_list}] more than {num_slides}.")
-            raise MaxNumberOfSlidesExceededError(f"AI generated {len(text_list)} items: {pattern}. It is more than allowed {MAX_NUMBER_OF_SLIDES}.")
         return new_text_list
 
     def __get_slide_text(
