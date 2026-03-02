@@ -93,7 +93,7 @@ class TextInOneStep(TextGeneratorProtocol):
                 if titles is None:
                     logger.error(f"Titiles items: [{titles}] less than {slides_count}.")
                     raise InvalidTextNumberError(f"Text items less than {slides_count}")
-                if len(titles) > slides_count:
+                if slides_count and len(titles) > slides_count:
                     logger.error(f"Titles items: [{titles}] more than {slides_count}.")
                     raise MaxNumberOfSlidesExceededError(f"AI generated {len(titles)} items of titles. It is more than needed {slides_count}.")
 
@@ -118,7 +118,7 @@ class TextInOneStep(TextGeneratorProtocol):
                 if pictures is None:
                     logger.error(f"Pictures items: [{pictures}] less than {slides_count}.")
                     raise InvalidTextNumberError(f"Pictures items less than {slides_count}")
-                if len(pictures) > slides_count:
+                if slides_count and len(pictures) > slides_count:
                     logger.error(f"Pictures items: [{pictures}] more than {slides_count}.")
                     raise MaxNumberOfSlidesExceededError(f"AI generated {len(pictures)} items of Pictures. It is more than needed {slides_count}.")
 
@@ -143,7 +143,7 @@ class TextInOneStep(TextGeneratorProtocol):
                 if subtitles_1 is None:
                     logger.error(f"subtitles_1 items: [{subtitles_1}] less than {slides_count}.")
                     raise InvalidTextNumberError(f"subtitles_1 items less than {slides_count}")
-                if len(subtitles_1) > slides_count:
+                if slides_count and len(subtitles_1) > slides_count:
                     logger.error(f"subtitles_1 items: [{subtitles_1}] more than {slides_count}.")
                     raise MaxNumberOfSlidesExceededError(f"AI generated {len(subtitles_1)} items of subtitles_1. It is more than needed {slides_count}.")
 
@@ -168,7 +168,7 @@ class TextInOneStep(TextGeneratorProtocol):
                 if subtitles_2 is None:
                     logger.error(f"subtitles_2 items: [{subtitles_2}] less than {slides_count}.")
                     raise InvalidTextNumberError(f"subtitles_2 items less than {slides_count}")
-                if len(subtitles_2) > slides_count:
+                if slides_count and len(subtitles_2) > slides_count:
                     logger.error(f"subtitles_2 items: [{subtitles_2}] more than {slides_count}.")
                     raise MaxNumberOfSlidesExceededError(f"AI generated {len(subtitles_2)} items of subtitles_2. It is more than needed {slides_count}.")
 
@@ -193,7 +193,7 @@ class TextInOneStep(TextGeneratorProtocol):
                 if subtitles_3 is None:
                     logger.error(f"subtitles_3 items: [{subtitles_3}] less than {slides_count}.")
                     raise InvalidTextNumberError(f"subtitles_3 items less than {slides_count}")
-                if len(subtitles_3) > slides_count:
+                if slides_count and len(subtitles_3) > slides_count:
                     logger.error(f"subtitles_3 items: [{subtitles_3}] more than {slides_count}.")
                     raise MaxNumberOfSlidesExceededError(f"AI generated {len(subtitles_3)} items of subtitles_3. It is more than needed {slides_count}.")
 
