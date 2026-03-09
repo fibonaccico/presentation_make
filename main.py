@@ -19,7 +19,8 @@ async def make_pres():
     pr = Presentation(text_generation_model="ONESTEP", template="creative")
     task2 = await pr.make_presentation(
         context="Статистика добычи нефти в 2025 году и от чего зависило изменение цены на нефть в 2022 - 2025 годах",
-        number_of_slides=5
+        number_of_slides=5,
+        save_path_for_images=save_path_for_images
     )
     return task2
 

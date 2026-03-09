@@ -4,7 +4,7 @@ from typing import Optional
 import pkg_resources
 
 TEXT_API = "OPENAI"
-IMAGE_API = "FLUX"
+IMAGE_API = "SILICONFLOW"
 
 OPENING_PRESENTATION_THEME_TITLE = True
 
