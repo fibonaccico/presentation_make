@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 from config.logger import get_logger
 from make_presentation.api_models.interfaces import ImageAPIProtocol
+from make_presentation.config import NEGATIVE_PROMPT_SILICONFLOW
 from make_presentation.DTO import ImageDTO
 
 logger = get_logger()
@@ -64,6 +65,7 @@ class SiliconflowAPI(ImageAPIProtocol):
         data = {
             'model': 'Tongyi-MAI/Z-Image-Turbo',
             'prompt': promt,
+            'negative_prompt': NEGATIVE_PROMPT_SILICONFLOW,
             'image_size': f"{width}x{height}",
         }
         async with aiohttp.ClientSession() as session:
