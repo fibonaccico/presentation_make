@@ -64,8 +64,8 @@ class SiliconflowAPI(ImageAPIProtocol):
 
         data = {
             'model': 'Tongyi-MAI/Z-Image-Turbo',
-            'prompt': promt,
-            'negative_prompt': NEGATIVE_PROMPT_SILICONFLOW,
+            'prompt': promt + '\nфотореализм, высокое качество, европейские черты лица',
+            # 'negative_prompt': NEGATIVE_PROMPT_SILICONFLOW,
             'image_size': f"{width}x{height}",
         }
         async with aiohttp.ClientSession() as session:
