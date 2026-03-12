@@ -28,6 +28,7 @@ services:
     external_links:
       - network_fibonacci
     volumes:
+     - /etc/localtime:/etc/localtime:ro
      - images:/app/presentations_images/
      - files:/app/presentations_files/
      - log:/app/log/
