@@ -13,6 +13,8 @@ ENDING_PRESENTATION_STATUS = True
 ENDING_PRESENTATION_TEXT = {
     "ru": "Спасибо за внимание!",
     "en": "Thank you for your attention",
+    "kz": "Назар аударғаныңызға рақмет!",
+    "uz": "E'tiboringiz uchun rahmat!",
     "zh": "谢谢关照",
     "es": "Gracias por su atención",
     "hi": "सुनने के लिए आपका बहुत शुक्रिया",
@@ -28,6 +30,8 @@ ENDING_PRESENTATION_TEXT = {
 GENERATION_LANGUAGES = {
     "ru": "Русский",
     "en": "Английский",
+    "kz": "Казахский",
+    "uz": "Узбекский",
     "zh": "Китайский",
     "es": "Испанский",
     "hi": "Хинди",
