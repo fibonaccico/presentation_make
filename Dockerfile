@@ -24,4 +24,4 @@ VOLUME ["/app/log/"]
 #EXPOSE 5672 15672
 #CMD ["python /app/consumer.py"]
 #CMD ["python", "/app/consumer.py"]
-CMD sh -c "ip route add 195.242.11.3 via 172.29.0.2 && python /app/consumer.py"
+CMD sh -c "ip route add 195.242.11.3 via 172.29.0.2 && ip route add 149.154.166.110 via 172.29.0.2 && python /app/consumer.py"
