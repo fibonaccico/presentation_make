@@ -191,7 +191,7 @@ class Presentation:
 
     @staticmethod
     def get_presentation_save_path(save_path: str, theme: str) -> str:
-        text = re.sub(r'[!/:*\\?"<>|+.]', "", theme)
+        text = re.sub(r'[\(!/:*\\?"<>|+.\)]', "", theme)
         text = re.sub(r"\s", "_", text)
 
         save_name = ""
