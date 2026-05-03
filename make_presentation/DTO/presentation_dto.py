@@ -13,6 +13,7 @@ class PresentationDTO:
     theme: str
     finish_title: Optional[str]
     slides: list[SlideDTO]
+    speech_text: Optional[str] = None
 
 
 @dataclass
@@ -22,3 +23,4 @@ class PresentationPPTXDTO:
     finish_title: str
     slides: list[SlideDTO]
     path_to_file: str
+    speech_text: Optional[str] = None

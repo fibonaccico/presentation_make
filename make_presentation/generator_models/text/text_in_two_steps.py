@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING, Optional
 
 from make_presentation.config import (get_general_prompt_for_each_slide,
                                       get_subtitles_generation_prompt,
-                                      get_titles_generation_prompt)
+                                      get_titles_generation_prompt,
+                                      get_speech_generation_prompt)  # Добавить импорт
 from make_presentation.DTO import TextDTO
 from make_presentation.errors import (InvalidSubtitlesNumberError,
                                       InvalidTitlesNumberError,
@@ -34,6 +35,17 @@ class TextInTwoSteps(TextGeneratorProtocol):
 
     Затем для каждого слайда генерируется текст согласно сгенерированному ранее описанию.
     """
+    async def __generate_slides_speech(
+            self,
+            api: TextAPIProtocol,
+            presentation_content: str
+    ) -> str:
+        """
+        Генерация текста доклада по презентации.
+        """
+        prompt = get_speech_generation_prompt(presentation_content)
+        response = await api.request(prompt)
+        return response
 
     async def create_text(
         self,
@@ -77,6 +89,17 @@ class TextInTwoSteps(TextGeneratorProtocol):
             subtitles_2=subtitles_2,
             subtitles_3=subtitles_3
         )
+
+        fulltext = self.__get_full_text(
+            titles=title_list,
+            subtitles_1=subtitles_1,
+            subtitles_2=subtitles_2,
+            subtitles_3=subtitles_3,
+            slides_text_list=slides_text_list
+        )
+        
+        speech_text = await self.__generate_slides_speech(api, fulltext)
+
         return TextDTO(
             titles=title_list,
             slides_text_list=slides_text_list,
@@ -91,7 +114,8 @@ class TextInTwoSteps(TextGeneratorProtocol):
                 subtitles_3=subtitles_3,
                 slides_text_list=slides_text_list
                 ),
-            theme=context
+            theme=context,
+            speech_text=speech_text
         )
 
     async def __get_titles_and_picture_descriptions(

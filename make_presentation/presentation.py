@@ -19,6 +19,7 @@ from make_presentation.factories.text.text_module_enum import TextGenModuleEnum
 from make_presentation.generator_models.pptx import PresentationTemplate
 from make_presentation.image import ImagesAdapter
 from make_presentation.text import TextAdapter
+from fpdf import FPDF
 
 logger = get_logger()
 
@@ -143,6 +144,7 @@ class Presentation:
             theme=text_dto.theme,
             finish_title=finish_title,
             slides=slide_dto_list,
+            speech_text=None
         )
 
     @staticmethod
@@ -178,6 +180,15 @@ class Presentation:
             f"Presentation {data.theme}, template:{data.template_name} is saved in pptx format."
         )
 
+        # Сохраняем текст доклада если он есть
+        speech_path = None
+        if hasattr(data, 'speech_text') and data.speech_text:
+            speech_path = Presentation.save_speech_to_pdf(
+                speech_text=data.speech_text,
+                save_path=output_path
+            )
+            logger.info(f"Speech text for presentation {data.theme} is saved to PDF")
+
         if format == "pdf":
             pdf_presentation_path = convert_pptx_to_pdf(
                 file=presentation_save_path,
@@ -186,8 +197,8 @@ class Presentation:
             logger.info(
                 f"Presentation {data.theme} is saved in pdf format."
             )
-            return pdf_presentation_path
-        return presentation_save_path
+            return pdf_presentation_path, speech_path
+        return presentation_save_path, speech_path
 
     @staticmethod
     def get_presentation_save_path(save_path: str, theme: str) -> str:
@@ -225,3 +236,18 @@ class Presentation:
             style=style
         )
         return result
+    
+    @staticmethod
+    def save_speech_to_pdf(speech_text: str, save_path: str) -> str:
+        """Сохраняем текст доклада в PDF."""
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        
+        lines = speech_text.split('\n')
+        for line in lines:
+            pdf.multi_cell(0, 10, txt=line)
+            
+        speech_path = os.path.join(save_path, "speech.pdf")
+        pdf.output(speech_path)
+        return speech_path
