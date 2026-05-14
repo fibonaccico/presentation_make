@@ -10,6 +10,7 @@ from make_presentation.config import image_style_choice
 class EventType(Enum):
     TELEGRAM = "telegram"
     WEB = "web"
+    MAX = 'max'
     DOWNLOAD = "download"
 
 

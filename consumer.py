@@ -30,7 +30,7 @@ from queue_manager.SQL_responses import PresentationSQL
 load_dotenv()
 logger = get_logger()
 
-GENERATOR_EVENT_TYPE = ["web", "telegram"]
+GENERATOR_EVENT_TYPE = ["web", "telegram", "max"]
 DOWNLOAD_EVENT_TYPE = ["download"]
 
 
@@ -67,6 +67,61 @@ async def send_document(chat_id: str, file_path: str, token: str = os.getenv("TE
                 logger.error(f"Cannot send file: [{file_path}] to user {chat_id}. Reason: {err}")
 
 
+async def send_document_max(user_id: str, file_path: str, token: str = os.getenv("MAX_API_KEY")) -> None:
+    filename = file_path.split('/')[-1]
+    logger.info(f"Пользователь [user_id: {user_id}]. Sending file {file_path} to {user_id} into MAX")
+    headers = {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+    }
+    # получение ссылки для загрузки файла
+    async with aiohttp.ClientSession() as session:
+        url_to_get_link = "https://platform-api.max.ru/uploads?type=file"
+        try:
+            async with session.post(url=url_to_get_link, headers=headers) as response:
+                res = await response.json()
+                link_to_upload = dict(res).get("url")
+                logger.info(f'Пользователь [user_id: {user_id}]. Got link to file upload. link: {link_to_upload}')
+        except Exception as err:
+            logger.error(f"Пользователь [user_id: {user_id}]. Cannot get link to upload. Reason: {err}")
+
+    # загрузка файла по полученной ссылке link_to_upload
+        with open(file_path, 'rb') as file:
+            data = aiohttp.FormData()
+            data.add_field('document', file, filename=filename)
+            try:
+                async with session.post(link_to_upload, data=data) as response:
+                    result = await response.json()
+                    file_token = dict(result).get("token")
+                    logger.info(f"Пользователь [user_id: {user_id}]. Файл загружен: [{file_path}]. Result: {result}")
+            except Exception as err:
+                logger.error(f"Пользователь [user_id: {user_id}]. Cannot upload file: [{file_path}]. Reason: {err}")
+
+        await asyncio.sleep(2.0)
+        data_message = {
+            "text": "",
+            "attachments": [
+                {
+                    "type": "file",
+                    "payload": {
+                        "token": file_token
+                    }
+                }
+            ]
+        }
+
+        url = f'https://platform-api.max.ru/messages?user_id={user_id}'
+        async with session.post(url, json=data_message, headers=headers) as response:
+            status = response.status
+            if status == 200:
+                logger.debug(f'Сообщение [{data_message}] отправлено пользователю в MAX [user_id: {user_id}]')
+                await response.text()
+            else:
+                logger.error(
+                    f'Ошибка отправки сообщения польователю в MAX [user_id: {user_id}]. '
+                    f'Сообщение: [{data_message}]. Причина: {response.reason}')
+
+
 async def send_message(chat_id: str, message: str, token: str = os.getenv("TELEGRAM_API_KEY")) -> None:
     async with aiohttp.ClientSession() as session:
         url = f'https://api.telegram.org/bot{token}/sendMessage'
@@ -76,6 +131,26 @@ async def send_message(chat_id: str, message: str, token: str = os.getenv("TELEG
 
         async with session.post(url, data=data) as response:
             await response.text()
+
+
+async def send_message_max(user_id: str, message: str, token: str = os.getenv("MAX_API_KEY")) -> None:
+    headers = {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+    }
+    data = {'text': message}
+
+    async with aiohttp.ClientSession() as session:
+        url = f'https://platform-api.max.ru/messages?user_id={user_id}'
+        async with session.post(url, json=data, headers=headers) as response:
+            status = response.status
+            if status == 200:
+                logger.debug(f'Сообщение [{message}] отправлено пользователю в MAX [user_id: {user_id}]')
+                await response.text()
+            else:
+                logger.error(
+                    f'Ошибка отправки сообщения польователю в MAX [user_id: {user_id}]. '
+                    f'Сообщение: [{message}]. Причина: {response.reason}')
 
 
 def delete_presentation_file(file_path: str):
@@ -145,31 +220,42 @@ async def on_generator_message(message):
         )
         await reduce_balance_by_user_uuid(event_message.user_uuid, is_paid)
 
-        if event_message.event_type == EventType.TELEGRAM.value:
+        if event_message.event_type == EventType.TELEGRAM.value or event_message.event_type == EventType.MAX.value:
             file_path_pdf = Presentation.save(
                 data=presentation_data,
                 save_path=event_message.save_presentation_path,
                 no_logo=event_message.no_logo,
                 format=event_message.format_file
             )
-            for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
-                await send_document(
-                    user_telegram_id,
-                    file
-                )
             if locale == "ru":
                 TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_RU
             else:
                 TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_EN
-            await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
+            if event_message.event_type == EventType.TELEGRAM.value:
+                for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
+                    await send_document(
+                        user_telegram_id,
+                        file
+                    )
+                await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
+            else:
+                for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
+                    await send_document_max(
+                        user_telegram_id,
+                        file
+                    )
+                await send_message_max(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
     else:
         if locale == "ru":
             generation_error_text = GENERATION_ERROR_MESSAGE_RU
         else:
             generation_error_text = GENERATION_ERROR_MESSAGE_EN
-        await send_message(user_telegram_id, message=generation_error_text)
+        if event_message.event_type == EventType.TELEGRAM.value:
+            await send_message(user_telegram_id, message=generation_error_text)
+        if event_message.event_type == EventType.MAX.value:
+            await send_message_max(user_telegram_id, message=generation_error_text)
 
-        logger.error(f"Presentation generation failed: {event_message.presentation_uuid}. ")
+        logger.error(f"Пользователь [user_id = {user_telegram_id}]. Presentation generation failed: {event_message.presentation_uuid}. ")
         await message.channel.basic_nack(
             message.delivery.delivery_tag,
             requeue=False
