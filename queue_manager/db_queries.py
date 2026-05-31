@@ -14,6 +14,7 @@ from make_presentation.DTO import PresentationDTO
 from make_presentation.DTO.image_dto import ImageDTO, ImageInfoDTO
 from queue_manager.event_message import EventMessage
 from queue_manager.schemas import PaySchema, PresentationSchema
+from queue_manager.services import YookassaPayment
 from queue_manager.SQL_responses import (ImageInfoSQL, ImageSQL,
                                          PresentationSQL, SlideSQL)
 
@@ -332,9 +333,70 @@ async def telegram_id_by_user_uuid(user_uuid: str):
         )).scalars().first()
 
 
+async def get_user_by_user_uuid(user_uuid: str):
+    async with AsyncSessionLocal() as db:
+        return (await db.execute(
+            text("SELECT * FROM public.user WHERE uuid = :user_uuid"),
+            {"user_uuid": user_uuid}
+        )).scalars().first()
+
+
 async def get_locale_by_user_uuid(user_uuid: str) -> str:
     async with AsyncSessionLocal() as db:
         return (await db.execute(
             text("SELECT settings FROM public.user WHERE uuid = :user_uuid"),
             {"user_uuid": user_uuid}
         )).scalars().first().get("locale")
+
+
+async def get_last_user_payment(user_uuid: str):
+    async with AsyncSessionLocal() as db:
+        return (await db.execute(
+            text("SELECT * FROM pay WHERE user_uuid = :user_uuid AND status = 'succeeded' AND payment_service = 'yookassa' ORDER BY created_at DESC"),
+            {"user_uuid": user_uuid}
+        )).scalars().first()
+
+
+async def get_tariff_data(tariff_id: str):
+    async with AsyncSessionLocal() as db:
+        return (await db.execute(
+            text("SELECT * FROM tariff WHERE id = :tariff_id"),
+            {"tariff_id": tariff_id}
+        )).scalars().first()
+
+
+async def create_auto_pay(
+    user_uuid: str,
+    pay_data: YookassaPayment,
+    status: str,
+    paid_qty: int,
+    tariff_id: int
+):
+    payment_query = text("""
+        INSERT INTO pay (uuid, user_uuid, yookassa_pay_id, status, sum, paid_qty, tariff_id)
+        VALUES (:uuid, :user_uuid, :yookassa_pay_id, :status, :sum, :paid_qty, :tariff_id)
+    """)
+    payment_params = {
+        "uuid": str(uuid.uuid4()),
+        "user_uuid": user_uuid,
+        "yookassa_pay_id": pay_data.id,
+        "status": status,
+        "sum": pay_data.amount,
+        "paid_qty": paid_qty,
+        "tariff_id": tariff_id
+    }
+
+    async with AsyncSessionLocal() as db:
+        await db.execute(payment_query, payment_params)
+        await db.commit()
+
+
+async def remove_auto_pay_for_user(user_uuid: str):
+    update_query = text("""
+                UPDATE user
+                SET auto_pay = false, auto_pay_id = None, tariff = 'NONE'
+                WHERE uuid = :user_uuid
+                """)
+    async with AsyncSessionLocal() as db:
+        await db.execute(update_query)
+        await db.commit()

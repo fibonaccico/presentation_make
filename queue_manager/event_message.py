@@ -12,6 +12,7 @@ class EventType(Enum):
     WEB = "web"
     MAX = 'max'
     DOWNLOAD = "download"
+    AUTOPAYMENT = "autopayment"
 
 
 class PresentationType(Enum):

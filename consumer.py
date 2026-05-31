@@ -1,5 +1,6 @@
 import asyncio
 import os
+from datetime import datetime, timedelta
 
 import aiohttp
 import aiormq
@@ -13,11 +14,14 @@ from config.messages import (GENERATION_ERROR_MESSAGE_EN,
                              TELEGRAM_CLOSING_MESSAGE_RU)
 from make_presentation import Presentation
 from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
-from queue_manager.db_queries import (create_presentation_adapter,
-                                      get_image_by_uuid,
+from queue_manager.db_queries import (create_auto_pay,
+                                      create_presentation_adapter,
+                                      get_image_by_uuid, get_last_user_payment,
                                       get_locale_by_user_uuid,
                                       get_presentation_dto_or_none,
+                                      get_tariff_data, get_user_by_user_uuid,
                                       reduce_balance_by_user_uuid,
+                                      remove_auto_pay_for_user,
                                       set_presentation_local_file_path,
                                       telegram_id_by_user_uuid,
                                       update_candidate_image_db)
@@ -25,6 +29,8 @@ from queue_manager.event_message import (EventMessage, EventType,
                                          PresentationType,
                                          RegenerateImageEventMessage)
 from queue_manager.queue_exceptions import EventTypeException
+from queue_manager.schemas import PaymentService, PayStatus, TariffTitle
+from queue_manager.services import YookassaPayment
 from queue_manager.SQL_responses import PresentationSQL
 
 load_dotenv()
@@ -200,6 +206,67 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
     )
 
 
+async def on_autopayment_message(message):
+    event_message = EventMessage(message)
+
+    logger.info(f"Start checking AUTOPAYMENT from message {event_message.__dict__}")
+    if event_message.event_type not in GENERATOR_EVENT_TYPE:
+        raise EventTypeException
+
+    user = await get_user_by_user_uuid(event_message.user_uuid)
+    last_pay = await get_last_user_payment(user_uuid=event_message.user_uuid)
+    tariff_data = await get_tariff_data(tariff_id=last_pay.tariff_id)
+
+    def is_days_passed(pay, *, days: int) -> bool:
+        return (pay.created_at + timedelta(days=days)) < datetime.now()
+
+    if not is_days_passed(last_pay, days=tariff_data.period_days):
+        logger.debug(f"Пользователь [{event_message.user_uuid}], "
+                     f"платеж действует uuid -- [{last_pay.uuid}, {last_pay.created_at}, {last_pay.updated_at}].")
+        return
+
+    if tariff_data.subscription:
+        logger.debug(
+            f"Проверка пользователя {event_message.user_uuid} с тарифом {user.tariff},"
+            f" последний платеж тариф - {tariff_data.title})"
+        )
+        try:
+            if last_pay and user.auto_pay and user.auto_pay_id and last_pay.payment_service == PaymentService.YOOKASSA.value:
+                logger.debug(
+                    f"Пользователь {user.telegram_id}-{user.name}: "
+                    f"проведение автоплатежа. Платежный сервис: {last_pay.payment_service}"
+                )
+                payment_data = YookassaPayment(
+                    tariff=user.tariff,
+                    amount=tariff_data.price,
+                    email=user.email,
+                    save_payment_method=user.auto_pay,
+                    payment_method_id=user.auto_pay_id,
+                    create_pay=True
+                )
+
+                new_auto_payment = await create_auto_pay(
+                    user.uuid, payment_data, PayStatus.PENDING.value, tariff_data.presentation_qty, tariff_data.id
+                )
+                logger.debug(
+                    f"Пользователь {user.telegram_id}-{user.name}: "
+                    f"создание автоплатежа [uuid -- {new_auto_payment.uuid}, "
+                    f"yookassa_id -- {new_auto_payment.yookassa_pay_id}] "
+                    f"со статусом {PayStatus.PENDING}")
+
+        except Exception as e:
+            logger.error(
+                f"Проблема автоплатежа на пользователе UUID: {user.uuid}. "
+                f"Причина: {e}")
+
+    if not tariff_data.subscription:
+        logger.debug(
+            f"Пользователь {user.telegram_id}-{user.name} сброс тарифа {user.tariff}."
+            f"Тариф {tariff_data.title} без подписки.")
+
+        await remove_auto_pay_for_user(user_uuid=user.uuid)
+
+
 # b'{"event_type":"telegram","generation_data":{"save_presentation_path": /path/to/pres, "type":"topic","user_uuid":"ogo","presentation_uuid":"gogo","text_generation_model":"wdef","template":"dsf","no_logo":true, "language": "ru", "save_path_for_images":"sds","context":"dfds"}}'  # noqa E800, E501
 async def on_generator_message(message):
     event_message = EventMessage(message)
@@ -366,6 +433,11 @@ async def main():
     await channel_generator.basic_qos(prefetch_count=40)
     declare_ok_generator = await channel_generator.queue_declare("generator_queue", durable=True)
     await channel_generator.basic_consume(declare_ok_generator.queue, on_generator_message)
+
+    channel_autopayment = await connection.channel()
+    await channel_autopayment.basic_qos(prefetch_count=20)
+    declare_ok_payment = await channel_generator.queue_declare("autopayment_queue", durable=True)
+    await channel_autopayment.basic_consume(declare_ok_payment.queue, on_autopayment_message)
 
     channel_download = await connection.channel()
     declare_ok_download = await channel_download.queue_declare("download_presentation_queue", durable=True)    # noqa E501
