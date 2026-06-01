@@ -267,8 +267,7 @@ async def on_autopayment_message(message):
             await remove_auto_pay_for_user(user_uuid=user.uuid)
     except Exception as err:
         logger.debug(
-                f"Пользователь {user.telegram_id}-{user.name} ошибка автоплатежа."
-                f"Причина {err}.")
+                f"Пользователь ошибка автоплатежа. Причина {err}.")
 
 
 # b'{"event_type":"telegram","generation_data":{"save_presentation_path": /path/to/pres, "type":"topic","user_uuid":"ogo","presentation_uuid":"gogo","text_generation_model":"wdef","template":"dsf","no_logo":true, "language": "ru", "save_path_for_images":"sds","context":"dfds"}}'  # noqa E800, E501

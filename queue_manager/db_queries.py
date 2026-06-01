@@ -1,6 +1,7 @@
 import os
 import typing as t
 import uuid
+from datetime import datetime
 from enum import Enum
 
 from dotenv import load_dotenv
@@ -338,7 +339,7 @@ async def get_user_by_user_uuid(user_uuid: str):
         return (await db.execute(
             text("SELECT * FROM public.user WHERE uuid = :user_uuid"),
             {"user_uuid": user_uuid}
-        )).scalars().first()
+        )).first()
 
 
 async def get_locale_by_user_uuid(user_uuid: str) -> str:
@@ -352,9 +353,9 @@ async def get_locale_by_user_uuid(user_uuid: str) -> str:
 async def get_last_user_payment(user_uuid: str):
     async with AsyncSessionLocal() as db:
         return (await db.execute(
-            text("SELECT * FROM pay WHERE user_uuid = :user_uuid AND status = 'succeeded' AND payment_service = 'yookassa' ORDER BY created_at DESC"),
+            text("SELECT * FROM pay WHERE user_uuid = :user_uuid AND status = 'succeeded' AND payment_service = 'yookassa' AND sum > 0 ORDER BY created_at DESC"),
             {"user_uuid": user_uuid}
-        )).scalars().first()
+        )).first()
 
 
 async def get_tariff_data(tariff_id: str):
@@ -362,28 +363,29 @@ async def get_tariff_data(tariff_id: str):
         return (await db.execute(
             text("SELECT * FROM tariff WHERE id = :tariff_id"),
             {"tariff_id": tariff_id}
-        )).scalars().first()
+        )).first()
 
 
 async def create_auto_pay(
     user_uuid: str,
-    pay_data: YookassaPayment,
+    payment_data: YookassaPayment,
     status: str,
     paid_qty: int,
     tariff_id: int
 ):
     payment_query = text("""
-        INSERT INTO pay (uuid, user_uuid, yookassa_pay_id, status, sum, paid_qty, tariff_id)
-        VALUES (:uuid, :user_uuid, :yookassa_pay_id, :status, :sum, :paid_qty, :tariff_id)
+        INSERT INTO pay (uuid, user_uuid, yookassa_pay_id, status, sum, paid_qty, tariff_id, created_at)
+        VALUES (:uuid, :user_uuid, :yookassa_pay_id, :status, :sum, :paid_qty, :tariff_id, :created_at)
     """)
     payment_params = {
         "uuid": str(uuid.uuid4()),
         "user_uuid": user_uuid,
-        "yookassa_pay_id": pay_data.id,
+        "yookassa_pay_id": payment_data.id,
         "status": status,
-        "sum": pay_data.amount,
+        "sum": payment_data.amount,
         "paid_qty": paid_qty,
-        "tariff_id": tariff_id
+        "tariff_id": tariff_id,
+        "created_at": datetime.now()
     }
 
     async with AsyncSessionLocal() as db:
@@ -393,10 +395,11 @@ async def create_auto_pay(
 
 async def remove_auto_pay_for_user(user_uuid: str):
     update_query = text("""
-                UPDATE user
-                SET auto_pay = false, auto_pay_id = None, tariff = 'NONE'
+                UPDATE public.user
+                SET auto_pay = false, auto_pay_id = NULL, tariff = 'NONE'
                 WHERE uuid = :user_uuid
                 """)
+    params = {"user_uuid": user_uuid}
     async with AsyncSessionLocal() as db:
-        await db.execute(update_query)
+        await db.execute(update_query, params)
         await db.commit()
