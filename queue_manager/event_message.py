@@ -82,6 +82,26 @@ class EventMessage:
     def event_type(self) -> t.Optional[str]:
         return self._event_type if self._event_type in EventType._value2member_map_ else None
 
+    @property
+    def auto_pay(self) -> t.Optional[bool]:
+        return self._generation_data.get("auto_pay")
+
+    @property
+    def auto_pay_id(self) -> t.Optional[str]:
+        return self._generation_data.get("auto_pay_id")
+
+    @property
+    def username(self) -> t.Optional[bool]:
+        return self._generation_data.get("username")
+
+    @property
+    def telegram_id(self) -> t.Optional[bool]:
+        return self._generation_data.get("telegram_id")
+
+    @property
+    def email(self) -> t.Optional[bool]:
+        return self._generation_data.get("email")
+
 
 class RegenerateImageEventMessage:
     def __init__(self, message: DeliveredMessage):

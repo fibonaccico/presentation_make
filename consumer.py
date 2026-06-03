@@ -208,12 +208,11 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
 
 async def on_autopayment_message(message):
     event_message = EventMessage(message)
-    await message.channel.basic_nack(message.delivery.delivery_tag)
+
     logger.info(f"Start checking AUTOPAYMENT from message {event_message.__dict__}")
     if event_message.event_type not in GENERATOR_EVENT_TYPE:
         raise EventTypeException
     try:
-        user = await get_user_by_user_uuid(event_message.user_uuid)
         last_pay = await get_last_user_payment(user_uuid=event_message.user_uuid)
         tariff_data = await get_tariff_data(tariff_id=last_pay.tariff_id)
 
@@ -227,47 +226,49 @@ async def on_autopayment_message(message):
 
         if tariff_data.subscription:
             logger.debug(
-                f"Проверка пользователя {event_message.user_uuid} с тарифом {user.tariff},"
+                f"Проверка пользователя {event_message.user_uuid},"
                 f" последний платеж тариф - {tariff_data.title})"
             )
             try:
-                if last_pay and user.auto_pay and user.auto_pay_id and last_pay.payment_service == PaymentService.YOOKASSA.value:
+                if last_pay and event_message.auto_pay and event_message.auto_pay_id and last_pay.payment_service == PaymentService.YOOKASSA.value:
                     logger.debug(
-                        f"Пользователь {user.telegram_id}-{user.name}: "
+                        f"Пользователь {event_message.telegram_id}-{event_message.username}: "
                         f"проведение автоплатежа. Платежный сервис: {last_pay.payment_service}"
                     )
                     payment_data = YookassaPayment(
-                        tariff=user.tariff,
+                        tariff=tariff_data.title,
                         amount=tariff_data.price,
-                        email=user.email,
-                        save_payment_method=user.auto_pay,
-                        payment_method_id=user.auto_pay_id,
+                        email=event_message.email,
+                        save_payment_method=event_message.auto_pay,
+                        payment_method_id=event_message.auto_pay_id,
                         create_pay=True
                     )
 
                     new_auto_payment = await create_auto_pay(
-                        user.uuid, payment_data, PayStatus.PENDING.value, tariff_data.presentation_qty, tariff_data.id
+                        event_message.user_uuid, payment_data, PayStatus.PENDING.value, tariff_data.presentation_qty, tariff_data.id
                     )
                     logger.debug(
-                        f"Пользователь {user.telegram_id}-{user.name}: "
+                        f"Пользователь {event_message.telegram_id}-{event_message.username}: "
                         f"создание автоплатежа [uuid -- {new_auto_payment.uuid}, "
                         f"yookassa_id -- {new_auto_payment.yookassa_pay_id}] "
                         f"со статусом {PayStatus.PENDING}")
 
             except Exception as e:
                 logger.error(
-                    f"Проблема автоплатежа на пользователе UUID: {user.uuid}. "
+                    f"Проблема автоплатежа на пользователе UUID: {event_message.user_uuid}. "
                     f"Причина: {e}")
 
         if not tariff_data.subscription:
             logger.debug(
-                f"Пользователь {user.telegram_id}-{user.name} сброс тарифа {user.tariff}."
+                f"Пользователь {event_message.telegram_id}-{event_message.username} сброс тарифа."
                 f"Тариф {tariff_data.title} без подписки.")
 
-            await remove_auto_pay_for_user(user_uuid=user.uuid)
+            await remove_auto_pay_for_user(user_uuid=event_message.user_uuid)
+
     except Exception as err:
         logger.debug(
                 f"Пользователь ошибка автоплатежа. Причина {err}.")
+    await message.channel.basic_nack(message.delivery.delivery_tag)
 
 
 # b'{"event_type":"telegram","generation_data":{"save_presentation_path": /path/to/pres, "type":"topic","user_uuid":"ogo","presentation_uuid":"gogo","text_generation_model":"wdef","template":"dsf","no_logo":true, "language": "ru", "save_path_for_images":"sds","context":"dfds"}}'  # noqa E800, E501
@@ -438,7 +439,7 @@ async def main():
     await channel_generator.basic_consume(declare_ok_generator.queue, on_generator_message)
 
     channel_autopayment = await connection.channel()
-    await channel_autopayment.basic_qos(prefetch_count=20)
+    await channel_autopayment.basic_qos(prefetch_count=1)
     declare_ok_payment = await channel_generator.queue_declare("autopayment_queue", durable=True)
     await channel_autopayment.basic_consume(declare_ok_payment.queue, on_autopayment_message)
 
