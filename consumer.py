@@ -208,7 +208,7 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
 
 async def on_autopayment_message(message):
     event_message = EventMessage(message)
-
+    await message.channel.basic_nack(message.delivery.delivery_tag)
     logger.info(f"Start checking AUTOPAYMENT from message {event_message.__dict__}")
     if event_message.event_type not in GENERATOR_EVENT_TYPE:
         raise EventTypeException
@@ -268,7 +268,6 @@ async def on_autopayment_message(message):
     except Exception as err:
         logger.debug(
                 f"Пользователь ошибка автоплатежа. Причина {err}.")
-    await message.channel.basic_nack(message.delivery.delivery_tag)
 
 
 # b'{"event_type":"telegram","generation_data":{"save_presentation_path": /path/to/pres, "type":"topic","user_uuid":"ogo","presentation_uuid":"gogo","text_generation_model":"wdef","template":"dsf","no_logo":true, "language": "ru", "save_path_for_images":"sds","context":"dfds"}}'  # noqa E800, E501
