@@ -206,9 +206,9 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
     )
 
 
-async def on_autopayment_message(message):
+async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
     event_message = EventMessage(message)
-    await message.channel.basic_nack(message.delivery.delivery_tag)
+    await message.channel.basic_nack(delivery_tag=message.delivery.delivery_tag)
     logger.info(f"Start checking AUTOPAYMENT from message {event_message.__dict__}")
     if event_message.event_type not in GENERATOR_EVENT_TYPE:
         raise EventTypeException
@@ -249,8 +249,8 @@ async def on_autopayment_message(message):
                     )
                     logger.debug(
                         f"Пользователь {event_message.telegram_id}-{event_message.username}: "
-                        f"создание автоплатежа [uuid -- {new_auto_payment.uuid}, "
-                        f"yookassa_id -- {new_auto_payment.yookassa_pay_id}] "
+                        # f"создание автоплатежа [uuid -- {new_auto_payment.uuid}, "
+                        # f"yookassa_id -- {new_auto_payment.yookassa_pay_id}] "
                         f"со статусом {PayStatus.PENDING}")
 
             except Exception as e:
@@ -440,7 +440,7 @@ async def main():
     channel_autopayment = await connection.channel()
     await channel_autopayment.basic_qos(prefetch_count=1)
     declare_ok_payment = await channel_generator.queue_declare("autopayment_queue", durable=True)
-    await channel_autopayment.basic_consume(declare_ok_payment.queue, on_autopayment_message)
+    await channel_autopayment.basic_consume(declare_ok_payment.queue, on_autopayment_message, no_ack=False)
 
     channel_download = await connection.channel()
     declare_ok_download = await channel_download.queue_declare("download_presentation_queue", durable=True)    # noqa E501
