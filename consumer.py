@@ -208,20 +208,21 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
 
 async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
     event_message = EventMessage(message)
-    await message.channel.basic_nack(delivery_tag=message.delivery.delivery_tag)
     logger.info(f"Start checking AUTOPAYMENT from message {event_message.__dict__}")
     if event_message.event_type not in GENERATOR_EVENT_TYPE:
-        raise EventTypeException
+        logger.warning(f"Получено сообщение с неизвестным типом: {event_message.event_type}")
+        await message.channel.basic_ack(delivery_tag=message.delivery_tag)
+        return
+
     try:
         last_pay = await get_last_user_payment(user_uuid=event_message.user_uuid)
         tariff_data = await get_tariff_data(tariff_id=last_pay.tariff_id)
 
-        def is_days_passed(pay, *, days: int) -> bool:
-            return (pay.created_at + timedelta(days=days)) < datetime.now()
-
-        if not is_days_passed(last_pay, days=tariff_data.period_days):
+        outdate = last_pay.created_at + timedelta(days=tariff_data.period_days)
+        if not outdate < datetime.now():
             logger.debug(f"Пользователь [{event_message.user_uuid}], "
                          f"платеж действует uuid -- [{last_pay.uuid}, {last_pay.created_at}, {last_pay.updated_at}].")
+            await message.channel.basic_ack(delivery_tag=message.delivery_tag)
             return
 
         if tariff_data.subscription:
@@ -245,12 +246,16 @@ async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
                     )
 
                     new_auto_payment = await create_auto_pay(
-                        event_message.user_uuid, payment_data, PayStatus.PENDING.value, tariff_data.presentation_qty, tariff_data.id
+                        user_uuid=event_message.user_uuid,
+                        payment_data=payment_data,
+                        status=PayStatus.PENDING.value,
+                        paid_qty=tariff_data.presentation_qty,
+                        tariff_id=tariff_data.id
                     )
                     logger.debug(
                         f"Пользователь {event_message.telegram_id}-{event_message.username}: "
-                        # f"создание автоплатежа [uuid -- {new_auto_payment.uuid}, "
-                        # f"yookassa_id -- {new_auto_payment.yookassa_pay_id}] "
+                        f"создание автоплатежа [uuid -- {new_auto_payment.uuid}, "
+                        f"yookassa_id -- {new_auto_payment.yookassa_pay_id}] "
                         f"со статусом {PayStatus.PENDING}")
 
             except Exception as e:
@@ -262,12 +267,14 @@ async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
             logger.debug(
                 f"Пользователь {event_message.telegram_id}-{event_message.username} сброс тарифа."
                 f"Тариф {tariff_data.title} без подписки.")
-
             await remove_auto_pay_for_user(user_uuid=event_message.user_uuid)
 
+        await message.channel.basic_ack(delivery_tag=message.delivery_tag)
     except Exception as err:
+        await asyncio.sleep(1)
         logger.debug(
                 f"Пользователь ошибка автоплатежа. Причина {err}.")
+        await message.channel.basic_ack(delivery_tag=message.delivery_tag)
 
 
 # b'{"event_type":"telegram","generation_data":{"save_presentation_path": /path/to/pres, "type":"topic","user_uuid":"ogo","presentation_uuid":"gogo","text_generation_model":"wdef","template":"dsf","no_logo":true, "language": "ru", "save_path_for_images":"sds","context":"dfds"}}'  # noqa E800, E501
@@ -275,12 +282,12 @@ async def on_generator_message(message):
     event_message = EventMessage(message)
 
     logger.info(f"Starting generate from message {event_message.__dict__}")
-    user_telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
+    user_telegram_id = await telegram_id_by_user_uuid(user_uuid=event_message.user_uuid)
     locale = await get_locale_by_user_uuid(user_uuid=event_message.user_uuid)
     if event_message.event_type not in GENERATOR_EVENT_TYPE:
         raise EventTypeException
 
-    presentation_data = await create_presentation_adapter(event_message)
+    presentation_data = await create_presentation_adapter(message=event_message)
     if presentation_data:
         is_paid = False
         if event_message.presentation_type == PresentationType.TEXT.value:
@@ -288,7 +295,8 @@ async def on_generator_message(message):
         await message.channel.basic_ack(
             message.delivery.delivery_tag
         )
-        await reduce_balance_by_user_uuid(event_message.user_uuid, is_paid)
+        await reduce_balance_by_user_uuid(user_uuid=event_message.user_uuid,
+                                          is_paid=is_paid)
 
         if event_message.event_type == EventType.TELEGRAM.value or event_message.event_type == EventType.MAX.value:
             file_path_pdf = Presentation.save(
@@ -342,9 +350,9 @@ async def on_download_message(message):
 
     match event_message.event_type:
         case EventType.DOWNLOAD.value:
-            if db_presentation := await get_presentation_dto_or_none(event_message.presentation_uuid):      # noqa E501
+            if db_presentation := await get_presentation_dto_or_none(presentation_uuid=event_message.presentation_uuid):      # noqa E501
                 logger.info(f"Getting telegram of user {event_message.user_uuid} for send presentation")  # noqa E501
-                telegram_id = await telegram_id_by_user_uuid(event_message.user_uuid)
+                telegram_id = await telegram_id_by_user_uuid(user_uuid=event_message.user_uuid)
                 locale = await get_locale_by_user_uuid(user_uuid=event_message.user_uuid)
 
                 try:
@@ -383,7 +391,7 @@ async def on_download_message_directly(message):
 
     match event_message.event_type:
         case EventType.DOWNLOAD.value:
-            if db_presentation := await get_presentation_dto_or_none(event_message.presentation_uuid):      # noqa E501
+            if db_presentation := await get_presentation_dto_or_none(presentation_uuid=event_message.presentation_uuid):      # noqa E501
                 try:
                     logger.info(f"Save presentation to {event_message.save_presentation_path}")
                     presentation_path = Presentation.save(
@@ -410,7 +418,7 @@ async def on_regenerate_image(message):
 
     logger.info(f"Starting regenerate image {event_message.__dict__}")
 
-    current_image_db = await get_image_by_uuid(event_message.current_image_uuid)
+    current_image_db = await get_image_by_uuid(image_uuid=event_message.current_image_uuid)
     with Image.open(current_image_db.local_file_path) as img:
         width, height = img.size
 
@@ -422,7 +430,7 @@ async def on_regenerate_image(message):
     )
 
     logger.debug(f"Create new image in db {new_image.__dict__}")
-    await update_candidate_image_db(event_message.candidate_image_uuid, new_image)
+    await update_candidate_image_db(image_uuid=event_message.candidate_image_uuid, new_image_data=new_image)
 
 
 async def main():
@@ -431,7 +439,6 @@ async def main():
     )
 
     logger.info("Start consuming")
-
     channel_generator = await connection.channel()
     await channel_generator.basic_qos(prefetch_count=40)
     declare_ok_generator = await channel_generator.queue_declare("generator_queue", durable=True)
@@ -439,8 +446,8 @@ async def main():
 
     channel_autopayment = await connection.channel()
     await channel_autopayment.basic_qos(prefetch_count=1)
-    declare_ok_payment = await channel_generator.queue_declare("autopayment_queue", durable=True)
-    await channel_autopayment.basic_consume(declare_ok_payment.queue, on_autopayment_message, no_ack=False)
+    declare_ok_payment = await channel_autopayment.queue_declare("autopayment_queue", durable=True)
+    await channel_autopayment.basic_consume(declare_ok_payment.queue, on_autopayment_message)
 
     channel_download = await connection.channel()
     declare_ok_download = await channel_download.queue_declare("download_presentation_queue", durable=True)    # noqa E501
@@ -453,6 +460,12 @@ async def main():
     channel_download = await connection.channel()
     declare_ok_download = await channel_download.queue_declare("download_presentation_directly_queue", durable=True)  # noqa E501
     await channel_download.basic_consume(declare_ok_download.queue, on_download_message_directly)
+
+    try:
+        await connection.closing
+    except asyncio.CancelledError:
+        await connection.close()
+
     # async with AsyncSessionLocal() as db:                                                 # noqa E800
         # a = await get_presentation_or_none("165a57b3-0ef3-4cb2-8818-e91854a68b1b", db)    # noqa E116
         # await reduce_balance_by_user_uuid("5ef0c392-8a5b-41bd-92d1-8344ca5837e5", db)     # noqa E116
@@ -460,6 +473,14 @@ async def main():
     # print(await db_query())                                                               # noqa E800
     # await create_db_presentation("5ef0c392-8a5b-41bd-92d1-8344ca5837e5", "huy", "classic")   # noqa E800
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main())
-loop.run_forever()
+
+# loop = asyncio.get_event_loop()
+# loop.run_until_complete(main())
+# loop.run_forever()
+
+if __name__ == "__main__":
+    try:
+        # Современный способ запуска asyncio (заменяет get_event_loop, run_until_complete и run_forever)
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Консьюмер остановлен пользователем")
