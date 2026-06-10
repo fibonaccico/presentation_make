@@ -217,24 +217,12 @@ async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
     try:
         last_pay = await get_last_user_payment(user_uuid=event_message.user_uuid)
         tariff_data = await get_tariff_data(tariff_id=last_pay.tariff_id)
-
-        outdate = last_pay.created_at + timedelta(days=tariff_data.period_days)
-        if not outdate < datetime.now():
-            logger.debug(f"Пользователь [{event_message.user_uuid}], "
-                         f"платеж действует uuid -- [{last_pay.uuid}, {last_pay.created_at}, {last_pay.updated_at}].")
-            await message.channel.basic_ack(delivery_tag=message.delivery_tag)
-            return
-
         if tariff_data.subscription:
-            logger.debug(
-                f"Проверка пользователя {event_message.user_uuid},"
-                f" последний платеж тариф - {tariff_data.title})"
-            )
             try:
-                if last_pay and event_message.auto_pay and event_message.auto_pay_id and last_pay.payment_service == PaymentService.YOOKASSA.value:
+                if event_message.auto_pay and event_message.auto_pay_id and last_pay.payment_service == PaymentService.YOOKASSA.value:
                     logger.debug(
                         f"Пользователь {event_message.telegram_id}-{event_message.username}: "
-                        f"проведение автоплатежа. Платежный сервис: {last_pay.payment_service}"
+                        f"проведение автоплатежа. Платежный сервис: {last_pay.payment_service}. Последний платеж тариф - {tariff_data.title}"
                     )
                     payment_data = YookassaPayment(
                         tariff=tariff_data.title,
@@ -252,6 +240,7 @@ async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
                         paid_qty=tariff_data.presentation_qty,
                         tariff_id=tariff_data.id
                     )
+                    await asyncio.sleep(1)
                     logger.debug(
                         f"Пользователь {event_message.telegram_id}-{event_message.username}: "
                         f"создание автоплатежа [uuid -- {new_auto_payment.uuid}, "
@@ -262,11 +251,10 @@ async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
                 logger.error(
                     f"Проблема автоплатежа на пользователе UUID: {event_message.user_uuid}. "
                     f"Причина: {e}")
-
-        if not tariff_data.subscription:
+        else:
             logger.debug(
                 f"Пользователь {event_message.telegram_id}-{event_message.username} сброс тарифа."
-                f"Тариф {tariff_data.title} без подписки.")
+                f"Тариф: id - {tariff_data.id}, title - {tariff_data.title}, без подписки.")
             await remove_auto_pay_for_user(user_uuid=event_message.user_uuid)
 
         await message.channel.basic_ack(delivery_tag=message.delivery_tag)
