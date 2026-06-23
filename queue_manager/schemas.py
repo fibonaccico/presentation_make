@@ -25,6 +25,7 @@ class PayStatus(str, Enum):
 class PaymentService(str, Enum):
     YOOKASSA = "yookassa"
     ROBOKASSA = "robokassa"
+    DODOPAYMENTS = "dodopayments"
 
 
 class TariffTitle(str, Enum):

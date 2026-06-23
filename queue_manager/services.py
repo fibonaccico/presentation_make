@@ -3,6 +3,7 @@ import typing as t
 import uuid
 
 from attr import dataclass
+from dodopayments import AsyncDodoPayments
 from dotenv import load_dotenv
 from yookassa import Configuration, Payment
 from yookassa.domain.models.payment_data.payment_data import \
@@ -13,6 +14,12 @@ load_dotenv()
 
 Configuration.account_id = os.getenv("YOOKASSA_SHOP_ID")
 Configuration.secret_key = os.getenv("YOOKASSA_TOKEN")
+
+
+client = AsyncDodoPayments(
+    bearer_token=os.getenv("DODO_PAYMENTS_API_KEY"),
+    environment="test_mode",
+)
 
 
 @dataclass
@@ -154,3 +161,24 @@ class YookassaPayment:
             str(uuid.uuid4())
         )
         return payment_data.confirmation.confirmation_url
+
+
+class DodoPayments:
+    def __init__(
+        self,
+        *,
+        amount: int,
+        payment_method_id: str,
+        id: str = "dodopayments"
+    ):
+        self.amount: int = amount
+        self.payment_method_id = payment_method_id
+        self.id = id
+
+    async def create_payment(self):
+        responce = await client.subscriptions.charge(
+            subscription_id=self.payment_method_id,
+            product_price=round(self.amount/82) * 100,
+        )
+        self.id = responce.payment_id
+        return self.id

@@ -30,7 +30,7 @@ from queue_manager.event_message import (EventMessage, EventType,
                                          RegenerateImageEventMessage)
 from queue_manager.queue_exceptions import EventTypeException
 from queue_manager.schemas import PaymentService, PayStatus
-from queue_manager.services import YookassaPayment
+from queue_manager.services import DodoPayments, YookassaPayment
 from queue_manager.SQL_responses import PresentationSQL
 
 load_dotenv()
@@ -219,34 +219,55 @@ async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
         tariff_data = await get_tariff_data(tariff_id=last_pay.tariff_id)
         if tariff_data.subscription:
             try:
-                if event_message.auto_pay and event_message.auto_pay_id and last_pay.payment_service == PaymentService.YOOKASSA.value:
+                if event_message.auto_pay and event_message.auto_pay_id:
                     logger.debug(
-                        f"Пользователь {event_message.telegram_id}-{event_message.username}: "
-                        f"проведение автоплатежа. Платежный сервис: {last_pay.payment_service}. Последний платеж тариф - {tariff_data.title}"
-                    )
-                    payment_data = YookassaPayment(
-                        tariff=tariff_data.title,
-                        amount=tariff_data.price,
-                        email=event_message.email,
-                        save_payment_method=event_message.auto_pay,
-                        payment_method_id=event_message.auto_pay_id,
-                        create_pay=True
-                    )
+                            f"Пользователь {event_message.telegram_id}-{event_message.username}: "
+                            f"проведение автоплатежа. Платежный сервис: {last_pay.payment_service}. Последний платеж тариф - {tariff_data.title}"
+                        )
+                    if last_pay.payment_service == PaymentService.YOOKASSA.value:
+                        payment_data = YookassaPayment(
+                            tariff=tariff_data.title,
+                            amount=tariff_data.price,
+                            email=event_message.email,
+                            save_payment_method=event_message.auto_pay,
+                            payment_method_id=event_message.auto_pay_id,
+                            create_pay=True
+                        )
 
-                    new_auto_payment = await create_auto_pay(
-                        user_uuid=event_message.user_uuid,
-                        payment_data=payment_data,
-                        status=PayStatus.PENDING.value,
-                        paid_qty=tariff_data.presentation_qty,
-                        tariff_id=tariff_data.id
-                    )
-                    await asyncio.sleep(1)
+                        new_auto_payment = await create_auto_pay(
+                            user_uuid=event_message.user_uuid,
+                            payment_data=payment_data,
+                            status=PayStatus.PENDING.value,
+                            paid_qty=tariff_data.presentation_qty,
+                            tariff_id=tariff_data.id
+                        )
+                        await asyncio.sleep(1)
+                        logger.debug(
+                            f"Пользователь {event_message.telegram_id}-{event_message.username}: "
+                            f"создание автоплатежа [uuid -- {new_auto_payment.uuid}, "
+                            f"yookassa_id -- {new_auto_payment.yookassa_pay_id}] "
+                            f"со статусом {PayStatus.PENDING}")
+
+                    if last_pay.payment_service == PaymentService.DODOPAYMENTS.value:
+                        payment_data = DodoPayments(
+                            amount=tariff_data.price,
+                            payment_method_id=event_message.auto_pay_id
+                        )
+                        await payment_data.create_payment()
+
+                        new_auto_payment = await create_auto_pay(
+                            user_uuid=event_message.user_uuid,
+                            payment_data=payment_data,
+                            status=PayStatus.PENDING.value,
+                            paid_qty=tariff_data.presentation_qty,
+                            tariff_id=tariff_data.id
+                        )
+                        await asyncio.sleep(1)
                     logger.debug(
                         f"Пользователь {event_message.telegram_id}-{event_message.username}: "
                         f"создание автоплатежа [uuid -- {new_auto_payment.uuid}, "
                         f"yookassa_id -- {new_auto_payment.yookassa_pay_id}] "
                         f"со статусом {PayStatus.PENDING}")
-
             except Exception as e:
                 logger.error(
                     f"Проблема автоплатежа на пользователе UUID: {event_message.user_uuid}. "

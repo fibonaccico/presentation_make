@@ -23,6 +23,7 @@ langchain-openai = "^0.3.5"
 langchain-community = "^0.3.17"
 aiohttp = "^3.9.5"
 yookassa = "^3.10.1"
+dodopayments = {extras = ["aiohttp"], version = "^1.105.1"}
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "3.5.0"
