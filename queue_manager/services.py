@@ -175,10 +175,11 @@ class DodoPayments:
         self.payment_method_id = payment_method_id
         self.id = id
 
-    async def create_payment(self):
+    async def create_payment(self, payment_uuid: str) -> str:
         responce = await client.subscriptions.charge(
             subscription_id=self.payment_method_id,
-            product_price=round(self.amount/82) * 100,
+            product_price=round(self.amount/82, 2) * 100,
+            metadata={"pay_uuid": payment_uuid}
         )
         self.id = responce.payment_id
         return self.id

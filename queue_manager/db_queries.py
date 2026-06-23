@@ -393,6 +393,37 @@ async def create_auto_pay(
         await db.commit()
 
 
+async def create_pay(
+    user_uuid: str,
+    yookassa_pay_id: str,
+    amount: int,
+    status: str,
+    paid_qty: int,
+    tariff_id: int
+):
+    payment_query = text("""
+        INSERT INTO pay (uuid, user_uuid, yookassa_pay_id, status, sum, paid_qty, tariff_id, created_at)
+        VALUES (:uuid, :user_uuid, :yookassa_pay_id, :status, :sum, :paid_qty, :tariff_id, :created_at)
+    """)
+    payment_params = {
+        "uuid": str(uuid.uuid4()),
+        "user_uuid": user_uuid,
+        "yookassa_pay_id": yookassa_pay_id,
+        "status": status,
+        "sum": amount,
+        "paid_qty": paid_qty,
+        "tariff_id": tariff_id,
+        "created_at": datetime.now()
+    }
+
+    async with AsyncSessionLocal() as db:
+        await db.execute(payment_query, payment_params)
+        await db.commit()
+
+
+
+
+
 async def remove_auto_pay_for_user(user_uuid: str):
     update_query = text("""
                 UPDATE public.user
