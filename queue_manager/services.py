@@ -18,7 +18,7 @@ Configuration.secret_key = os.getenv("YOOKASSA_TOKEN")
 
 client = AsyncDodoPayments(
     bearer_token=os.getenv("DODO_PAYMENTS_API_KEY"),
-    environment="test_mode",
+    environment="live_mode",
 )
 
 
