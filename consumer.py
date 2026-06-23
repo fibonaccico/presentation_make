@@ -248,23 +248,23 @@ async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
                             f"yookassa_id -- {new_auto_payment.yookassa_pay_id}] "
                             f"со статусом {PayStatus.PENDING}")
 
-                    if last_pay.payment_service == PaymentService.DODOPAYMENTS.value:
+                    # if last_pay.payment_service == PaymentService.DODOPAYMENTS.value:
 
-                        new_auto_payment = await create_pay(
-                            user_uuid=event_message.user_uuid,
-                            yookassa_pay_id=PaymentService.DODOPAYMENTS.value,
-                            amount=tariff_data.price,
-                            status=PayStatus.PENDING.value,
-                            paid_qty=tariff_data.presentation_qty,
-                            tariff_id=tariff_data.id
-                        )
-                        await asyncio.sleep(1)
+                    #     new_auto_payment = await create_pay(
+                    #         user_uuid=event_message.user_uuid,
+                    #         yookassa_pay_id=PaymentService.DODOPAYMENTS.value,
+                    #         amount=tariff_data.price,
+                    #         status=PayStatus.PENDING.value,
+                    #         paid_qty=tariff_data.presentation_qty,
+                    #         tariff_id=tariff_data.id
+                    #     )
+                    #     await asyncio.sleep(1)
 
-                        payment_data = DodoPayments(
-                            amount=tariff_data.price,
-                            payment_method_id=event_message.auto_pay_id
-                        )
-                        await payment_data.create_payment(payment_uuid=new_auto_payment.uuid)
+                    #     payment_data = DodoPayments(
+                    #         amount=tariff_data.price,
+                    #         payment_method_id=event_message.auto_pay_id
+                    #     )
+                    #     await payment_data.create_payment(payment_uuid=new_auto_payment.uuid)
 
                     logger.debug(
                         f"Пользователь {event_message.telegram_id}-{event_message.username}: "
