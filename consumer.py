@@ -266,11 +266,6 @@ async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
                     #     )
                     #     await payment_data.create_payment(payment_uuid=new_auto_payment.uuid)
 
-                    logger.debug(
-                        f"Пользователь {event_message.telegram_id}-{event_message.username}: "
-                        f"создание автоплатежа [uuid -- {new_auto_payment.uuid}, "
-                        f"yookassa_id -- {new_auto_payment.yookassa_pay_id}] "
-                        f"со статусом {PayStatus.PENDING}")
             except Exception as e:
                 logger.error(
                     f"Проблема автоплатежа на пользователе UUID: {event_message.user_uuid}. "
