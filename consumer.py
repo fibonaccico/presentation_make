@@ -8,7 +8,9 @@ from dotenv import load_dotenv
 from PIL import Image
 
 from config.logger import get_logger
-from config.messages import (GENERATION_ERROR_MESSAGE_EN,
+from config.messages import (FREE_PRES_ENDED_MESSAGE_EN,
+                             FREE_PRES_ENDED_MESSAGE_RU,
+                             GENERATION_ERROR_MESSAGE_EN,
                              GENERATION_ERROR_MESSAGE_RU, SENDING_FAIL_EN,
                              SENDING_FAIL_RU, TELEGRAM_CLOSING_MESSAGE_EN,
                              TELEGRAM_CLOSING_MESSAGE_RU)
@@ -29,7 +31,7 @@ from queue_manager.event_message import (EventMessage, EventType,
                                          PresentationType,
                                          RegenerateImageEventMessage)
 from queue_manager.queue_exceptions import EventTypeException
-from queue_manager.schemas import PaymentService, PayStatus
+from queue_manager.schemas import PaymentService, PayStatus, TariffTitle
 from queue_manager.services import DodoPayments, YookassaPayment
 from queue_manager.SQL_responses import PresentationSQL
 
@@ -302,8 +304,9 @@ async def on_generator_message(message):
         await message.channel.basic_ack(
             message.delivery.delivery_tag
         )
-        await reduce_balance_by_user_uuid(user_uuid=event_message.user_uuid,
+        db_pay = await reduce_balance_by_user_uuid(user_uuid=event_message.user_uuid,
                                           is_paid=is_paid)
+        tariff_data = await get_tariff_data(tariff_id=db_pay.tariff_id)
 
         if event_message.event_type == EventType.TELEGRAM.value or event_message.event_type == EventType.MAX.value:
             file_path_pdf = Presentation.save(
@@ -314,8 +317,11 @@ async def on_generator_message(message):
             )
             if locale == "ru":
                 TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_RU
+                FREE_PRES_ENDED_MESSAGE = FREE_PRES_ENDED_MESSAGE_RU
             else:
                 TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_EN
+                FREE_PRES_ENDED_MESSAGE = FREE_PRES_ENDED_MESSAGE_EN
+
             if event_message.event_type == EventType.TELEGRAM.value:
                 for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
                     await send_document(
@@ -323,6 +329,8 @@ async def on_generator_message(message):
                         file
                     )
                 await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
+                if db_pay and db_pay.paid_qty == 0 and tariff_data.title == TariffTitle.AFTER_REGISTRATION.value:
+                    await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
             else:
                 for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
                     await send_document_max(
@@ -330,6 +338,7 @@ async def on_generator_message(message):
                         file
                     )
                 await send_message_max(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
+
     else:
         if locale == "ru":
             generation_error_text = GENERATION_ERROR_MESSAGE_RU

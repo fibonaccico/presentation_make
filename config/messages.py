@@ -31,3 +31,21 @@ Try entering your topic again later, there's a chance it will work😉
 SENDING_FAIL_RU = "Ошибка отправки презентации. Попробуй еще раз или обратись к администратору."
 
 SENDING_FAIL_EN = "Presentation sending error. Please try again or contact the administrator."
+
+FREE_PRES_ENDED_MESSAGE_RU = """
+🎯 Ты использовал бесплатные презентации
+Хочешь продолжить прямо сейчас?
+
+💳 Оформить доступ за 199₽ — 5 презентаций / 7 дней, без водяного знака
+
+🎁 Бесплатно — позови друга, получи +1 презентацию. Друг тоже получит бонус.
+"""
+
+FREE_PRES_ENDED_MESSAGE_EN = """
+🎯 You’ve used up your free presentations.
+Want to keep going right now?
+
+💳 Get access for 1.99$ — 5 presentations / 7 days, no watermarks.
+
+🎁 Free — invite a friend and get +1 presentation. Your friend gets a bonus too.
+"""

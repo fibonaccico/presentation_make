@@ -12,6 +12,7 @@ class PresentationSchema(BaseModel):
 class PaySchema(BaseModel):
     uuid: uuid.UUID
     paid_qty: int
+    tariff_id: int
 
 
 class PayStatus(str, Enum):
