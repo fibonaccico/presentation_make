@@ -36,7 +36,7 @@ FREE_PRES_ENDED_MESSAGE_RU = """
 🎯 Ты использовал бесплатные презентации
 Хочешь продолжить прямо сейчас?
 
-💳 Оформить доступ за 199₽ — 5 презентаций / 7 дней, без водяного знака
+💳 Купить Тариф
 
 🎁 Бесплатно — позови друга, получи +1 презентацию. Друг тоже получит бонус.
 """
@@ -45,7 +45,7 @@ FREE_PRES_ENDED_MESSAGE_EN = """
 🎯 You’ve used up your free presentations.
 Want to keep going right now?
 
-💳 Get access for 1.99$ — 5 presentations / 7 days, no watermarks.
+💳 Buy Tariff
 
 🎁 Free — invite a friend and get +1 presentation. Your friend gets a bonus too.
 """

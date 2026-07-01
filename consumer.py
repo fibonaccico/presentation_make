@@ -329,8 +329,8 @@ async def on_generator_message(message):
                         file
                     )
                 await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
-                if db_pay and db_pay.paid_qty == 0 and tariff_data.title == TariffTitle.AFTER_REGISTRATION.value:
-                    await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
+                # if db_pay and db_pay.paid_qty == 0 and tariff_data.title == TariffTitle.AFTER_REGISTRATION.value:
+                #     await send_message(user_telegram_id, FREE_PRES_ENDED_MESSAGE)
             else:
                 for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
                     await send_document_max(
