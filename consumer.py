@@ -364,7 +364,7 @@ async def on_generator_message(message):
                                 },
                                 {
                                     'text': INVITE_FRIEND_BUTTON,
-                                    'switch_inline_query': INLINE_MESSAGE.format('link', link)
+                                    'switch_inline_query': INLINE_MESSAGE.format(link=link)
                                 }
                             ]
                         ]
