@@ -321,6 +321,7 @@ async def on_generator_message(message):
         db_pay = await reduce_balance_by_user_uuid(user_uuid=event_message.user_uuid,
                                           is_paid=is_paid)
         tariff_data = await get_tariff_data(tariff_id=db_pay.tariff_id)
+        logger.info(f"Платеж: {db_pay.uuid}, presentation quantity {db_pay.paid_qty}, tariff - {tariff_data.title}")
 
         if event_message.event_type == EventType.TELEGRAM.value or event_message.event_type == EventType.MAX.value:
             file_path_pdf = Presentation.save(
@@ -343,13 +344,13 @@ async def on_generator_message(message):
                 INLINE_MESSAGE = INLINE_MESSAGE_EN
 
             if event_message.event_type == EventType.TELEGRAM.value:
+                logger.info(f"Платеж: {db_pay.uuid}, presentation quantity {db_pay.paid_qty}, tariff - {tariff_data.title}")
                 for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
                     await send_document(
                         user_telegram_id,
                         file
                     )
                 await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
-                logger.info(f"Платеж: {db_pay.uuid}, presentation quantity {db_pay.paid_qty}, tariff - {tariff_data.title}")
                 if db_pay and db_pay.paid_qty == 0 and tariff_data.title == TariffTitle.AFTER_REGISTRATION.value:
                     logger.info(f"The last free presentation has been used. {db_pay.uuid}")
                     referral_code = await get_user_referral_code(user_uuid=event_message.user_uuid)
@@ -369,7 +370,7 @@ async def on_generator_message(message):
                             ]
                         ]
                     }
-                    await send_message(user_telegram_id, FREE_PRES_ENDED_MESSAGE, reply_markup=reply_markup)
+                    await send_message(chat_id=user_telegram_id, message=FREE_PRES_ENDED_MESSAGE, reply_markup=reply_markup)
             else:
                 for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
                     await send_document_max(
