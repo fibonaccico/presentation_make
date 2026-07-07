@@ -49,3 +49,12 @@ Want to keep going right now?
 
 🎁 Free — invite a friend and get +1 presentation. Your friend gets a bonus too.
 """
+
+TARIFF_BUTTON_RU = '💰 Тарифы 💰'
+TARIFF_BUTTON_EN = "💰 Pricing 💰"
+
+INVITE_FRIEND_BUTTON_EN = "Invite friend"
+INVITE_FRIEND_BUTTON_RU = "Позвать друга"
+
+INLINE_MESSAGE_RU = "Делаю презентации в боте Fibonacci AI за минуту, без регистрации — просто пишешь тему. Заходи по моей ссылке, тебе подарок на старте 👉 {link}"
+INLINE_MESSAGE_EN = "I create presentations in the Fibonacci AI bot in under a minute, with no sign-up required—just type in the topic. Use my link to get a welcome gift 👉 {link}"

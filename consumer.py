@@ -1,6 +1,8 @@
 import asyncio
+import json
 import os
 from datetime import datetime, timedelta
+from typing import Optional
 
 import aiohttp
 import aiormq
@@ -11,8 +13,11 @@ from config.logger import get_logger
 from config.messages import (FREE_PRES_ENDED_MESSAGE_EN,
                              FREE_PRES_ENDED_MESSAGE_RU,
                              GENERATION_ERROR_MESSAGE_EN,
-                             GENERATION_ERROR_MESSAGE_RU, SENDING_FAIL_EN,
-                             SENDING_FAIL_RU, TELEGRAM_CLOSING_MESSAGE_EN,
+                             GENERATION_ERROR_MESSAGE_RU, INLINE_MESSAGE_EN,
+                             INLINE_MESSAGE_RU, INVITE_FRIEND_BUTTON_EN,
+                             INVITE_FRIEND_BUTTON_RU, SENDING_FAIL_EN,
+                             SENDING_FAIL_RU, TARIFF_BUTTON_EN,
+                             TARIFF_BUTTON_RU, TELEGRAM_CLOSING_MESSAGE_EN,
                              TELEGRAM_CLOSING_MESSAGE_RU)
 from make_presentation import Presentation
 from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
@@ -22,6 +27,7 @@ from queue_manager.db_queries import (create_auto_pay, create_pay,
                                       get_locale_by_user_uuid,
                                       get_presentation_dto_or_none,
                                       get_tariff_data, get_user_by_user_uuid,
+                                      get_user_referral_code,
                                       reduce_balance_by_user_uuid,
                                       remove_auto_pay_for_user,
                                       set_presentation_local_file_path,
@@ -130,15 +136,21 @@ async def send_document_max(user_id: str, file_path: str, token: str = os.getenv
                     f'Сообщение: [{data_message}]. Причина: {response.reason}')
 
 
-async def send_message(chat_id: str, message: str, token: str = os.getenv("TELEGRAM_API_KEY")) -> None:
+async def send_message(chat_id: str, message: str, token: str = os.getenv("TELEGRAM_API_KEY"), reply_markup: Optional[dict] = None) -> None:
     async with aiohttp.ClientSession() as session:
         url = f'https://api.telegram.org/bot{token}/sendMessage'
         data = aiohttp.FormData()
         data.add_field('chat_id', chat_id)
         data.add_field('text', message)
 
-        async with session.post(url, data=data) as response:
-            await response.text()
+        if reply_markup:
+            logger.debug('Сообщение c клавиатурой')
+            data.add_field("reply_markup", json.dumps(reply_markup))
+        try:
+            async with session.post(url, data=data) as response:
+                await response.text()
+        except Exception as err:
+            logger.error(f'Ошибка отправки сообщения. Reason: {err}')
 
 
 async def send_message_max(user_id: str, message: str, token: str = os.getenv("MAX_API_KEY")) -> None:
@@ -318,9 +330,15 @@ async def on_generator_message(message):
             if locale == "ru":
                 TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_RU
                 FREE_PRES_ENDED_MESSAGE = FREE_PRES_ENDED_MESSAGE_RU
+                TARIFF_BUTTON = TARIFF_BUTTON_RU
+                INVITE_FRIEND_BUTTON = INVITE_FRIEND_BUTTON_RU
+                INLINE_MESSAGE = INLINE_MESSAGE_RU
             else:
                 TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_EN
                 FREE_PRES_ENDED_MESSAGE = FREE_PRES_ENDED_MESSAGE_EN
+                TARIFF_BUTTON = TARIFF_BUTTON_EN
+                INVITE_FRIEND_BUTTON = INVITE_FRIEND_BUTTON_EN
+                INLINE_MESSAGE = INLINE_MESSAGE_EN
 
             if event_message.event_type == EventType.TELEGRAM.value:
                 for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
@@ -329,8 +347,26 @@ async def on_generator_message(message):
                         file
                     )
                 await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
-                # if db_pay and db_pay.paid_qty == 0 and tariff_data.title == TariffTitle.AFTER_REGISTRATION.value:
-                #     await send_message(user_telegram_id, FREE_PRES_ENDED_MESSAGE)
+                if db_pay and db_pay.paid_qty == 0 and tariff_data.title == TariffTitle.AFTER_REGISTRATION.value:
+                    logger.info(f"The last free presentation has been used. {db_pay.uuid}")
+                    referral_code = await get_user_referral_code(user_uuid=event_message.user_uuid)
+                    logger.info(f"user referral code: {referral_code.referral_code}")
+                    link = f"https://t.me/fibonacci_presentation_bot?start={referral_code.referral_code}"
+                    reply_markup = {
+                        "inline_keyboard": [
+                            [
+                                {
+                                    'text': TARIFF_BUTTON,
+                                    "callback_data": "tariffs"
+                                },
+                                {
+                                    'text': INVITE_FRIEND_BUTTON,
+                                    'switch_inline_query': INLINE_MESSAGE.format('link', link)
+                                }
+                            ]
+                        ]
+                    }
+                    await send_message(user_telegram_id, FREE_PRES_ENDED_MESSAGE, reply_markup=reply_markup)
             else:
                 for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
                     await send_document_max(

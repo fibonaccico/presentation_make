@@ -366,6 +366,14 @@ async def get_tariff_data(tariff_id: str):
         )).first()
 
 
+async def get_user_referral_code(user_uuid: str):
+    async with AsyncSessionLocal() as db:
+        return (await db.execute(
+            text("SELECT * FROM referral_code WHERE user_uuid = :user_uuid"),
+            {"user_uuid": user_uuid}
+        )).first()
+
+
 async def create_auto_pay(
     user_uuid: str,
     payment_data: YookassaPayment,
