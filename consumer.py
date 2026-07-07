@@ -137,6 +137,7 @@ async def send_document_max(user_id: str, file_path: str, token: str = os.getenv
 
 
 async def send_message(chat_id: str, message: str, token: str = os.getenv("TELEGRAM_API_KEY"), reply_markup: Optional[dict] = None) -> None:
+    logger.debug(f"Sending message {message} to {chat_id}. Reply markup: {reply_markup}")
     async with aiohttp.ClientSession() as session:
         url = f'https://api.telegram.org/bot{token}/sendMessage'
         data = aiohttp.FormData()
@@ -148,7 +149,8 @@ async def send_message(chat_id: str, message: str, token: str = os.getenv("TELEG
             data.add_field("reply_markup", json.dumps(reply_markup))
         try:
             async with session.post(url, data=data) as response:
-                await response.text()
+                result = await response.text()
+                logger.info(f"Send message {message} to {chat_id}. Result: {result}")
         except Exception as err:
             logger.error(f'Ошибка отправки сообщения. Reason: {err}')
 
@@ -347,6 +349,7 @@ async def on_generator_message(message):
                         file
                     )
                 await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
+                logger.info(f"Платеж: {db_pay.uuid}, presentation quantity {db_pay.paid_qty}, tariff - {tariff_data.title}")
                 if db_pay and db_pay.paid_qty == 0 and tariff_data.title == TariffTitle.AFTER_REGISTRATION.value:
                     logger.info(f"The last free presentation has been used. {db_pay.uuid}")
                     referral_code = await get_user_referral_code(user_uuid=event_message.user_uuid)
