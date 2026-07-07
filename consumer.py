@@ -321,7 +321,6 @@ async def on_generator_message(message):
         db_pay = await reduce_balance_by_user_uuid(user_uuid=event_message.user_uuid,
                                           is_paid=is_paid)
         tariff_data = await get_tariff_data(tariff_id=db_pay.tariff_id)
-        logger.info(f"Платеж: {db_pay.uuid}, presentation quantity {db_pay.paid_qty}, tariff - {tariff_data.title}")
 
         if event_message.event_type == EventType.TELEGRAM.value or event_message.event_type == EventType.MAX.value:
             file_path_pdf = Presentation.save(
@@ -351,7 +350,7 @@ async def on_generator_message(message):
                         file
                     )
                 await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
-                if db_pay and db_pay.paid_qty == 0 and tariff_data.title == TariffTitle.AFTER_REGISTRATION.value:
+                if db_pay.paid_qty == 1 and tariff_data.title == TariffTitle.AFTER_REGISTRATION.value:
                     logger.info(f"The last free presentation has been used. {db_pay.uuid}")
                     referral_code = await get_user_referral_code(user_uuid=event_message.user_uuid)
                     logger.info(f"user referral code: {referral_code.referral_code}")
