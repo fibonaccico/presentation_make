@@ -64,7 +64,7 @@ class SiliconflowAPI(ImageAPIProtocol):
 
         data = {
             'model': 'Tongyi-MAI/Z-Image-Turbo',
-            'prompt': promt + '\nфотореализм, высокое качество, европейские черты лица',
+            'prompt': promt + " /n" + NEGATIVE_PROMPT_SILICONFLOW,
             # 'negative_prompt': NEGATIVE_PROMPT_SILICONFLOW,
             'image_size': f"{width}x{height}",
         }

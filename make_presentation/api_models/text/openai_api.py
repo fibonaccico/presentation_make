@@ -12,11 +12,18 @@ load_dotenv()
 logger = get_logger()
 
 
+class ForbiddenContent(Exception):
+    ...
+
+
 class OpenAIRequest(TextAPIProtocol):
     def __init__(self):
         self.api = AsyncOpenAI(
             api_key=os.getenv("PROXY_API"),
             base_url="https://api.proxyapi.ru/openai/v1",
+        )
+        self.moderation_api = AsyncOpenAI(
+            api_key=os.getenv("OPENAI_API_KEY")
         )
 
     async def request(
@@ -24,6 +31,21 @@ class OpenAIRequest(TextAPIProtocol):
         text: str
     ) -> str | list[str | dict]:
         try:
+            response = await self.moderation_api.moderations.create(
+                model="omni-moderation-latest",
+                input=text
+            )
+            logger.info(f'OpenAI moderation response: {response}')
+
+            result = response.results[0]
+            if result.flagged:
+                logger.warning(f'ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Content: [{text}]')
+                violated_categories = [
+                    cat for cat, flagged in result.categories.__dict__() if flagged
+                ]
+                logger.warning(f"Категории нарушений: {violated_categories}")
+                raise ForbiddenContent(f"ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Категории нарушений: {violated_categories}")
+
             chat_completion = await self.api.chat.completions.create(
                 model="gpt-4.1-nano",
                 messages=[{"role": "user", "content": text}],
@@ -37,7 +59,7 @@ class OpenAIRequest(TextAPIProtocol):
                 f'Response costs [{response_cost}] tokens.'
                 f'Total costs [{request_cost + response_cost}] tokens.'
             )
-        except APIError as err:
+        except Exception as err:
             logger.error(f"APIConnection error: [{err}]")
             raise TextAPIError(f"{err}")
 
