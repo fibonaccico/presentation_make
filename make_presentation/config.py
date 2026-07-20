@@ -186,7 +186,7 @@ PROMPT_ONE_STEP_GENERATION = '''
 '''
 
 
-NEGATIVE_PROMPT_SILICONFLOW = 'фотореализм, высокое качество, европейские черты лица, fully clothed, non-sexual, no nudity, no suggestive poses, no violence, no gore, no weapons, no blood, respectful and realistic depiction'
+NEGATIVE_PROMPT_SILICONFLOW = 'фотореализм, высокое качество, европейские черты лица'
 
 
 PROMPT_GENERATION_FROM_TEXT_ONE_STEP = """
