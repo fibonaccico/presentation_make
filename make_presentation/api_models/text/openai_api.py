@@ -31,20 +31,20 @@ class OpenAIRequest(TextAPIProtocol):
         text: str
     ) -> str | list[str | dict]:
         try:
-            response = await self.moderation_api.moderations.create(
-                model="omni-moderation-latest",
-                input=text
-            )
-            logger.info(f'OpenAI moderation response: {response}')
+            # response = await self.moderation_api.moderations.create(
+            #     model="omni-moderation-latest",
+            #     input=text
+            # )
+            # logger.info(f'OpenAI moderation response: {response}')
 
-            result = response.results[0]
-            if result.flagged:
-                logger.warning(f'ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Content: [{text}]')
-                violated_categories = [
-                    cat for cat, flagged in result.categories.__dict__() if flagged
-                ]
-                logger.warning(f"Категории нарушений: {violated_categories}")
-                raise ForbiddenContent(f"ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Категории нарушений: {violated_categories}")
+            # result = response.results[0]
+            # if result.flagged:
+            #     logger.warning(f'ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Content: [{text}]')
+            #     violated_categories = [
+            #         cat for cat, flagged in result.categories.__dict__() if flagged
+            #     ]
+            #     logger.warning(f"Категории нарушений: {violated_categories}")
+            #     raise ForbiddenContent(f"ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Категории нарушений: {violated_categories}")
 
             chat_completion = await self.api.chat.completions.create(
                 model="gpt-4.1-nano",
