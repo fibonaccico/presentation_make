@@ -27,10 +27,12 @@ VOLUME ["/app/log/"]
 CMD sh -c "ip route add 149.154.160.0/20 via 172.29.0.2 && \
 ip route add 162.159.140.245/32 via 172.29.0.2 && \
 ip route add 172.66.0.243/32 via 172.29.0.2 && \
+ip route add 103.224.182.250/32 via 172.29.0.2 && \
 ip route add 91.108.12.0/22 via 172.29.0.2 && \
 ip route add 149.154.167.99 via 172.29.0.2 && \
 ip route add 195.242.11.3 via 172.29.0.2 && \
 ip route add 149.154.166.110 via 172.29.0.2 && \
 python /app/consumer.py"
+# api.openai.com 162.159.140.245/32 172.66.0.243/32 103.224.182.250/32
 # telegram api 149.154.160.0/20 and 91.108.12.0/22
 #ip route add 149.154.160.0/20 via 172.29.0.2 && ip route add 91.108.12.0/22 via 172.29.0.2 &&
