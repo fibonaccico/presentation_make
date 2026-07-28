@@ -31,7 +31,7 @@ class OpenAIRequest(TextAPIProtocol):
         text: str
     ) -> str | list[str | dict]:
         try:
-            
+
             response = await self.moderation_api.moderations.create(
                 model="omni-moderation-latest",
                 input=text
@@ -40,7 +40,7 @@ class OpenAIRequest(TextAPIProtocol):
             if result.flagged:
                 logger.warning(f'ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Content: [{text}]')
                 violated_categories = [
-                    cat for cat, flagged in result.categories.__dict__ if flagged
+                    cat for cat, flagged in result.categories.model_dump().items() if flagged
                 ]
                 raise ForbiddenContent(f"ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Категории нарушений: {violated_categories}")
 
