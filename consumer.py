@@ -10,7 +10,9 @@ from dotenv import load_dotenv
 from PIL import Image
 
 from config.logger import get_logger
-from config.messages import (FREE_PRES_ENDED_MESSAGE_EN,
+from config.messages import (FORBBIDEN_ERROR_MESSAGE_EN,
+                             FORBBIDEN_ERROR_MESSAGE_RU,
+                             FREE_PRES_ENDED_MESSAGE_EN,
                              FREE_PRES_ENDED_MESSAGE_RU,
                              GENERATION_ERROR_MESSAGE_EN,
                              GENERATION_ERROR_MESSAGE_RU, INLINE_MESSAGE_EN,
@@ -20,6 +22,7 @@ from config.messages import (FREE_PRES_ENDED_MESSAGE_EN,
                              TARIFF_BUTTON_RU, TELEGRAM_CLOSING_MESSAGE_EN,
                              TELEGRAM_CLOSING_MESSAGE_RU)
 from make_presentation import Presentation
+from make_presentation.api_models.text.openai_api import ForbiddenContent
 from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
 from queue_manager.db_queries import (create_auto_pay, create_pay,
                                       create_presentation_adapter,
@@ -309,76 +312,105 @@ async def on_generator_message(message):
     locale = await get_locale_by_user_uuid(user_uuid=event_message.user_uuid)
     if event_message.event_type not in GENERATOR_EVENT_TYPE:
         raise EventTypeException
-
-    presentation_data = await create_presentation_adapter(message=event_message)
-    if presentation_data:
-        is_paid = False
-        if event_message.presentation_type == PresentationType.TEXT.value:
-            is_paid = True
-        await message.channel.basic_ack(
-            message.delivery.delivery_tag
-        )
-        db_pay = await reduce_balance_by_user_uuid(user_uuid=event_message.user_uuid,
-                                          is_paid=is_paid)
-        tariff_data = await get_tariff_data(tariff_id=db_pay.tariff_id)
-
-        if event_message.event_type == EventType.TELEGRAM.value or event_message.event_type == EventType.MAX.value:
-            file_path_pdf = Presentation.save(
-                data=presentation_data,
-                save_path=event_message.save_presentation_path,
-                no_logo=event_message.no_logo,
-                format=event_message.format_file
+    try:
+        presentation_data = await create_presentation_adapter(message=event_message)
+        if presentation_data:
+            is_paid = False
+            if event_message.presentation_type == PresentationType.TEXT.value:
+                is_paid = True
+            await message.channel.basic_ack(
+                message.delivery.delivery_tag
             )
-            if locale == "ru":
-                TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_RU
-                FREE_PRES_ENDED_MESSAGE = FREE_PRES_ENDED_MESSAGE_RU
-                TARIFF_BUTTON = TARIFF_BUTTON_RU
-                INVITE_FRIEND_BUTTON = INVITE_FRIEND_BUTTON_RU
-                INLINE_MESSAGE = INLINE_MESSAGE_RU
-            else:
-                TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_EN
-                FREE_PRES_ENDED_MESSAGE = FREE_PRES_ENDED_MESSAGE_EN
-                TARIFF_BUTTON = TARIFF_BUTTON_EN
-                INVITE_FRIEND_BUTTON = INVITE_FRIEND_BUTTON_EN
-                INLINE_MESSAGE = INLINE_MESSAGE_EN
+            db_pay = await reduce_balance_by_user_uuid(user_uuid=event_message.user_uuid,
+                                            is_paid=is_paid)
+            tariff_data = await get_tariff_data(tariff_id=db_pay.tariff_id)
 
-            if event_message.event_type == EventType.TELEGRAM.value:
-                logger.info(f"Платеж: {db_pay.uuid}, presentation quantity {db_pay.paid_qty}, tariff - {tariff_data.title}")
-                for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
-                    await send_document(
-                        user_telegram_id,
-                        file
-                    )
-                await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
-                if db_pay.paid_qty == 1 and tariff_data.title == TariffTitle.AFTER_REGISTRATION.value:
-                    logger.info(f"The last free presentation has been used. {db_pay.uuid}")
-                    referral_code = await get_user_referral_code(user_uuid=event_message.user_uuid)
-                    logger.info(f"user referral code: {referral_code.referral_code}")
-                    link = f"https://t.me/fibonacci_presentation_bot?start={referral_code.referral_code}"
-                    reply_markup = {
-                        "inline_keyboard": [
-                            [
-                                {
-                                    'text': TARIFF_BUTTON,
-                                    "callback_data": "tariffs"
-                                },
-                                {
-                                    'text': INVITE_FRIEND_BUTTON,
-                                    'switch_inline_query': INLINE_MESSAGE.format(link=link)
-                                }
+            if event_message.event_type == EventType.TELEGRAM.value or event_message.event_type == EventType.MAX.value:
+                file_path_pdf = Presentation.save(
+                    data=presentation_data,
+                    save_path=event_message.save_presentation_path,
+                    no_logo=event_message.no_logo,
+                    format=event_message.format_file
+                )
+                if locale == "ru":
+                    TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_RU
+                    FREE_PRES_ENDED_MESSAGE = FREE_PRES_ENDED_MESSAGE_RU
+                    TARIFF_BUTTON = TARIFF_BUTTON_RU
+                    INVITE_FRIEND_BUTTON = INVITE_FRIEND_BUTTON_RU
+                    INLINE_MESSAGE = INLINE_MESSAGE_RU
+                else:
+                    TELEGRAM_CLOSING_MESSAGE = TELEGRAM_CLOSING_MESSAGE_EN
+                    FREE_PRES_ENDED_MESSAGE = FREE_PRES_ENDED_MESSAGE_EN
+                    TARIFF_BUTTON = TARIFF_BUTTON_EN
+                    INVITE_FRIEND_BUTTON = INVITE_FRIEND_BUTTON_EN
+                    INLINE_MESSAGE = INLINE_MESSAGE_EN
+
+                if event_message.event_type == EventType.TELEGRAM.value:
+                    logger.info(f"Платеж: {db_pay.uuid}, presentation quantity {db_pay.paid_qty}, tariff - {tariff_data.title}")
+                    for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
+                        await send_document(
+                            user_telegram_id,
+                            file
+                        )
+                    await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
+                    if db_pay.paid_qty == 1 and tariff_data.title == TariffTitle.AFTER_REGISTRATION.value:
+                        logger.info(f"The last free presentation has been used. {db_pay.uuid}")
+                        referral_code = await get_user_referral_code(user_uuid=event_message.user_uuid)
+                        logger.info(f"user referral code: {referral_code.referral_code}")
+                        link = f"https://t.me/fibonacci_presentation_bot?start={referral_code.referral_code}"
+                        reply_markup = {
+                            "inline_keyboard": [
+                                [
+                                    {
+                                        'text': TARIFF_BUTTON,
+                                        "callback_data": "tariffs"
+                                    },
+                                    {
+                                        'text': INVITE_FRIEND_BUTTON,
+                                        'switch_inline_query': INLINE_MESSAGE.format(link=link)
+                                    }
+                                ]
                             ]
-                        ]
-                    }
-                    await send_message(chat_id=user_telegram_id, message=FREE_PRES_ENDED_MESSAGE, reply_markup=reply_markup)
+                        }
+                        await send_message(chat_id=user_telegram_id, message=FREE_PRES_ENDED_MESSAGE, reply_markup=reply_markup)
+                else:
+                    for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
+                        await send_document_max(
+                            user_telegram_id,
+                            file
+                        )
+                    await send_message_max(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
+        else:
+            if locale == "ru":
+                generation_error_text = GENERATION_ERROR_MESSAGE_RU
             else:
-                for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
-                    await send_document_max(
-                        user_telegram_id,
-                        file
-                    )
-                await send_message_max(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
+                generation_error_text = GENERATION_ERROR_MESSAGE_EN
+            if event_message.event_type == EventType.TELEGRAM.value:
+                await send_message(user_telegram_id, message=generation_error_text)
+            if event_message.event_type == EventType.MAX.value:
+                await send_message_max(user_telegram_id, message=generation_error_text)
 
-    else:
+            logger.error(f"Пользователь [user_id = {user_telegram_id}]. Presentation generation failed: {event_message.presentation_uuid}. ")
+            await message.channel.basic_nack(
+                message.delivery.delivery_tag,
+                requeue=False
+            )
+    except ForbiddenContent as err:
+        logger.error(f"Пользователь [user_id = {user_telegram_id}]. Presentation generation failed: FORBBIDEN CONTENT: {err}. TEXT: {event_message.context} ")
+        if locale == "ru":
+            generation_error_text = FORBBIDEN_ERROR_MESSAGE_RU
+        else:
+            generation_error_text = FORBBIDEN_ERROR_MESSAGE_EN
+        if event_message.event_type == EventType.TELEGRAM.value:
+            await send_message(user_telegram_id, message=generation_error_text)
+        if event_message.event_type == EventType.MAX.value:
+            await send_message_max(user_telegram_id, message=generation_error_text)
+        await message.channel.basic_nack(
+            message.delivery.delivery_tag,
+            requeue=False
+        )
+
+    except Exception:
         if locale == "ru":
             generation_error_text = GENERATION_ERROR_MESSAGE_RU
         else:

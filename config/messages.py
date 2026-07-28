@@ -58,3 +58,6 @@ INVITE_FRIEND_BUTTON_RU = "Позвать друга"
 
 INLINE_MESSAGE_RU = "Делаю презентации в боте Fibonacci AI за минуту, без регистрации — просто пишешь тему. Заходи по моей ссылке, тебе подарок на старте 👉 {link}"
 INLINE_MESSAGE_EN = "I create presentations in the Fibonacci AI bot in under a minute, with no sign-up required—just type in the topic. Use my link to get a welcome gift 👉 {link}"
+
+FORBBIDEN_ERROR_MESSAGE_RU = "🙁 Не получилось создать презентацию по этой теме — она нарушает правила использования сервиса. Попробуйте переформулировать запрос."
+FORBBIDEN_ERROR_MESSAGE_EN = "🙁 Unable to create a presentation on this topic — it violates the service's terms of use. Try rephrasing your request."

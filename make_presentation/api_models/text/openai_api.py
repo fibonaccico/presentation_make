@@ -31,19 +31,17 @@ class OpenAIRequest(TextAPIProtocol):
         text: str
     ) -> str | list[str | dict]:
         try:
+            
             response = await self.moderation_api.moderations.create(
                 model="omni-moderation-latest",
                 input=text
             )
-            logger.info(f'OpenAI moderation response: {response}')
-
             result = response.results[0]
             if result.flagged:
                 logger.warning(f'ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Content: [{text}]')
                 violated_categories = [
-                    cat for cat, flagged in result.categories.__dict__() if flagged
+                    cat for cat, flagged in result.categories.__dict__ if flagged
                 ]
-                logger.warning(f"Категории нарушений: {violated_categories}")
                 raise ForbiddenContent(f"ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Категории нарушений: {violated_categories}")
 
             chat_completion = await self.api.chat.completions.create(
@@ -59,6 +57,10 @@ class OpenAIRequest(TextAPIProtocol):
                 f'Response costs [{response_cost}] tokens.'
                 f'Total costs [{request_cost + response_cost}] tokens.'
             )
+        except ForbiddenContent as err:
+            logger.warning(f"{err}")
+            raise ForbiddenContent(f'{err}')
+
         except Exception as err:
             logger.error(f"APIConnection error: [{err}]")
             raise TextAPIError(f"{err}")

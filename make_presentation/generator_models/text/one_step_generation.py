@@ -4,6 +4,7 @@ import re
 from typing import TYPE_CHECKING, Optional
 
 from config.logger import get_logger
+from make_presentation.api_models.text.openai_api import ForbiddenContent
 from make_presentation.config import (GENERATION_LANGUAGES,
                                       MAX_COUNT_OF_GENERATION,
                                       MAX_NUMBER_OF_SLIDES, get_prompt_result)
@@ -222,6 +223,9 @@ class TextInOneStep(TextGeneratorProtocol):
                 else:
                     presentation_theme = context
                 break
+            except ForbiddenContent as err:
+                logger.error(f"Generation fail. Reason: [{err}]")
+                raise ForbiddenContent(f"{err}")
             except Exception as error:
                 logger.error(f"Generation fail. Reason: [{error}]")
                 flag += 1

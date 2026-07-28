@@ -89,5 +89,4 @@ class SiliconflowAPI(ImageAPIProtocol):
                 else:
                     logger.error(f'Ошибка при скачивании изображения: {response.status} - {await response.text()}')
 
-        logger.warning(f"Siliconflow result {ImageDTO(image=image_url, path=path, description=promt, style=style)}")
         return ImageDTO(image=image_url, path=path, description=promt, style=style)

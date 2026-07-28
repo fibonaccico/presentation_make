@@ -69,7 +69,7 @@ class Slide:
         for shape in self.slide.shapes:
             if shape.has_text_frame:
                 if shape.text == "TITLE" and self.title is not None:
-                    logger.info(f"TITLE frame is found. Slide number: {self.slide_number}")
+                    # logger.info(f"TITLE frame is found. Slide number: {self.slide_number}")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
@@ -96,7 +96,7 @@ class Slide:
                         max_chars=self.max_chars[self.slide_type]["TITLE"]
                     )
                 elif "TEXT" in shape.text and self.text is not None:
-                    logger.info(f"TEXT frame is found. Slide number: {self.slide_number}")
+                    # logger.info(f"TEXT frame is found. Slide number: {self.slide_number}")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
@@ -131,7 +131,7 @@ class Slide:
                     )
 
                 elif "SUBTITLE" in shape.text and self.text is not None:
-                    logger.info(f"SUBTITLE frame is found. Slide number: {self.slide_number}")
+                    # logger.info(f"SUBTITLE frame is found. Slide number: {self.slide_number}")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
@@ -172,7 +172,7 @@ class Slide:
                     and len(self.img) > num_pic
                     and self.pictures_setting is not None
                 ):
-                    logger.info(f"PIC frame is found. Slide number: {self.slide_number}")
+                    # logger.info(f"PIC frame is found. Slide number: {self.slide_number}")
                     self.__add_picture(
                         shape=shape,
                         num_pic=num_pic,
@@ -270,7 +270,7 @@ class Slide:
                 img_corrector = ImageCorrector(pillow_img=pic, setting=settings)
                 pic = img_corrector.correct()
 
-                logger.info(f"Picture mode: {pic.mode}. Slide number: {self.slide_number}")
+                # logger.info(f"Picture mode: {pic.mode}. Slide number: {self.slide_number}")
                 #добавил две строки:
                 if pic.mode == 'RGBA':
                     pic = pic.convert('RGB')
