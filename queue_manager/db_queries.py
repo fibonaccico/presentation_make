@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 
 from config.logger import get_logger
 from make_presentation import Presentation
+from make_presentation.api_models.text.openai_api import ForbiddenContent
 from make_presentation.DTO import PresentationDTO
 from make_presentation.DTO.image_dto import ImageDTO, ImageInfoDTO
 from queue_manager.event_message import EventMessage
@@ -307,6 +308,21 @@ async def create_presentation_adapter(message: EventMessage) -> PresentationDTO:
                 presentation=pr,
                 db=db,
             )
+        except ForbiddenContent as e:
+            err_pr_status_query = text("""
+                        UPDATE presentation
+                        SET status = :status
+                        WHERE uuid = :presentation_uuid
+                        """)
+            err_pr_status_query_params = {
+                "status": PresentationStatus.ERROR.value,
+                "presentation_uuid": message.presentation_uuid
+            }
+            await db.execute(err_pr_status_query, err_pr_status_query_params)
+            await db.commit()
+
+            logger.error(f"Presentation {message.presentation_uuid} not generated. Reason: {e}")
+            raise ForbiddenContent(f"{e}")
 
         except Exception as e:
             err_pr_status_query = text("""
