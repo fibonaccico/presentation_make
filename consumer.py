@@ -390,7 +390,7 @@ async def on_generator_message(message):
             if event_message.event_type == EventType.MAX.value:
                 await send_message_max(user_telegram_id, message=generation_error_text)
 
-            logger.error(f"Пользователь [user_id = {user_telegram_id}]. Presentation generation failed: {event_message.presentation_uuid}. ")
+            logger.error(f"Пользователь [user_id = {user_telegram_id}]. No generation data. Error is into creating presentation. Presentation generation failed: {event_message.presentation_uuid}. ")
             await message.channel.basic_nack(
                 message.delivery.delivery_tag,
                 requeue=False
@@ -410,7 +410,7 @@ async def on_generator_message(message):
             requeue=False
         )
 
-    except Exception:
+    except Exception as err:
         if locale == "ru":
             generation_error_text = GENERATION_ERROR_MESSAGE_RU
         else:
@@ -420,7 +420,7 @@ async def on_generator_message(message):
         if event_message.event_type == EventType.MAX.value:
             await send_message_max(user_telegram_id, message=generation_error_text)
 
-        logger.error(f"Пользователь [user_id = {user_telegram_id}]. Presentation generation failed: {event_message.presentation_uuid}. ")
+        logger.error(f"Пользователь [user_id = {user_telegram_id}]. Presentation generation failed: {event_message.presentation_uuid}. Reason: [{err}]")
         await message.channel.basic_nack(
             message.delivery.delivery_tag,
             requeue=False
