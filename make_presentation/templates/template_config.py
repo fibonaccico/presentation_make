@@ -10,7 +10,8 @@ TEXT_FONT: dict[str, dict[str, dict[str, str]]] = {
         },
         "USUAL": {
             "TITLE": "Arial Black",
-            "TEXT": "Arial"
+            "TEXT": "Arial",
+            "SUBTITLE": "Arial",
         },
     },
     "minima": {
@@ -156,7 +157,8 @@ TEXT_FONT_SIZE: dict[str, dict[str, dict[str, int]]] = {
         },
         "USUAL": {
             "TITLE": 32,
-            "TEXT": 13
+            "TEXT": 13,
+            "SUBTITLE": 14,
         },
     },
     "minima": {
@@ -301,7 +303,8 @@ MAX_CHARS: dict[str, dict[str, dict[str, dict[str, int]]]] = {
             },
             "USUAL": {
                 "TITLE": 40,
-                "TEXT": 900
+                "TEXT": 900,
+                "SUBTITLE": 60
             },
         },
         "min": {
@@ -313,7 +316,8 @@ MAX_CHARS: dict[str, dict[str, dict[str, dict[str, int]]]] = {
             },
             "USUAL": {
                 "TITLE": 15,
-                "TEXT": 300
+                "TEXT": 300,
+                "SUBTITLE": 10
             },
         },
     },
@@ -574,6 +578,7 @@ TEXT_FONT_SETTINGS: dict[str, dict[str, dict[str, dict[str, bool]]]] = {
         "USUAL": {
             "TITLE": {"BOLD": False, "ITALIC": False},
             "TEXT": {"BOLD": False, "ITALIC": False},
+            "SUBTITLE": {"BOLD": False, "ITALIC": False},
 
         },
     },
@@ -844,7 +849,8 @@ TEXT_COLOR: dict[str, dict[str, dict[str, list[int]]]] = {
         },
         "USUAL": {
             "TITLE": [255, 255, 255],
-            "TEXT": [255, 255, 255]
+            "TEXT": [255, 255, 255],
+            "SUBTITLE": [255, 255, 255],
         },
     },
     "black_study": {
