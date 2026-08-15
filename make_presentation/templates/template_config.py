@@ -1,4 +1,18 @@
 TEXT_FONT: dict[str, dict[str, dict[str, str]]] = {
+    "premium": {
+        "INITIAL": {
+            "TITLE": "Arial Black",
+            "TEXT": "Arial"
+        },
+        "END": {
+            "TITLE": "Arial Black",
+            "TEXT": "Arial"
+        },
+        "USUAL": {
+            "TITLE": "Arial Black",
+            "TEXT": "Arial"
+        },
+    },
     "minima": {
         "INITIAL": {
             "TITLE": "Arial Black",
@@ -131,6 +145,20 @@ TEXT_FONT: dict[str, dict[str, dict[str, str]]] = {
 }
 
 TEXT_FONT_SIZE: dict[str, dict[str, dict[str, int]]] = {
+    "premium": {
+        "INITIAL": {
+            "TITLE": 48,
+            "TEXT": 14
+        },
+        "END": {
+            "TITLE": 54,
+            "TEXT": 14
+        },
+        "USUAL": {
+            "TITLE": 32,
+            "TEXT": 13
+        },
+    },
     "minima": {
         "INITIAL": {
             "TITLE": 25,
@@ -263,6 +291,32 @@ TEXT_FONT_SIZE: dict[str, dict[str, dict[str, int]]] = {
 }
 
 MAX_CHARS: dict[str, dict[str, dict[str, dict[str, int]]]] = {
+    "premium": {
+        "max": {
+            "INITIAL": {
+                "TITLE": 70
+            },
+            "END": {
+                "TITLE": 25
+            },
+            "USUAL": {
+                "TITLE": 40,
+                "TEXT": 900
+            },
+        },
+        "min": {
+            "INITIAL": {
+                "TITLE": 10
+            },
+            "END": {
+                "TITLE": 10
+            },
+            "USUAL": {
+                "TITLE": 15,
+                "TEXT": 300
+            },
+        },
+    },
     "minima": {
         "max": {
             "INITIAL": {
@@ -507,6 +561,22 @@ MAX_CHARS: dict[str, dict[str, dict[str, dict[str, int]]]] = {
 
 
 TEXT_FONT_SETTINGS: dict[str, dict[str, dict[str, dict[str, bool]]]] = {
+    "premium": {
+        "INITIAL": {
+            "TITLE": {"BOLD": False, "ITALIC": False},
+            "TEXT": {"BOLD": False, "ITALIC": False},
+
+        },
+        "END": {
+            "TITLE": {"BOLD": False, "ITALIC": False},
+            "TEXT": {"BOLD": False, "ITALIC": False}
+        },
+        "USUAL": {
+            "TITLE": {"BOLD": False, "ITALIC": False},
+            "TEXT": {"BOLD": False, "ITALIC": False},
+
+        },
+    },
     "minima": {
         "INITIAL": {
             "TITLE": {"BOLD": False, "ITALIC": False},
@@ -642,6 +712,32 @@ TEXT_FONT_SETTINGS: dict[str, dict[str, dict[str, dict[str, bool]]]] = {
 }
 
 USUAL_PICTURES: dict[str, list[list[dict[str, str]]]] = {
+    "premium": [
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "839 790"}],
+        [],
+        [
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 245"},
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 245"},
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 245"},
+        ],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "725 1080"}],
+        [],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "1915 830"}],
+        [],
+        [
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 288"},
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 288"},
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 288"},
+        ],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "926 1080"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "1915 589"}],
+        [
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "555 410"},
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "555 410"},
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "555 410"},
+        ],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "925 1080"}],
+    ],
     "minima": [
         [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "680 561"}],
         [
@@ -737,6 +833,20 @@ USUAL_PICTURES: dict[str, list[list[dict[str, str]]]] = {
 }
 
 TEXT_COLOR: dict[str, dict[str, dict[str, list[int]]]] = {
+    "premium": {
+        "INITIAL": {
+            "TITLE": [255, 255, 255],
+            "TEXT": [255, 255, 255]
+        },
+        "END": {
+            "TITLE": [255, 255, 255],
+            "TEXT": [255, 255, 255]
+        },
+        "USUAL": {
+            "TITLE": [255, 255, 255],
+            "TEXT": [255, 255, 255]
+        },
+    },
     "black_study": {
         "INITIAL": {
             "TITLE": [255, 255, 255],

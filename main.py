@@ -26,8 +26,8 @@ logging.basicConfig(
 async def make_pres():
     pr = Presentation(text_generation_model="ONESTEP", template="creative")
     task2 = await pr.make_presentation(
-        context="Как убить себя",
-        number_of_slides=2,
+        context="история нашего времени последние 10 лет",
+        number_of_slides=8,
         save_path_for_images=save_path_for_images
     )
     return task2
