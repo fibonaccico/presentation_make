@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from make_presentation.api_models.image.flux_api import FluxAPI
 from make_presentation.api_models.image.kandinsky_api import KandinskyAPI
+from make_presentation.api_models.image.siliconflow import SiliconflowAPI
 from make_presentation.config import IMAGE_API
 
 from ..errors import InvalidFactoryNameError
@@ -19,6 +21,10 @@ class ImgFactory:
     def get_img_api(self) -> ImageAPIProtocol:
         if self.image_api == ImgGenModuleEnum.KANDINSKY.value:
             api: ImageAPIProtocol = KandinskyAPI()
+        elif self.image_api == ImgGenModuleEnum.FLUX.value:
+            api: ImageAPIProtocol = FluxAPI()
+        elif self.image_api == ImgGenModuleEnum.SILICONFLOW.value:
+            api: ImageAPIProtocol = SiliconflowAPI()
         else:
             raise InvalidFactoryNameError(
                 f"Incorrect data for the factory, for the image creation module: \

@@ -1,23 +1,26 @@
 from __future__ import annotations
 
-import logging
 import re
 from typing import TYPE_CHECKING, Optional
 
-from make_presentation.config import get_prompt_result
+from config.logger import get_logger
+from make_presentation.api_models.text.openai_api import ForbiddenContent
+from make_presentation.config import (GENERATION_LANGUAGES,
+                                      MAX_COUNT_OF_GENERATION,
+                                      MAX_NUMBER_OF_SLIDES, get_prompt_result)
 from make_presentation.DTO import TextDTO
 from make_presentation.errors import (InvalidTextNumberError,
+                                      MaxCountGenerationError,
+                                      MaxNumberOfSlidesExceededError,
                                       TittleOrSlideTextNotGeneratedError)
 
 from ..interfaces import TextGeneratorProtocol
 
 if TYPE_CHECKING:
-
     from make_presentation.api_models.interfaces import TextAPIProtocol
 
 
-logger = logging.getLogger(__name__)
-logger.setLevel("DEBUG")
+logger = get_logger()
 
 
 class TextInOneStep(TextGeneratorProtocol):
@@ -34,7 +37,7 @@ class TextInOneStep(TextGeneratorProtocol):
     Описание 3:
     Картинка:
     """
-    def __init__(self, prompt: str, theme: bool) -> None:
+    def __init__(self, prompt: str, theme: str | None) -> None:
         self.prompt = prompt
         self.theme = theme
 
@@ -43,140 +46,195 @@ class TextInOneStep(TextGeneratorProtocol):
         slides_count: Optional[int],
         api: TextAPIProtocol,
         context: str,
+        language: str,
         template: Optional[str] = None
     ) -> TextDTO:
         """
-        To create Text data transfer object (TextTwoStepsDTO) with following parameters:
+        To create Text data transfer object (TextDTO) with following parameters:
         titles, text of slide description, picture descriptions, full text
         """
-        print(f"Pompt === {self.prompt}")
-        logger.info(f"Pompt === {self.prompt}")
-        print(f"theme === {self.theme}")
-        logger.info(f"theme === {self.theme}")
-        print(f"Slides count === {slides_count}")
-        logger.info(f"Slides count === {slides_count}")
-        print(f"Context === {context}")
-        logger.info(f"Context === {context}")
-        ai_answer = await self.__get_all_ai_answer(
-            prompt=self.prompt,
-            api=api,
-            context=context,
-            num_slide=slides_count
-        )
-        logger.info(f"AI answer === {ai_answer}")
-        print(f"AI answer === {ai_answer}")
+        flag = 1
+        while flag <= MAX_COUNT_OF_GENERATION:
+            logger.debug(f"{flag} attempt of generation.")
+            try:
+                ai_answer = await self.__get_all_ai_answer(
+                    prompt=self.prompt,
+                    api=api,
+                    context=context,
+                    num_slide=slides_count,
+                    language=GENERATION_LANGUAGES.get(language, "Русский")
+                )
 
-        titles = self.__get_list_text(
-            text=ai_answer,
-            pattern=r"(?i)Заголовок слайда[:*+]*(.+)",
-            num_slides=slides_count
-        )
-        logger.info(f"Title === {titles}")
-        print(f"Title === {titles}")
+                titles = self.__get_list_text(
+                    text=ai_answer,
+                    pattern=r"(?i)Заголовок слайда[:*+]*(.+)",
+                    num_slides=slides_count
+                )
+                if not titles:
+                    titles = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Заголовок слайда[:*+]*\s*\n(.+)",
+                        num_slides=slides_count
+                    )
 
-        if not titles:
-            titles = self.__get_list_text(
-                text=ai_answer,
-                pattern=r"(?i)Заголовок[:*+]*(.+)",
-                num_slides=slides_count
-            )
-        logger.info(f"Title === {titles}")
-        print(f"Title === {titles}")
-        if not titles:
-            titles = self.__get_list_text(
-                text=ai_answer,
-                pattern=r"(?i)Заголовок[:*+]*/s(.+)",
-                num_slides=slides_count
-            )
-        logger.info(f"Title === {titles}")
-        print(f"Title === {titles}")
+                if not titles:
+                    titles = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Заголовок[:*+]*(.+)",
+                        num_slides=slides_count
+                    )
 
-        pictures = self.__get_list_text(
-            text=ai_answer,
-            pattern=r"(?i)Картинка[:*+]*(.+)",
-            num_slides=slides_count
-        )
-        logger.info(f"Picture === {pictures}")
-        print(f"Picture === {pictures}")
-        if not pictures:
-            pictures = self.__get_list_text(
-                text=ai_answer,
-                pattern=r"(?i)Картинка[:*+]*/s(.+)",
-                num_slides=slides_count
-            )
-        logger.info(f"Picture === {pictures}")
-        print(f"Picture === {pictures}")
-        if slides_count:
-            subtitles_1 = self.__get_list_text(
-                text=ai_answer,
-                pattern=r"(?i)Подзаголовок 1[:*+]*(.+)",
-                num_slides=slides_count
-            )
-            logger.info(f"subtitles_1 === {subtitles_1}")
-            print(f"subtitles_1 === {subtitles_1}")
+                if not titles:
+                    titles = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Заголовок[:*+]*/s(.+)",
+                        num_slides=slides_count
+                    )
 
-            if not subtitles_1:
+                if titles is None:
+                    logger.error(f"Titiles items: [{titles}] less than {slides_count}.")
+                    raise InvalidTextNumberError(f"Text items less than {slides_count}")
+                if slides_count and len(titles) > slides_count:
+                    logger.error(f"Titles items: [{titles}] more than {slides_count}.")
+                    raise MaxNumberOfSlidesExceededError(f"AI generated {len(titles)} items of titles. It is more than needed {slides_count}.")
+
+                pictures = self.__get_list_text(
+                    text=ai_answer,
+                    pattern=r"(?i)Картинка[:*+]*(.+)",
+                    num_slides=slides_count
+                )
+
+                if not pictures:
+                    pictures = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Картинка[:*+]*/s(.+)",
+                        num_slides=slides_count
+                    )
+                if not pictures:
+                    pictures = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Картинка[:*+]*\s*\n(.+)",
+                        num_slides=slides_count
+                    )
+                if pictures is None:
+                    logger.error(f"Pictures items: [{pictures}] less than {slides_count}.")
+                    raise InvalidTextNumberError(f"Pictures items less than {slides_count}")
+                if slides_count and len(pictures) > slides_count:
+                    logger.error(f"Pictures items: [{pictures}] more than {slides_count}.")
+                    raise MaxNumberOfSlidesExceededError(f"AI generated {len(pictures)} items of Pictures. It is more than needed {slides_count}.")
+
                 subtitles_1 = self.__get_list_text(
                     text=ai_answer,
-                    pattern=r"(?i)Подзаголовок 1[:*+]*/s(.+)",
+                    pattern=r"(?i)Подзаголовок 1[:*+]*(.+)",
                     num_slides=slides_count
                 )
-            logger.info(f"subtitles_1 === {subtitles_1}")
-            print(f"subtitles_1 === {subtitles_1}")
 
-            subtitles_2 = self.__get_list_text(
-                text=ai_answer,
-                pattern=r"(?i)Подзаголовок 2[:*+]*(.+)",
-                num_slides=slides_count
-            )
-            logger.info(f"subtitles_2 === {subtitles_2}")
-            print(f"subtitles_2 === {subtitles_2}")
+                if not subtitles_1:
+                    subtitles_1 = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Подзаголовок 1[:*+]*\s*(.+)",
+                        num_slides=slides_count
+                    )
+                if not subtitles_1:
+                    subtitles_1 = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Подзаголовок 1[:*+]*\s*\n(.+)",
+                        num_slides=slides_count
+                    )
+                if subtitles_1 is None:
+                    logger.error(f"subtitles_1 items: [{subtitles_1}] less than {slides_count}.")
+                    raise InvalidTextNumberError(f"subtitles_1 items less than {slides_count}")
+                if slides_count and len(subtitles_1) > slides_count:
+                    logger.error(f"subtitles_1 items: [{subtitles_1}] more than {slides_count}.")
+                    raise MaxNumberOfSlidesExceededError(f"AI generated {len(subtitles_1)} items of subtitles_1. It is more than needed {slides_count}.")
 
-            if not subtitles_2:
                 subtitles_2 = self.__get_list_text(
                     text=ai_answer,
-                    pattern=r"(?i)Подзаголовок 2[:*+]*/s(.+)",
+                    pattern=r"(?i)Подзаголовок 2[:*+]*(.+)",
                     num_slides=slides_count
                 )
-            logger.info(f"subtitles_2 === {subtitles_2}")
-            print(f"subtitles_2 === {subtitles_2}")
-            subtitles_3 = self.__get_list_text(
-                text=ai_answer,
-                pattern=r"(?i)Подзаголовок 3[:*+]*(.+)",
-                num_slides=slides_count
-            )
-            logger.info(f"subtitles_3 === {subtitles_3}")
-            print(f"subtitles_3 === {subtitles_3}")
-            if not subtitles_3:
+
+                if not subtitles_2:
+                    subtitles_2 = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Подзаголовок 2[:*+]*\s*(.+)",
+                        num_slides=slides_count
+                    )
+                if not subtitles_2:
+                    subtitles_2 = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Подзаголовок 2[:*+]*\s*\n(.+)",
+                        num_slides=slides_count
+                    )
+                if subtitles_2 is None:
+                    logger.error(f"subtitles_2 items: [{subtitles_2}] less than {slides_count}.")
+                    raise InvalidTextNumberError(f"subtitles_2 items less than {slides_count}")
+                if slides_count and len(subtitles_2) > slides_count:
+                    logger.error(f"subtitles_2 items: [{subtitles_2}] more than {slides_count}.")
+                    raise MaxNumberOfSlidesExceededError(f"AI generated {len(subtitles_2)} items of subtitles_2. It is more than needed {slides_count}.")
+
                 subtitles_3 = self.__get_list_text(
                     text=ai_answer,
-                    pattern=r"(?i)Подзаголовок 3[:*+]*/s(.+)",
+                    pattern=r"(?i)Подзаголовок 3[:*+]*(.+)",
                     num_slides=slides_count
                 )
-            logger.info(f"subtitles_3 === {subtitles_3}")
-            print(f"subtitles_3 === {subtitles_3}")
-        else:
-            subtitles_1 = None
-            subtitles_2 = None
-            subtitles_3 = None
-            logger.info(f"subtitles_3 === {subtitles_3}")
-            print(f"subtitles_3 === {subtitles_3}")
 
-        slides_text_list = self.__get_slide_text(
-            text=ai_answer,
-            num_slides=slides_count
-        )
-        logger.info(f"slides_text_list === {slides_text_list}")
-        print(f"slides_text_list === {slides_text_list}")
-        if not self.theme:
-            pres_theme = re.findall(
-                r"(?i)Тема презентации:|\*+:(.+)",
-                ai_answer
-            )[0]
-            presentation_theme = self.__text_after_processing(pres_theme)
+                if not subtitles_3:
+                    subtitles_3 = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Подзаголовок 3[:*+]*\s*(.+)",
+                        num_slides=slides_count
+                    )
+                if not subtitles_3:
+                    subtitles_3 = self.__get_list_text(
+                        text=ai_answer,
+                        pattern=r"(?i)Подзаголовок 3[:*+]*\s*\n(.+)",
+                        num_slides=slides_count
+                    )
+                if subtitles_3 is None:
+                    logger.error(f"subtitles_3 items: [{subtitles_3}] less than {slides_count}.")
+                    raise InvalidTextNumberError(f"subtitles_3 items less than {slides_count}")
+                if slides_count and len(subtitles_3) > slides_count:
+                    logger.error(f"subtitles_3 items: [{subtitles_3}] more than {slides_count}.")
+                    raise MaxNumberOfSlidesExceededError(f"AI generated {len(subtitles_3)} items of subtitles_3. It is more than needed {slides_count}.")
+
+                slides_text_list = self.__get_slide_text(
+                    text=ai_answer,
+                    num_slides=slides_count
+                )
+
+                if not self.theme:
+                    pres_theme = re.findall(
+                        r"(?i)Тема презентации:\s(.+)",
+                        ai_answer
+                    )[0]
+                    if not pres_theme:
+                        pres_theme = re.findall(
+                            r"(?i)Тема презентации[:*+]*\s*(.+)",
+                            ai_answer
+                        )[0]
+                    if not pres_theme:
+                        pres_theme = re.findall(
+                            r"(?i)Тема презентации[:*+]*\s*\n(.+)",
+                            ai_answer
+                        )[0]
+                    presentation_theme = self.__text_after_processing(pres_theme)
+
+                else:
+                    presentation_theme = context
+                break
+            except ForbiddenContent as err:
+                logger.error(f"Generation fail. Reason: [{err}]")
+                raise ForbiddenContent(f"{err}")
+            except Exception as error:
+                logger.error(f"Generation fail. Reason: [{error}]")
+                flag += 1
 
         else:
-            presentation_theme = context
+            logger.error(f"The number of text generation exceeds the permissible value - {MAX_COUNT_OF_GENERATION}.")
+            raise MaxCountGenerationError(
+                "The number of text generation exceeds the permissible value."
+            )
 
         return TextDTO(
             titles=titles,
@@ -196,13 +254,15 @@ class TextInOneStep(TextGeneratorProtocol):
         )
 
     async def __get_all_ai_answer(
-        self, prompt: str, api: TextAPIProtocol, context: str, num_slide: int | None
+        self, prompt: str, api: TextAPIProtocol, context: str, num_slide: int | None,
+        language: str
     ) -> str | list[str | dict]:
 
         res_prompt = get_prompt_result(
             context=context,
             num_slide=num_slide,
-            prompt=prompt
+            prompt=prompt,
+            language=language
         )
         ai_answer = await api.request(res_prompt)
         return ai_answer
@@ -212,16 +272,14 @@ class TextInOneStep(TextGeneratorProtocol):
         text: str,
         pattern: str,
         num_slides: Optional[int]
-    ) -> list[str]:
+    ) -> Optional[list[str]]:
         text_list: list[str] = re.findall(pattern, text)
         new_text_list = []
         for item in text_list:
-            new_text_list.append(self.__text_after_processing(item))
-
-        # if num_slides:           # noqa E800
-        #     if len(text_list) != num_slides:              # noqa E800
-        #         logging.error(f"Text items less than {num_slides}.")     # noqa E800
-        #         raise InvalidTextNumberError(f"Text items less than {num_slides}")    # noqa E800
+            new_item = self.__text_after_processing(item)
+            if not new_item:
+                return None
+            new_text_list.append(new_item)
         return new_text_list
 
     def __get_slide_text(
@@ -229,99 +287,86 @@ class TextInOneStep(TextGeneratorProtocol):
         text: str,
         num_slides: Optional[int]
     ) -> list[list[str]] | list[str]:
-        logger.info(f"Number of slides is ===========  {num_slides}")
-        print(f"Number of slides is ===========  {num_slides}")
+        subtitle_text_1 = self.__get_list_text(
+            text=text,
+            pattern=r"(?i)Описание 1[:*+](.+)",
+            num_slides=num_slides
+        )
 
-        if num_slides is None:
-            logger.info("IS NONE")
-            print("IS NONE")
-
-            slides_text = self.__get_list_text(
-                text=text,
-                pattern=r"(?i)Описание[:*+](.+)",
-                num_slides=num_slides
-            )
-            logger.info(f"slides_text === {slides_text}")
-            print(f"slides_text ===========  {slides_text}")
-            if not slides_text:
-                slides_text = self.__get_list_text(
-                    text=text,
-                    pattern=r"(?i)Описание[:*+]/s(.+)",
-                    num_slides=num_slides
-                )
-            logger.info(f"slides_text === {slides_text}")
-            print(f"slides_text ===========  {slides_text}")
-        else:
-            logger.info("NOT NONE")
-            print("NOT NONE")
-
+        if not subtitle_text_1:
             subtitle_text_1 = self.__get_list_text(
                 text=text,
-                pattern=r"(?i)Описание 1[:*+](.+)",
+                pattern=r"(?i)Описание 1[:*+]\s*(.+)",
                 num_slides=num_slides
             )
-            logger.info(f"subtitle_text_1 === {subtitle_text_1}")
-            print(f"subtitle_text_1 === {subtitle_text_1}")
-            if not subtitle_text_1:
-                subtitle_text_1 = self.__get_list_text(
-                    text=text,
-                    pattern=r"(?i)Описание 1[:*+]/s(.+)",
-                    num_slides=num_slides
-                )
-            logger.info(f"subtitle_text_1 === {subtitle_text_1}")
-            print(f"subtitle_text_1 === {subtitle_text_1}")
+        if not subtitle_text_1:
+            subtitle_text_1 = self.__get_list_text(
+                text=text,
+                pattern=r"(?i)Описание 1[:*+]\s*\n(.+)",
+                num_slides=num_slides
+            )
+
+        subtitle_text_2 = self.__get_list_text(
+            text=text,
+            pattern=r"(?i)Описание 2:(.+)",
+            num_slides=num_slides
+        )
+
+        if not subtitle_text_2:
             subtitle_text_2 = self.__get_list_text(
                 text=text,
-                pattern=r"(?i)Описание 2:(.+)",
+                pattern=r"(?i)Описание 2[:*+]\s*(.+)",
                 num_slides=num_slides
             )
-            logger.info(f"subtitle_text_2 === {subtitle_text_2}")
-            print(f"subtitle_text_2 === {subtitle_text_2}")
-            if not subtitle_text_2:
-                subtitle_text_2 = self.__get_list_text(
-                    text=text,
-                    pattern=r"(?i)Описание 2[:*+]/s(.+)",
-                    num_slides=num_slides
-                )
-            logger.info(f"subtitle_text_2 === {subtitle_text_2}")
-            print(f"subtitle_text_2 === {subtitle_text_2}")
+        if not subtitle_text_2:
+            subtitle_text_2 = self.__get_list_text(
+                text=text,
+                pattern=r"(?i)Описание 2[:*+]\s*\n(.+)",
+                num_slides=num_slides
+            )
+
+        subtitle_text_3 = self.__get_list_text(
+            text=text,
+            pattern=r"(?i)Описание 3:(.+)",
+            num_slides=num_slides
+        )
+
+        if not subtitle_text_3:
             subtitle_text_3 = self.__get_list_text(
                 text=text,
-                pattern=r"(?i)Описание 3:(.+)",
+                pattern=r"(?i)Описание 3[:*+]\s*(.+)",
                 num_slides=num_slides
             )
-            logger.info(f"subtitle_text_3 === {subtitle_text_3}")
-            print(f"subtitle_text_3 === {subtitle_text_3}")
-            if not subtitle_text_3:
-                subtitle_text_3 = self.__get_list_text(
-                    text=text,
-                    pattern=r"(?i)Описание 3[:*+]/s(.+)",
-                    num_slides=num_slides
-                )
-            logger.info(f"subtitle_text_3 === {subtitle_text_3}")
-            print(f"subtitle_text_3 === {subtitle_text_3}")
-            logger.info(f"NOT NONE .  {subtitle_text_1}, {subtitle_text_2}, {subtitle_text_3}")
-            print(f"NOT NONE .  {subtitle_text_1}, {subtitle_text_2}, {subtitle_text_3}")
-            if not subtitle_text_1 or not subtitle_text_2 or not subtitle_text_3:
-                logger.error("Text has not been generated.")
-                raise InvalidTextNumberError("Text has not been generated.")
+        if not subtitle_text_3:
+            subtitle_text_3 = self.__get_list_text(
+                text=text,
+                pattern=r"(?i)Описание 3[:*+]\s*\n(.+)",
+                num_slides=num_slides
+            )
 
-            if len(subtitle_text_1) != len(subtitle_text_2) != len(subtitle_text_3):
-                logger.error("Invalid number of subtitles text.")
-                raise InvalidTextNumberError("Invalid number of subtitles text.")
+        if not subtitle_text_1 or not subtitle_text_2 or not subtitle_text_3:
+            logger.error("Subtitle text has not been generated.")
+            raise InvalidTextNumberError("Subtitles text has not been generated.")
 
-            try:
-                slides_text = []
-                for slide in range(num_slides):
-                    slide_text = []
-                    slide_text.append(subtitle_text_1[slide])
-                    slide_text.append(subtitle_text_2[slide])
-                    slide_text.append(subtitle_text_3[slide])
-                    slides_text.append(slide_text)
+        if len(subtitle_text_1) != len(subtitle_text_2) != len(subtitle_text_3):
+            logger.error("Invalid number of subtitle text.")
+            raise InvalidTextNumberError("Invalid number of subtitle text.")
 
-            except IndexError:
-                logger.error(f"Text items less than {num_slides}.")
-                raise InvalidTextNumberError(f"Text items less than {num_slides}")
+        if num_slides is None:
+            num_slides = len(subtitle_text_1)
+
+        try:
+            slides_text = []
+            for slide in range(num_slides):
+                slide_text = []
+                slide_text.append(subtitle_text_1[slide])
+                slide_text.append(subtitle_text_2[slide])
+                slide_text.append(subtitle_text_3[slide])
+                slides_text.append(slide_text)
+
+        except IndexError:
+            logger.error(f"Subtitle text items less than {num_slides}.")
+            raise InvalidTextNumberError(f"Subtitle text items less than {num_slides}")
 
         return slides_text
 
@@ -349,10 +394,6 @@ class TextInOneStep(TextGeneratorProtocol):
         Return a string with following information for each slide:
         Slide {number of a slide}, title of a slide, generated text of slide.
         """
-        logger.info(f"titles === {titles}")
-        print(f"titles === {titles}")
-        logger.info(f"subtitle === {subtitles_1}, {subtitles_2}, {subtitles_3}")
-        print(f"subtitle === {subtitles_1}, {subtitles_2}, {subtitles_3}")
         if len(titles) == 0 or len(slides_text_list) == 0:
             logger.error(
                 "There are no generated titles or slides descriptions."

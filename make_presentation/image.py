@@ -3,11 +3,15 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
+from config.logger import get_logger
 from make_presentation.factories import ImgFactory
 from make_presentation.utils import get_pictures_sizes
 
 if TYPE_CHECKING:
     from make_presentation.DTO import ImageDTO
+
+
+logger = get_logger()
 
 
 class ImagesAdapter:
@@ -27,6 +31,7 @@ class ImagesAdapter:
         image_api_obj = img_factory.get_img_api()
 
         slides_count = len(pictures_descriptions)
+        logger.info(f"Number of picture decriptions: {pictures_descriptions}")
 
         pictures_sizes = get_pictures_sizes(
             template_name=template, number_of_slides=slides_count
@@ -45,6 +50,7 @@ class ImagesAdapter:
                 for picture_size in range(len(pictures_sizes[slide]))
             )
         )
+        logger.info(f"ImageInfoDTO results: {results}")
 
         pictures_in_presentation: list[list[ImageDTO]] = []
 

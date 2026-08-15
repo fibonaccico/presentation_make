@@ -22,17 +22,11 @@ class ImageAPIProtocol(Protocol):
         save_path: Optional[str],
         promt: str,
         width_height: str,
-        negative_prompt: str,
+        negative_prompt: str = "",
         images: int = 1,
         model: Optional[int] = None,
         style: str = "DEFAULT",
         art_gpt: bool = False,
         max_time: int = MAX_TIME_IMAGE_GENERATION,
     ) -> ImageDTO:
-        raise NotImplementedError
-
-    async def get_styles(self) -> list[dict[str, str]]:
-        raise NotImplementedError
-
-    async def get_model(self) -> int:
         raise NotImplementedError

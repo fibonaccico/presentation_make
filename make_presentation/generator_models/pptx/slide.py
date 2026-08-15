@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import logging
+# import logging
 import math
 import os
 from io import BytesIO
@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 from PIL import Image
 from pptx.dml.color import RGBColor
 
+from config.logger import get_logger
 from make_presentation.config import (DEFAULT_TEXT_FONT,
                                       DEFAULT_TEXT_FONT_SETTINGS,
                                       DEFAULT_TEXT_SIZE, SCALING_FACTOR,
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
     from pptx.slide import Slide as PptxSlide
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class Slide:
@@ -67,7 +68,22 @@ class Slide:
 
         for shape in self.slide.shapes:
             if shape.has_text_frame:
-                if shape.text == "TITLE" and self.title is not None:
+                if (
+                    shape.text.strip() == "PIC"
+                    and self.img is not None
+                    and len(self.img) > num_pic
+                    and self.pictures_setting is not None
+                ):
+                    # logger.info(f"PIC frame is found. Slide number: {self.slide_number}")
+                    self.__add_picture(
+                        shape=shape,
+                        num_pic=num_pic,
+                        settings=self.pictures_setting[num_pic],
+                    )
+                    num_pic += 1
+
+                elif shape.text == "TITLE" and self.title is not None:
+                    # logger.info(f"TITLE frame is found. Slide number: {self.slide_number}")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
@@ -94,11 +110,12 @@ class Slide:
                         max_chars=self.max_chars[self.slide_type]["TITLE"]
                     )
                 elif "TEXT" in shape.text and self.text is not None:
+                    # logger.info(f"TEXT frame is found. Slide number: {self.slide_number}")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
                     )
-                    shape_text = shape.text
+                    shape_text = shape.text.strip()
                     if self.subtitle_1 or self.subtitle_2 or self.subtitle_3:
                         text_number = int(shape_text[-1])
                         text_for_slide = self.text[text_number - 1]
@@ -128,11 +145,12 @@ class Slide:
                     )
 
                 elif "SUBTITLE" in shape.text and self.text is not None:
+                    # logger.info(f"SUBTITLE frame is found. Slide number: {self.slide_number}")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
                     )
-                    shape_text = shape.text
+                    shape_text = shape.text.strip()
                     subtitle_number = int(shape_text[-1])
                     if subtitle_number == 1:
                         subtitle = self.subtitle_1
@@ -161,19 +179,6 @@ class Slide:
                         ),
                         max_chars=self.max_chars[self.slide_type]["SUBTITLE"]
                     )
-
-                elif (
-                    shape.text == "PIC"
-                    and self.img is not None
-                    and len(self.img) > num_pic
-                    and self.pictures_setting is not None
-                ):
-                    self.__add_picture(
-                        shape=shape,
-                        num_pic=num_pic,
-                        settings=self.pictures_setting[num_pic],
-                    )
-                    num_pic += 1
 
         if self.foreground_pictures_setting is not None:
             self.__add_foreground_images(names=self.foreground_pictures_setting)
@@ -252,26 +257,33 @@ class Slide:
                 pic = Image.open(self.img[num_pic].path)
             else:
                 pic = self.img[num_pic].image
+        try:
+            # Удаляет и восстанавливает объект картинки
+            shape.element.getparent().remove(shape.element)
+            left = shape.left
+            top = shape.top
+            width = shape.width
+            height = shape.height
 
-        # Удаляет и восстанавливает объект картинки
-        shape.element.getparent().remove(shape.element)
-        left = shape.left
-        top = shape.top
-        width = shape.width
-        height = shape.height
+            if pic:
+                # Кoрректирует форму картинки для вставки в презентацию
+                img_corrector = ImageCorrector(pillow_img=pic, setting=settings)
+                pic = img_corrector.correct()
 
-        if pic:
-            # Кoрректирует форму картинки для вставки в презентацию
-            img_corrector = ImageCorrector(pillow_img=pic, setting=settings)
-            pic = img_corrector.correct()
+                # logger.info(f"Picture mode: {pic.mode}. Slide number: {self.slide_number}")
+                #добавил две строки:
+                if pic.mode == 'RGBA':
+                    pic = pic.convert('RGB')
 
-            # Получите байтовые данные изображения
-            image_data = BytesIO()
-            pic.save(image_data, format="PNG")
-            image_data.seek(0)
+                # Получите байтовые данные изображения
+                image_data = BytesIO()
+                pic.save(image_data, format="JPEG")
+                image_data.seek(0)
 
-            # Вставляем в призентацию
-            self.slide.shapes.add_picture(image_data, left, top, width, height)
+                # Вставляем в призентацию
+                self.slide.shapes.add_picture(image_data, left, top, width, height)
+        except Exception as err:
+            logger.error(f"Could not add picture. Reason: {err}. Slide number: {self.slide_number}")
 
     def __add_foreground_images(self, names: list[str]) -> None:
         for shape in self.slide.shapes:

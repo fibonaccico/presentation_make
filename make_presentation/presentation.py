@@ -1,26 +1,26 @@
 from __future__ import annotations
 
-import logging
+# import logging
 import os
 import re
 import time
-from typing import Optional
 
+from config.logger import get_logger
 from make_presentation.config import (ENDING_PRESENTATION_STATUS,
                                       ENDING_PRESENTATION_TEXT,
                                       MAX_TEXT_LENGTH,
                                       OPENING_PRESENTATION_THEME_TITLE)
 from make_presentation.converters import convert_pptx_to_pdf
-from make_presentation.DTO import (  # , ImageInfoDTO # noqa E800
-    PresentationDTO, SlideDTO)
+from make_presentation.DTO import ImageDTO, PresentationDTO, SlideDTO
 from make_presentation.errors import (ContextDoesNotExistError,
                                       MaxTextLengthError)
+from make_presentation.factories import ImgFactory
 from make_presentation.factories.text.text_module_enum import TextGenModuleEnum
 from make_presentation.generator_models.pptx import PresentationTemplate
 from make_presentation.image import ImagesAdapter
 from make_presentation.text import TextAdapter
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class Presentation:
@@ -39,9 +39,10 @@ class Presentation:
     async def make_presentation(
         self,
         context: str,
-        number_of_slides: Optional[int],
+        number_of_slides: int | None = None,
         save_path_for_images: str | None = None,
         image_style: str = "DEFAULT",
+        language: str = "ru"
     ) -> PresentationDTO:
         """
         Main function to create a presentation data transfer object.
@@ -66,8 +67,10 @@ class Presentation:
             context=context,
             number_of_slides=number_of_slides,
             template=self.template,
-            text_generation_model=self.text_generation_model
+            text_generation_model=self.text_generation_model,
+            language=language
         )
+        logger.info(text_dto)
 
         list_of_image_dto = await ImagesAdapter()(
             template=self.template,
@@ -75,6 +78,7 @@ class Presentation:
             save_path=save_path_for_images,
             image_style=image_style
         )
+        logger.info(list_of_image_dto)
 
         list_of_image_info_dto = list_of_image_dto
 
@@ -95,7 +99,7 @@ class Presentation:
             slides_count += 1
 
         if self.ending_presentation_status:
-            text_dto.titles = text_dto.titles + [ENDING_PRESENTATION_TEXT]
+            text_dto.titles = text_dto.titles + [ENDING_PRESENTATION_TEXT.get(language, "Спасибо за внимание!")]
             text_dto.slides_text_list = text_dto.slides_text_list + [[""]]
             if text_dto.subtitles_1 is not None:
                 text_dto.subtitles_1 = text_dto.subtitles_1 + [""]
@@ -103,7 +107,7 @@ class Presentation:
                 text_dto.subtitles_3 = text_dto.subtitles_3 + [""]
             list_of_image_info_dto = list_of_image_info_dto + [None]   # type: ignore
             slides_count += 1
-            finish_title = ENDING_PRESENTATION_TEXT
+            finish_title = ENDING_PRESENTATION_TEXT.get(language, "Спасибо за внимание!")
         else:
             finish_title = None
 
@@ -145,6 +149,7 @@ class Presentation:
     def save(
         data: PresentationDTO,
         save_path: str,
+        no_logo: bool,
         format: str = "pptx"
     ) -> str:
         """
@@ -153,13 +158,12 @@ class Presentation:
 
         save_path: str - a path to the folder to save a presentation
         """
-
         output_path = os.path.join(save_path, ("prs_" + str(time.time())))
         # create a folder
         os.makedirs(output_path, exist_ok=True)
 
         presentation = PresentationTemplate()
-        presentation.create_presentation(data=data, save_path=output_path)
+        presentation.create_presentation(data=data, no_logo=no_logo, save_path=output_path)
 
         presentation_save_path = Presentation.get_presentation_save_path(
             save_path=output_path,
@@ -187,7 +191,7 @@ class Presentation:
 
     @staticmethod
     def get_presentation_save_path(save_path: str, theme: str) -> str:
-        text = re.sub(r'[!/:*\\?"<>|+.]', "", theme)
+        text = re.sub(r'[\(!/:*\\?"<>|+.\)]', "", theme)
         text = re.sub(r"\s", "_", text)
 
         save_name = ""
@@ -198,3 +202,26 @@ class Presentation:
 
         presentation_save_path = os.path.join(save_path, save_name)
         return presentation_save_path
+
+    @staticmethod
+    async def generate_picture(
+        discription: str,
+        width: int,
+        height: int,
+        style: str,
+        save_path: str
+    ) -> ImageDTO:
+        """
+        For picture regeneration.
+        """
+
+        img_factory = ImgFactory()
+        image_api_obj = img_factory.get_img_api()
+
+        result = await image_api_obj.create_image(
+            save_path=save_path,
+            promt=discription,
+            width_height=f"{width} {height}",
+            style=style
+        )
+        return result
