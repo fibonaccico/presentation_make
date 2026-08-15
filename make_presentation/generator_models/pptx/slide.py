@@ -68,7 +68,21 @@ class Slide:
 
         for shape in self.slide.shapes:
             if shape.has_text_frame:
-                if shape.text == "TITLE" and self.title is not None:
+                if (
+                    shape.text.strip() == "PIC"
+                    and self.img is not None
+                    and len(self.img) > num_pic
+                    and self.pictures_setting is not None
+                ):
+                    # logger.info(f"PIC frame is found. Slide number: {self.slide_number}")
+                    self.__add_picture(
+                        shape=shape,
+                        num_pic=num_pic,
+                        settings=self.pictures_setting[num_pic],
+                    )
+                    num_pic += 1
+
+                elif shape.text == "TITLE" and self.title is not None:
                     # logger.info(f"TITLE frame is found. Slide number: {self.slide_number}")
                     text_color_slide_type = (
                         self.text_color.get(self.slide_type)
@@ -101,7 +115,7 @@ class Slide:
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
                     )
-                    shape_text = shape.text
+                    shape_text = shape.text.strip()
                     if self.subtitle_1 or self.subtitle_2 or self.subtitle_3:
                         text_number = int(shape_text[-1])
                         text_for_slide = self.text[text_number - 1]
@@ -136,7 +150,7 @@ class Slide:
                         self.text_color.get(self.slide_type)
                         if self.text_color else None
                     )
-                    shape_text = shape.text
+                    shape_text = shape.text.strip()
                     subtitle_number = int(shape_text[-1])
                     if subtitle_number == 1:
                         subtitle = self.subtitle_1
@@ -165,20 +179,6 @@ class Slide:
                         ),
                         max_chars=self.max_chars[self.slide_type]["SUBTITLE"]
                     )
-
-                elif (
-                    shape.text == "PIC"
-                    and self.img is not None
-                    and len(self.img) > num_pic
-                    and self.pictures_setting is not None
-                ):
-                    # logger.info(f"PIC frame is found. Slide number: {self.slide_number}")
-                    self.__add_picture(
-                        shape=shape,
-                        num_pic=num_pic,
-                        settings=self.pictures_setting[num_pic],
-                    )
-                    num_pic += 1
 
         if self.foreground_pictures_setting is not None:
             self.__add_foreground_images(names=self.foreground_pictures_setting)

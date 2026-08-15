@@ -24,7 +24,7 @@ logging.basicConfig(
 
 
 async def make_pres():
-    pr = Presentation(text_generation_model="ONESTEP", template="creative")
+    pr = Presentation(text_generation_model="ONESTEP", template="premium")
     task2 = await pr.make_presentation(
         context="история нашего времени последние 10 лет",
         number_of_slides=8,
@@ -49,7 +49,7 @@ async def main():
         print(task1)                                   # noqa T201
         task2 = Presentation.save(
             data=task1,
-            no_logo=False,
+            no_logo=True,
             save_path=path_to_file,
             format="pdf"
         )
