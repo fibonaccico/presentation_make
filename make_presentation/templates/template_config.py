@@ -716,9 +716,9 @@ USUAL_PICTURES: dict[str, list[list[dict[str, str]]]] = {
         [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "839 790"}],
         [],
         [
-            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 245"},
-            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 245"},
-            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 245"},
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 256"},
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 256"},
+            {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 256"},
         ],
         [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "725 1080"}],
         [],
