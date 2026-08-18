@@ -158,7 +158,7 @@ TEXT_FONT_SIZE: dict[str, dict[str, dict[str, int]]] = {
         "USUAL": {
             "TITLE": 32,
             "TEXT": 13,
-            "SUBTITLE": 14,
+            "SUBTITLE": 15,
         },
     },
     "minima": {
@@ -578,8 +578,7 @@ TEXT_FONT_SETTINGS: dict[str, dict[str, dict[str, dict[str, bool]]]] = {
         "USUAL": {
             "TITLE": {"BOLD": False, "ITALIC": False},
             "TEXT": {"BOLD": False, "ITALIC": False},
-            "SUBTITLE": {"BOLD": False, "ITALIC": False},
-
+            "SUBTITLE": {"BOLD": True, "ITALIC": False},
         },
     },
     "minima": {
@@ -850,7 +849,7 @@ TEXT_COLOR: dict[str, dict[str, dict[str, list[int]]]] = {
         "USUAL": {
             "TITLE": [255, 255, 255],
             "TEXT": [255, 255, 255],
-            "SUBTITLE": [255, 255, 255],
+            "SUBTITLE": [231, 230, 230],
         },
     },
     "black_study": {
