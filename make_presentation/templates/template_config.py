@@ -54,7 +54,7 @@ TEXT_FONT: dict[str, dict[str, dict[str, str]]] = {
         },
         "USUAL": {
             "TITLE": "Arial Black",
-	        "SUBTITLE": "Arial",
+            "SUBTITLE": "Arial",
             "TEXT": "Arial"
         },
     },
@@ -726,7 +726,7 @@ USUAL_PICTURES: dict[str, list[list[dict[str, str]]]] = {
         ],
         [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "725 1080"}],
         [],
-        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "1915 830"}],
+        [{"FIGURE": "ROUNDED RECTANGLE", "SIZE": "1719 385"}],
         [],
         [
             {"FIGURE": "ROUNDED RECTANGLE", "SIZE": "499 288"},
