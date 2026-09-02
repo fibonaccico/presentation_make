@@ -230,21 +230,20 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
 async def on_telegram_sender(message: DeliveredMessage):
     event_message = SendMessgeEventMessage(message)
     logger.info(f"Start sending from message {event_message.__dict__}")
-    if event_message.event_type not in GENERATOR_EVENT_TYPE:
-        logger.warning(f"Получено сообщение с неизвестным типом: {event_message.event_type}")
+    if event_message.from_source not in GENERATOR_EVENT_TYPE:
+        logger.warning(f"Получено сообщение с неизвестным типом: {event_message.from_source}")
         await message.channel.basic_ack(delivery_tag=message.delivery_tag)
         return
 
     try:
+        await message.channel.basic_ack(delivery_tag=message.delivery_tag)
         await send_message(
             chat_id=event_message.telegram_id,
             message=event_message.text,
             reply_markup=event_message.reply_markup)
-        await message.channel.basic_ack(delivery_tag=message.delivery_tag)
-        return
     except Exception as err:
-        logger.error(f"Message sending failed. Reason: {err}")
         await message.channel.basic_ack(delivery_tag=message.delivery_tag)
+        logger.error(f"Message sending failed. Reason: {err}")
 
 
 async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
