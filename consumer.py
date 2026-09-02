@@ -6,6 +6,7 @@ from typing import Optional
 
 import aiohttp
 import aiormq
+from aiormq.abc import DeliveredMessage
 from dotenv import load_dotenv
 from PIL import Image
 
@@ -38,7 +39,8 @@ from queue_manager.db_queries import (create_auto_pay, create_pay,
                                       update_candidate_image_db)
 from queue_manager.event_message import (EventMessage, EventType,
                                          PresentationType,
-                                         RegenerateImageEventMessage)
+                                         RegenerateImageEventMessage,
+                                         SendMessgeEventMessage)
 from queue_manager.queue_exceptions import EventTypeException
 from queue_manager.schemas import PaymentService, PayStatus, TariffTitle
 from queue_manager.services import DodoPayments, YookassaPayment
@@ -47,7 +49,7 @@ from queue_manager.SQL_responses import PresentationSQL
 load_dotenv()
 logger = get_logger()
 
-GENERATOR_EVENT_TYPE = ["web", "telegram", "max", "autopayment"]
+GENERATOR_EVENT_TYPE = ["web", "telegram", "max", "autopayment", "telegram_sender"]
 DOWNLOAD_EVENT_TYPE = ["download"]
 
 
@@ -223,6 +225,26 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
         finish_title=finish_title,
         slides=slides_dto
     )
+
+
+async def on_telegram_sender(message: DeliveredMessage):
+    event_message = SendMessgeEventMessage(message)
+    logger.info(f"Start sending from message {event_message.__dict__}")
+    if event_message.event_type not in GENERATOR_EVENT_TYPE:
+        logger.warning(f"Получено сообщение с неизвестным типом: {event_message.event_type}")
+        await message.channel.basic_ack(delivery_tag=message.delivery_tag)
+        return
+
+    try:
+        await send_message(
+            chat_id=event_message.telegram_id,
+            message=event_message.text,
+            reply_markup=event_message.reply_markup)
+        await message.channel.basic_ack(delivery_tag=message.delivery_tag)
+        return
+    except Exception as err:
+        logger.error(f"Message sending failed. Reason: {err}")
+        await message.channel.basic_ack(delivery_tag=message.delivery_tag)
 
 
 async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
@@ -547,6 +569,10 @@ async def main():
     channel_download = await connection.channel()
     declare_ok_download = await channel_download.queue_declare("download_presentation_directly_queue", durable=True)  # noqa E501
     await channel_download.basic_consume(declare_ok_download.queue, on_download_message_directly)
+
+    channel_telegram_sender = await connection.channel()
+    declare_ok_sender = await channel_telegram_sender.queue_declare("telegram_sender", durable=True)  # noqa E501
+    await channel_telegram_sender.basic_consume(declare_ok_sender.queue, on_telegram_sender)
 
     try:
         await connection.closing

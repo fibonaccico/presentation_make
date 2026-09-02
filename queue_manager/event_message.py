@@ -115,3 +115,24 @@ class RegenerateImageEventMessage:
     @property
     def candidate_image_uuid(self) -> t.Optional[str]:
         return self._generation_data.get("candidate_image_uuid")
+
+
+class SendMessgeEventMessage:
+    def __init__(self, message: DeliveredMessage):
+        self._message_data = json.loads(message.body.decode('utf-8'))
+
+    @property
+    def from_source(self) -> t.Optional[str]:
+        return self._message_data.get("from_source")
+
+    @property
+    def text(self) -> t.Optional[str]:
+        return self._message_data.get("text")
+
+    @property
+    def telegram_id(self) -> t.Optional[str]:
+        return self._message_data.get("telegram_id")
+
+    @property
+    def reply_markup(self) -> t.Optional[str]:
+        return self._message_data.get("reply_markup")
