@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import TypeVar
 
-import fitz
+# import fitz pymupdf
 from pptx import Presentation as PresentationPPTX
 
 from config.logger import get_logger
@@ -108,17 +108,17 @@ class PresentationTemplate:
 
         return result_template
 
-    def _merge_pdf_files(self, files: list[str], output_file_path: str) -> str:
-        '''
-        Not implemented now!!!!!
-        '''
+    # def _merge_pdf_files(self, files: list[str], output_file_path: str) -> str:
+    #     '''
+    #     Not implemented now!!!!!
+    #     '''
 
-        result = fitz.open()
-        for pdf in files:
-            with fitz.open(pdf) as current_file:
-                result.insert_pdf(current_file)
-        result.save(output_file_path)
-        return output_file_path
+    #     result = fitz.open()
+    #     for pdf in files:
+    #         with fitz.open(pdf) as current_file:
+    #             result.insert_pdf(current_file)
+    #     result.save(output_file_path)
+    #     return output_file_path
 
     def create_presentation(self, data: PresentationDTO, no_logo: bool, save_path: str) -> None:
         """

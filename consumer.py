@@ -6,6 +6,7 @@ from typing import Optional
 
 import aiohttp
 import aiormq
+from aiolimiter import AsyncLimiter
 from aiormq.abc import DeliveredMessage
 from dotenv import load_dotenv
 from PIL import Image
@@ -51,6 +52,8 @@ logger = get_logger()
 
 GENERATOR_EVENT_TYPE = ["web", "telegram", "max", "autopayment", "telegram_sender"]
 DOWNLOAD_EVENT_TYPE = ["download"]
+
+telegram_ratelimiter = AsyncLimiter(max_rate=27, time_period=1.0)
 
 
 async def send_document(chat_id: str, file_path: str, token: str = os.getenv("TELEGRAM_API_KEY")) -> None:
@@ -141,7 +144,7 @@ async def send_document_max(user_id: str, file_path: str, token: str = os.getenv
                     f'Сообщение: [{data_message}]. Причина: {response.reason}')
 
 
-async def send_message(chat_id: str, message: str, token: str = os.getenv("TELEGRAM_API_KEY"), reply_markup: Optional[dict] = None) -> None:
+async def send_message(chat_id: str, message: str, token: str = os.getenv("TELEGRAM_API_KEY"), reply_markup: Optional[dict] = None):
     logger.debug(f"Sending message {message} to {chat_id}. Reply markup: {reply_markup}")
     async with aiohttp.ClientSession() as session:
         url = f'https://api.telegram.org/bot{token}/sendMessage'
@@ -156,6 +159,14 @@ async def send_message(chat_id: str, message: str, token: str = os.getenv("TELEG
             async with session.post(url, data=data) as response:
                 result = await response.text()
                 logger.info(f"Send message {message} to {chat_id}. Result: {result}")
+                status = response.status
+                try:
+                    result_json = await response.json()
+                except Exception as err:
+                    logger.error(f'Ошибка json. Reason: {err}')
+                    result_json = {}
+                return status, result_json
+
         except Exception as err:
             logger.error(f'Ошибка отправки сообщения. Reason: {err}')
 
@@ -234,16 +245,36 @@ async def on_telegram_sender(message: DeliveredMessage):
         logger.warning(f"Получено сообщение с неизвестным типом: {event_message.from_source}")
         await message.channel.basic_ack(delivery_tag=message.delivery_tag)
         return
+    async with telegram_ratelimiter:
+        try:
+            status, body = await send_message(
+                chat_id=event_message.telegram_id,
+                message=event_message.text,
+                reply_markup=event_message.reply_markup)
 
-    try:
-        await message.channel.basic_ack(delivery_tag=message.delivery_tag)
-        await send_message(
-            chat_id=event_message.telegram_id,
-            message=event_message.text,
-            reply_markup=event_message.reply_markup)
-    except Exception as err:
-        await message.channel.basic_ack(delivery_tag=message.delivery_tag)
-        logger.error(f"Message sending failed. Reason: {err}")
+            if status == 200:
+                await message.channel.basic_ack(delivery_tag=message.delivery_tag)
+            elif status == 429:
+                retry_after = await body.get("parameters", {}).get("retry_after", 5)
+                logger.error(f"Поймали 429 от Telegram! Спим {retry_after} сек.")
+                await asyncio.sleep(retry_after)
+                await message.channel.basic_nack(delivery_tag=message.delivery_tag, requeue=True)
+            elif status == 403 or status == 400:
+                logger.warning(f"Ошибка отправки (пользователь недоступен, статус {status}), пользователь {event_message.telegram_id}. Удаляем задачу.")
+                await message.channel.basic_ack(delivery_tag=message.delivery_tag)
+            else:
+                logger.error(f"Telegram вернул странный статус: {status}. Возврат в очередь.")
+                await asyncio.sleep(1.0)
+                await message.channel.basic_nack(delivery_tag=message.delivery_tag, requeue=True)
+
+        except aiohttp.ClientError as net_err:
+            logger.error(f"Сетевая ошибка aiohttp: {net_err}. Повторим позже.")
+            await asyncio.sleep(2.0)
+            await message.channel.basic_nack(delivery_tag=message.delivery_tag, requeue=True)
+
+        except Exception as err:
+            logger.error(f"Message sending failed. Reason: {err}")
+            await message.channel.basic_nack(delivery_tag=message.delivery_tag, requeue=True)
 
 
 async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
@@ -570,6 +601,7 @@ async def main():
     await channel_download.basic_consume(declare_ok_download.queue, on_download_message_directly)
 
     channel_telegram_sender = await connection.channel()
+    await channel_telegram_sender.basic_qos(prefetch_count=30)
     declare_ok_sender = await channel_telegram_sender.queue_declare("telegram_sender", durable=True)  # noqa E501
     await channel_telegram_sender.basic_consume(declare_ok_sender.queue, on_telegram_sender)
 
