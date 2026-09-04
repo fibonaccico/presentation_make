@@ -600,10 +600,10 @@ async def main():
     declare_ok_download = await channel_download.queue_declare("download_presentation_directly_queue", durable=True)  # noqa E501
     await channel_download.basic_consume(declare_ok_download.queue, on_download_message_directly)
 
-    channel_telegram_sender = await connection.channel()
-    await channel_telegram_sender.basic_qos(prefetch_count=30)
-    declare_ok_sender = await channel_telegram_sender.queue_declare("telegram_sender", durable=True)  # noqa E501
-    await channel_telegram_sender.basic_consume(declare_ok_sender.queue, on_telegram_sender)
+    # channel_telegram_sender = await connection.channel()
+    # await channel_telegram_sender.basic_qos(prefetch_count=30)
+    # declare_ok_sender = await channel_telegram_sender.queue_declare("telegram_sender", durable=True)  # noqa E501
+    # await channel_telegram_sender.basic_consume(declare_ok_sender.queue, on_telegram_sender)
 
     try:
         await connection.closing
