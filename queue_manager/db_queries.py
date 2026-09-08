@@ -367,11 +367,16 @@ async def get_user_by_telegram_id(telegram_id: str):
 
 
 async def update_user_is_deleted_status_to_false(telegram_id: str):
+    update_user_query = text("""
+        UPDATE public.user
+        SET is_deleted = false
+        WHERE telegram_id = :telegram_id
+    """)
+    update_user_params = {
+        "telegram_id": telegram_id
+    }
     async with AsyncSessionLocal() as db:
-        await db.execute(
-            text("UPDATE public.user SET is_deleted = false WHERE telegram_id = :telegram_id"),
-            {"telegram_id": telegram_id}
-        )
+        await db.execute(update_user_query, update_user_params)
         await db.commit()
 
 
