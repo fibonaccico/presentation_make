@@ -368,10 +368,11 @@ async def get_user_by_telegram_id(telegram_id: str):
 
 async def update_user_is_deleted_status_to_false(telegram_id: str):
     async with AsyncSessionLocal() as db:
-        return (await db.execute(
+        await db.execute(
             text("UPDATE public.user SET is_deleted = false WHERE telegram_id = :telegram_id"),
             {"telegram_id": telegram_id}
-        ))
+        )
+        await db.commit()
 
 
 async def get_locale_by_user_uuid(user_uuid: str) -> str:

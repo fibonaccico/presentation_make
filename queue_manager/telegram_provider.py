@@ -4,7 +4,6 @@ import os
 from typing import Optional
 
 import aiohttp
-from aiolimiter import AsyncLimiter
 from dotenv import load_dotenv
 
 from config.logger import get_logger
