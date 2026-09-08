@@ -1,8 +1,6 @@
 import asyncio
-import json
+import functools
 import os
-from datetime import datetime, timedelta
-from typing import Optional
 
 import aiohttp
 import aiormq
@@ -26,26 +24,28 @@ from config.messages import (FORBBIDEN_ERROR_MESSAGE_EN,
 from make_presentation import Presentation
 from make_presentation.api_models.text.openai_api import ForbiddenContent
 from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
-from queue_manager.db_queries import (create_auto_pay, create_pay,
+from queue_manager.db_queries import (create_auto_pay,
                                       create_presentation_adapter,
                                       get_image_by_uuid, get_last_user_payment,
                                       get_locale_by_user_uuid,
                                       get_presentation_dto_or_none,
-                                      get_tariff_data, get_user_by_user_uuid,
-                                      get_user_referral_code,
+                                      get_tariff_data, get_user_referral_code,
                                       reduce_balance_by_user_uuid,
                                       remove_auto_pay_for_user,
                                       set_presentation_local_file_path,
                                       telegram_id_by_user_uuid,
-                                      update_candidate_image_db)
+                                      update_candidate_image_db,
+                                      update_user_is_deleted_status_to_false)
 from queue_manager.event_message import (EventMessage, EventType,
                                          PresentationType,
                                          RegenerateImageEventMessage,
                                          SendMessgeEventMessage)
 from queue_manager.queue_exceptions import EventTypeException
 from queue_manager.schemas import PaymentService, PayStatus, TariffTitle
-from queue_manager.services import DodoPayments, YookassaPayment
+from queue_manager.services import YookassaPayment
 from queue_manager.SQL_responses import PresentationSQL
+from queue_manager.telegram_provider import (send_document, send_document_max,
+                                             send_message, send_message_max)
 
 load_dotenv()
 logger = get_logger()
@@ -54,141 +54,6 @@ GENERATOR_EVENT_TYPE = ["web", "telegram", "max", "autopayment", "telegram_sende
 DOWNLOAD_EVENT_TYPE = ["download"]
 
 telegram_ratelimiter = AsyncLimiter(max_rate=27, time_period=1.0)
-
-
-async def send_document(chat_id: str, file_path: str, token: str = os.getenv("TELEGRAM_API_KEY")) -> None:
-    filename = file_path.split('/')[-1]
-    logger.info(f"Sending file {file_path} to {chat_id}")
-
-    async with aiohttp.ClientSession() as session:
-        url = f'https://api.telegram.org/bot{token}/sendDocument'
-        with open(file_path, 'rb') as file:
-            data = aiohttp.FormData()
-            # reply_markup = [
-            #     [
-            #         {'text': '⭐Поставьте оценку/Rate⭐', 'callback_data': 'none'},
-            #     ],
-            #     [
-            #         {'text': '1', 'callback_data': 'rev_1'},
-            #         {'text': '2', 'callback_data': 'rev_2'},
-            #         {'text': '3', 'callback_data': 'rev_3'},
-            #         {'text': '4', 'callback_data': 'rev_4'},
-            #         {'text': '5', 'callback_data': 'rev_5'},
-            #     ]
-            # ]
-
-            # data.add_field('inline_keyboard', reply_markup)
-            data.add_field('chat_id', chat_id)
-            data.add_field('document', file, filename=filename)
-            try:
-                async with session.post(url, data=data) as response:
-                    result = await response.text()
-                    logger.info(f"Send file: [{file_path}] to user {chat_id}. Result: {result}")
-
-            except Exception as err:
-                logger.error(f"Cannot send file: [{file_path}] to user {chat_id}. Reason: {err}")
-
-
-async def send_document_max(user_id: str, file_path: str, token: str = os.getenv("MAX_API_KEY")) -> None:
-    filename = file_path.split('/')[-1]
-    logger.info(f"Пользователь [user_id: {user_id}]. Sending file {file_path} to {user_id} into MAX")
-    headers = {
-        'Authorization': token,
-        'Content-Type': 'application/json'
-    }
-    # получение ссылки для загрузки файла
-    async with aiohttp.ClientSession() as session:
-        url_to_get_link = "https://platform-api.max.ru/uploads?type=file"
-        try:
-            async with session.post(url=url_to_get_link, headers=headers) as response:
-                res = await response.json()
-                link_to_upload = dict(res).get("url")
-                logger.info(f'Пользователь [user_id: {user_id}]. Got link to file upload. link: {link_to_upload}')
-        except Exception as err:
-            logger.error(f"Пользователь [user_id: {user_id}]. Cannot get link to upload. Reason: {err}")
-
-    # загрузка файла по полученной ссылке link_to_upload
-        with open(file_path, 'rb') as file:
-            data = aiohttp.FormData()
-            data.add_field('document', file, filename=filename)
-            try:
-                async with session.post(link_to_upload, data=data) as response:
-                    result = await response.json()
-                    file_token = dict(result).get("token")
-                    logger.info(f"Пользователь [user_id: {user_id}]. Файл загружен: [{file_path}]. Result: {result}")
-            except Exception as err:
-                logger.error(f"Пользователь [user_id: {user_id}]. Cannot upload file: [{file_path}]. Reason: {err}")
-
-        await asyncio.sleep(2.0)
-        data_message = {
-            "text": "",
-            "attachments": [
-                {
-                    "type": "file",
-                    "payload": {
-                        "token": file_token
-                    }
-                }
-            ]
-        }
-
-        url = f'https://platform-api.max.ru/messages?user_id={user_id}'
-        async with session.post(url, json=data_message, headers=headers) as response:
-            status = response.status
-            if status == 200:
-                logger.debug(f'Сообщение [{data_message}] отправлено пользователю в MAX [user_id: {user_id}]')
-                await response.text()
-            else:
-                logger.error(
-                    f'Ошибка отправки сообщения польователю в MAX [user_id: {user_id}]. '
-                    f'Сообщение: [{data_message}]. Причина: {response.reason}')
-
-
-async def send_message(chat_id: str, message: str, token: str = os.getenv("TELEGRAM_API_KEY"), reply_markup: Optional[dict] = None):
-    logger.debug(f"Sending message {message} to {chat_id}. Reply markup: {reply_markup}")
-    async with aiohttp.ClientSession() as session:
-        url = f'https://api.telegram.org/bot{token}/sendMessage'
-        data = aiohttp.FormData()
-        data.add_field('chat_id', chat_id)
-        data.add_field('text', message)
-
-        if reply_markup:
-            logger.debug('Сообщение c клавиатурой')
-            data.add_field("reply_markup", json.dumps(reply_markup))
-        try:
-            async with session.post(url, data=data) as response:
-                result = await response.text()
-                logger.info(f"Send message {message} to {chat_id}. Result: {result}")
-                status = response.status
-                try:
-                    result_json = await response.json()
-                except Exception as err:
-                    logger.error(f'Ошибка json. Reason: {err}')
-                    result_json = {}
-                return status, result_json
-
-        except Exception as err:
-            logger.error(f'Ошибка отправки сообщения. Reason: {err}')
-
-
-async def send_message_max(user_id: str, message: str, token: str = os.getenv("MAX_API_KEY")) -> None:
-    headers = {
-        'Authorization': token,
-        'Content-Type': 'application/json'
-    }
-    data = {'text': message}
-
-    async with aiohttp.ClientSession() as session:
-        url = f'https://platform-api.max.ru/messages?user_id={user_id}'
-        async with session.post(url, json=data, headers=headers) as response:
-            status = response.status
-            if status == 200:
-                logger.debug(f'Сообщение [{message}] отправлено пользователю в MAX [user_id: {user_id}]')
-                await response.text()
-            else:
-                logger.error(
-                    f'Ошибка отправки сообщения польователю в MAX [user_id: {user_id}]. '
-                    f'Сообщение: [{message}]. Причина: {response.reason}')
 
 
 def delete_presentation_file(file_path: str):
@@ -238,16 +103,17 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
     )
 
 
-async def on_telegram_sender(message: DeliveredMessage):
+async def on_telegram_sender(message: DeliveredMessage, session: aiohttp.ClientSession):
     event_message = SendMessgeEventMessage(message)
     logger.info(f"Start sending from message {event_message.__dict__}")
-    if event_message.from_source not in GENERATOR_EVENT_TYPE:
-        logger.warning(f"Получено сообщение с неизвестным типом: {event_message.from_source}")
-        await message.channel.basic_ack(delivery_tag=message.delivery_tag)
-        return
+    # if event_message.from_source not in GENERATOR_EVENT_TYPE:
+    #     logger.warning(f"Получено сообщение с неизвестным типом: {event_message.from_source}")
+    #     await message.channel.basic_ack(delivery_tag=message.delivery_tag)
+    #     return
     async with telegram_ratelimiter:
         try:
             status, body = await send_message(
+                session=session,
                 chat_id=event_message.telegram_id,
                 message=event_message.text,
                 reply_markup=event_message.reply_markup)
@@ -261,6 +127,7 @@ async def on_telegram_sender(message: DeliveredMessage):
                 await message.channel.basic_nack(delivery_tag=message.delivery_tag, requeue=True)
             elif status == 403 or status == 400:
                 logger.warning(f"Ошибка отправки (пользователь недоступен, статус {status}), пользователь {event_message.telegram_id}. Удаляем задачу.")
+                await update_user_is_deleted_status_to_false(telegram_id=event_message.telegram_id)
                 await message.channel.basic_ack(delivery_tag=message.delivery_tag)
             else:
                 logger.error(f"Telegram вернул странный статус: {status}. Возврат в очередь.")
@@ -356,7 +223,7 @@ async def on_autopayment_message(message: aiormq.abc.DeliveredMessage):
 
 
 # b'{"event_type":"telegram","generation_data":{"save_presentation_path": /path/to/pres, "type":"topic","user_uuid":"ogo","presentation_uuid":"gogo","text_generation_model":"wdef","template":"dsf","no_logo":true, "language": "ru", "save_path_for_images":"sds","context":"dfds"}}'  # noqa E800, E501
-async def on_generator_message(message):
+async def on_generator_message(message: aiormq.abc.DeliveredMessage, session: aiohttp.ClientSession):
     event_message = EventMessage(message)
 
     logger.info(f"Starting generate from message {event_message.__dict__}")
@@ -401,10 +268,11 @@ async def on_generator_message(message):
                     logger.info(f"Платеж: {db_pay.uuid}, presentation quantity {db_pay.paid_qty}, tariff - {tariff_data.title}")
                     for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
                         await send_document(
-                            user_telegram_id,
-                            file
+                            session=session,
+                            chat_id=user_telegram_id,
+                            file_path=file
                         )
-                    await send_message(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
+                    await send_message(session=session, chat_id=user_telegram_id, message=TELEGRAM_CLOSING_MESSAGE)
                     if db_pay.paid_qty == 1 and tariff_data.title == TariffTitle.AFTER_REGISTRATION.value:
                         logger.info(f"The last free presentation has been used. {db_pay.uuid}")
                         referral_code = await get_user_referral_code(user_uuid=event_message.user_uuid)
@@ -424,23 +292,24 @@ async def on_generator_message(message):
                                 ]
                             ]
                         }
-                        await send_message(chat_id=user_telegram_id, message=FREE_PRES_ENDED_MESSAGE, reply_markup=reply_markup)
+                        await send_message(session=session, chat_id=user_telegram_id, message=FREE_PRES_ENDED_MESSAGE, reply_markup=reply_markup)
                 else:
                     for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
                         await send_document_max(
-                            user_telegram_id,
-                            file
+                            session=session,
+                            user_id=user_telegram_id,
+                            file_path=file
                         )
-                    await send_message_max(user_telegram_id, TELEGRAM_CLOSING_MESSAGE)
+                    await send_message_max(session=session, user_id=user_telegram_id, message=TELEGRAM_CLOSING_MESSAGE)
         else:
             if locale == "ru":
                 generation_error_text = GENERATION_ERROR_MESSAGE_RU
             else:
                 generation_error_text = GENERATION_ERROR_MESSAGE_EN
             if event_message.event_type == EventType.TELEGRAM.value:
-                await send_message(user_telegram_id, message=generation_error_text)
+                await send_message(session=session, chat_id=user_telegram_id, message=generation_error_text)
             if event_message.event_type == EventType.MAX.value:
-                await send_message_max(user_telegram_id, message=generation_error_text)
+                await send_message_max(session=session, user_id=user_telegram_id, message=generation_error_text)
 
             logger.error(f"Пользователь [user_id = {user_telegram_id}]. No generation data. Error is into creating presentation. Presentation generation failed: {event_message.presentation_uuid}. ")
             await message.channel.basic_nack(
@@ -454,9 +323,9 @@ async def on_generator_message(message):
         else:
             generation_error_text = FORBBIDEN_ERROR_MESSAGE_EN
         if event_message.event_type == EventType.TELEGRAM.value:
-            await send_message(user_telegram_id, message=generation_error_text)
+            await send_message(session=session, chat_id=user_telegram_id, message=generation_error_text)
         if event_message.event_type == EventType.MAX.value:
-            await send_message_max(user_telegram_id, message=generation_error_text)
+            await send_message_max(session=session, user_id=user_telegram_id, message=generation_error_text)
         await message.channel.basic_nack(
             message.delivery.delivery_tag,
             requeue=False
@@ -468,9 +337,9 @@ async def on_generator_message(message):
         else:
             generation_error_text = GENERATION_ERROR_MESSAGE_EN
         if event_message.event_type == EventType.TELEGRAM.value:
-            await send_message(user_telegram_id, message=generation_error_text)
+            await send_message(session=session, chat_id=user_telegram_id, message=generation_error_text)
         if event_message.event_type == EventType.MAX.value:
-            await send_message_max(user_telegram_id, message=generation_error_text)
+            await send_message_max(session=session, user_id=user_telegram_id, message=generation_error_text)
 
         logger.error(f"Пользователь [user_id = {user_telegram_id}]. Presentation generation failed: {event_message.presentation_uuid}. Reason: [{err}]")
         await message.channel.basic_nack(
@@ -479,7 +348,7 @@ async def on_generator_message(message):
         )
 
 
-async def on_download_message(message):
+async def on_download_message(message, session: aiohttp.ClientSession):
     event_message = EventMessage(message)
     await message.channel.basic_ack(
         message.delivery.delivery_tag
@@ -505,15 +374,16 @@ async def on_download_message(message):
 
                     logger.info(f"Sending presentation {event_message.save_presentation_path} to {telegram_id}")   # noqa E501
                     await send_document(
-                        telegram_id,
-                        presentation_path
+                        session=session,
+                        chat_id=telegram_id,
+                        file_path=presentation_path
                     )
                 except Exception as e:
                     if locale == "ru":
                         sending_fail_text = SENDING_FAIL_RU
                     else:
                         sending_fail_text = SENDING_FAIL_EN
-                    await send_message(telegram_id, sending_fail_text)
+                    await send_message(session=session, chat_id=telegram_id, message=sending_fail_text)
                     logger.error(f"Presentation sending failed: {e}")
 
         case _:
@@ -578,32 +448,38 @@ async def main():
     )
 
     logger.info("Start consuming")
-    channel_generator = await connection.channel()
-    await channel_generator.basic_qos(prefetch_count=40)
-    declare_ok_generator = await channel_generator.queue_declare("generator_queue", durable=True)
-    await channel_generator.basic_consume(declare_ok_generator.queue, on_generator_message)
+    async with aiohttp.ClientSession() as session:
+        channel_generator = await connection.channel()
+        await channel_generator.basic_qos(prefetch_count=40)
+        declare_ok_generator = await channel_generator.queue_declare("generator_queue", durable=True)
+        bound_callback_generator_queue = functools.partial(on_generator_message, session=session)
+        await channel_generator.basic_consume(declare_ok_generator.queue, bound_callback_generator_queue)
 
-    channel_autopayment = await connection.channel()
-    await channel_autopayment.basic_qos(prefetch_count=1)
-    declare_ok_payment = await channel_autopayment.queue_declare("autopayment_queue", durable=True)
-    await channel_autopayment.basic_consume(declare_ok_payment.queue, on_autopayment_message)
+        channel_autopayment = await connection.channel()
+        await channel_autopayment.basic_qos(prefetch_count=1)
+        declare_ok_payment = await channel_autopayment.queue_declare("autopayment_queue", durable=True)
+        await channel_autopayment.basic_consume(declare_ok_payment.queue, on_autopayment_message)
 
-    channel_download = await connection.channel()
-    declare_ok_download = await channel_download.queue_declare("download_presentation_queue", durable=True)    # noqa E501
-    await channel_download.basic_consume(declare_ok_download.queue, on_download_message)
+        channel_download = await connection.channel()
+        declare_ok_download = await channel_download.queue_declare("download_presentation_queue", durable=True)    # noqa E501
+        bound_callback_download_presentation = functools.partial(on_download_message, session=session)
+        await channel_download.basic_consume(declare_ok_download.queue, bound_callback_download_presentation)
 
-    channel_download = await connection.channel()
-    declare_ok_download = await channel_download.queue_declare("regenerate_image", durable=True)  # noqa E501
-    await channel_download.basic_consume(declare_ok_download.queue, on_regenerate_image)
+        channel_download = await connection.channel()
+        declare_ok_download = await channel_download.queue_declare("regenerate_image", durable=True)  # noqa E501
+        await channel_download.basic_consume(declare_ok_download.queue, on_regenerate_image)
 
-    channel_download = await connection.channel()
-    declare_ok_download = await channel_download.queue_declare("download_presentation_directly_queue", durable=True)  # noqa E501
-    await channel_download.basic_consume(declare_ok_download.queue, on_download_message_directly)
+        channel_download = await connection.channel()
+        declare_ok_download = await channel_download.queue_declare("download_presentation_directly_queue", durable=True)  # noqa E501
+        await channel_download.basic_consume(declare_ok_download.queue, on_download_message_directly)
 
-    # channel_telegram_sender = await connection.channel()
-    # await channel_telegram_sender.basic_qos(prefetch_count=30)
-    # declare_ok_sender = await channel_telegram_sender.queue_declare("telegram_sender", durable=True)  # noqa E501
-    # await channel_telegram_sender.basic_consume(declare_ok_sender.queue, on_telegram_sender)
+        channel_telegram_sender = await connection.channel()
+        await channel_telegram_sender.basic_qos(prefetch_count=30)
+        declare_ok_sender = await channel_telegram_sender.queue_declare("telegram_sender", durable=True)  # noqa E501
+        bound_callback_tg_sender = functools.partial(on_telegram_sender, session=session)
+        await channel_telegram_sender.basic_consume(declare_ok_sender.queue, bound_callback_tg_sender)
+
+        await asyncio.Event().wait()
 
     try:
         await connection.closing

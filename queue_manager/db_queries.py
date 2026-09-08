@@ -358,6 +358,22 @@ async def get_user_by_user_uuid(user_uuid: str):
         )).first()
 
 
+async def get_user_by_telegram_id(telegram_id: str):
+    async with AsyncSessionLocal() as db:
+        return (await db.execute(
+            text("SELECT * FROM public.user WHERE telegram_id = :telegram_id"),
+            {"telegram_id": telegram_id}
+        )).first()
+
+
+async def update_user_is_deleted_status_to_false(telegram_id: str):
+    async with AsyncSessionLocal() as db:
+        return (await db.execute(
+            text("UPDATE public.user SET is_deleted = false WHERE telegram_id = :telegram_id"),
+            {"telegram_id": telegram_id}
+        ))
+
+
 async def get_locale_by_user_uuid(user_uuid: str) -> str:
     async with AsyncSessionLocal() as db:
         return (await db.execute(
@@ -443,9 +459,6 @@ async def create_pay(
     async with AsyncSessionLocal() as db:
         await db.execute(payment_query, payment_params)
         await db.commit()
-
-
-
 
 
 async def remove_auto_pay_for_user(user_uuid: str):
