@@ -242,6 +242,23 @@ async def on_generator_message(message: aiormq.abc.DeliveredMessage, session: ai
             )
             db_pay = await reduce_balance_by_user_uuid(user_uuid=event_message.user_uuid,
                                             is_paid=is_paid)
+            if not db_pay:
+                if locale == "ru":
+                    generation_error_text = GENERATION_ERROR_MESSAGE_RU
+                else:
+                    generation_error_text = GENERATION_ERROR_MESSAGE_EN
+                if event_message.event_type == EventType.TELEGRAM.value:
+                    await send_message(session=session, chat_id=user_telegram_id, message=generation_error_text)
+                if event_message.event_type == EventType.MAX.value:
+                    await send_message_max(session=session, user_id=user_telegram_id, message=generation_error_text)
+
+                logger.error(f"Пользователь [user_id = {user_telegram_id}]. NO BALANCE. Presentation generation failed: {event_message.presentation_uuid}. ")
+                await message.channel.basic_nack(
+                    message.delivery.delivery_tag,
+                    requeue=False
+                )
+                return
+
             tariff_data = await get_tariff_data(tariff_id=db_pay.tariff_id)
 
             if event_message.event_type == EventType.TELEGRAM.value or event_message.event_type == EventType.MAX.value:
