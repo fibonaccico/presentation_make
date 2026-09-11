@@ -14,7 +14,7 @@ logger = get_logger()
 load_dotenv()
 
 
-BASE_SILICONFLOW_URL = "https://api.siliconflow.com/v1/"
+BASE_SILICONFLOW_URL = "https://api.siliconflow.cn/v1/"
 SILICONFLOW_URLS: dict[str, str] = {
     "run": f"{BASE_SILICONFLOW_URL}images/generations",
 }
