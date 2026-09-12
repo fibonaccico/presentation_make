@@ -8,7 +8,7 @@ RUN apt update \
      && apt-get install -y traceroute iproute2 inetutils-ping \
      && apt-get clean \
 #     && curl -sSL https://install.python-poetry.org | python3 - \
-     && && chmod +x poetry.py && python3 poetry.py \
+     && chmod +x poetry.py && python3 poetry.py \
      && export PATH="/root/.local/bin:$PATH" \
      && ln -s /root/.local/bin/poetry /usr/local/bin/poetry \
      && rm -rf /var/lib/apt/lists/* \
