@@ -189,6 +189,7 @@ PROMPT_ONE_STEP_GENERATION = f'''
 
 
 NEGATIVE_PROMPT_SILICONFLOW = 'фотореализм, высокое качество, европейские черты лица'
+ADDITIONAL_PROMPT_FOR_IMAGE_GENERATION = 'фотореализм, высокое качество, европейские черты лица'
 
 
 PROMPT_GENERATION_FROM_TEXT_ONE_STEP = f"""

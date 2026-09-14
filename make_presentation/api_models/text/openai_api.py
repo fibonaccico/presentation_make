@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from openai import APIError, AsyncOpenAI
+from openai import AsyncOpenAI
 
 from config.logger import get_logger
 from make_presentation.api_models.interfaces import TextAPIProtocol
@@ -18,11 +18,11 @@ class ForbiddenContent(Exception):
 
 class OpenAIRequest(TextAPIProtocol):
     def __init__(self):
+        # self.api = AsyncOpenAI(
+        #     api_key=os.getenv("PROXY_API"),
+        #     base_url="https://api.proxyapi.ru/openai/v1",
+        # )
         self.api = AsyncOpenAI(
-            api_key=os.getenv("PROXY_API"),
-            base_url="https://api.proxyapi.ru/openai/v1",
-        )
-        self.moderation_api = AsyncOpenAI(
             api_key=os.getenv("OPENAI_API_KEY")
         )
 
@@ -32,17 +32,17 @@ class OpenAIRequest(TextAPIProtocol):
     ) -> str | list[str | dict]:
         try:
 
-            # response = await self.moderation_api.moderations.create(
-            #     model="omni-moderation-latest",
-            #     input=text
-            # )
-            # result = response.results[0]
-            # if result.flagged:
-            #     logger.warning(f'ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Content: [{text}]')
-            #     violated_categories = [
-            #         cat for cat, flagged in result.categories.model_dump().items() if flagged
-            #     ]
-            #     raise ForbiddenContent(f"ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Категории нарушений: {violated_categories}")
+            response = await self.api.moderations.create(
+                model="omni-moderation-latest",
+                input=text
+            )
+            result = response.results[0]
+            if result.flagged:
+                logger.warning(f'ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Content: [{text}]')
+                violated_categories = [
+                    cat for cat, flagged in result.categories.model_dump().items() if flagged
+                ]
+                raise ForbiddenContent(f"ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Категории нарушений: {violated_categories}")
 
             chat_completion = await self.api.chat.completions.create(
                 model="gpt-4.1-nano",
