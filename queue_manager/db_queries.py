@@ -250,17 +250,42 @@ async def _create_presentation_raw(
     await db.commit()
 
 
-async def reduce_balance_by_user_uuid(user_uuid: str, is_paid: bool, *, qty: int = -1):
-    query = text("""
-    SELECT * FROM pay
-    WHERE user_uuid = :user_uuid AND status = 'succeeded' AND paid_qty != 0
-    ORDER BY created_at ASC
-    LIMIT 1
-    """)
+
+async def has_balance_by_user_uuid(user_uuid: str, is_paid: bool) -> bool:
     if is_paid:
         query = text("""
         SELECT * FROM pay
         WHERE user_uuid = :user_uuid AND status = 'succeeded' AND paid_qty != 0 AND sum > 0
+        ORDER BY created_at ASC
+        LIMIT 1
+        """)
+    else:
+        query = text("""
+        SELECT * FROM pay
+        WHERE user_uuid = :user_uuid AND status = 'succeeded' AND paid_qty != 0
+        ORDER BY created_at ASC
+        LIMIT 1
+        """)
+    query_param = {"user_uuid": user_uuid}
+    async with AsyncSessionLocal() as db:
+        if (await db.execute(query, query_param)).mappings().first():
+            return True
+        else:
+            return False
+
+
+async def reduce_balance_by_user_uuid(user_uuid: str, is_paid: bool, *, qty: int = -1):
+    if is_paid:
+        query = text("""
+        SELECT * FROM pay
+        WHERE user_uuid = :user_uuid AND status = 'succeeded' AND paid_qty != 0 AND sum > 0
+        ORDER BY created_at ASC
+        LIMIT 1
+        """)
+    else:
+        query = text("""
+        SELECT * FROM pay
+        WHERE user_uuid = :user_uuid AND status = 'succeeded' AND paid_qty != 0
         ORDER BY created_at ASC
         LIMIT 1
         """)
@@ -342,6 +367,25 @@ async def create_presentation_adapter(message: EventMessage) -> PresentationDTO:
     return pr
 
 
+async def set_presentation_status_to_failed(presentation_uuid: str):
+    err_pr_status_query = text("""
+                        UPDATE presentation
+                        SET status = :status
+                        WHERE uuid = :presentation_uuid
+                        """)
+    err_pr_status_query_params = {
+        "status": PresentationStatus.ERROR.value,
+        "presentation_uuid": presentation_uuid
+    }
+    try:
+        async with AsyncSessionLocal() as db:
+            await db.execute(err_pr_status_query, err_pr_status_query_params)
+            await db.commit()
+            logger.info(f"Presentation {presentation_uuid} set status failed.")
+    except Exception as err:
+        logger.error(f"Presentation {presentation_uuid} can't set status failed. Reason: {err}")
+
+
 async def telegram_id_by_user_uuid(user_uuid: str):
     async with AsyncSessionLocal() as db:
         return (await db.execute(
@@ -386,6 +430,14 @@ async def get_locale_by_user_uuid(user_uuid: str) -> str:
             text("SELECT settings FROM public.user WHERE uuid = :user_uuid"),
             {"user_uuid": user_uuid}
         )).scalars().first().get("locale")
+
+
+async def get_status_by_user_uuid(user_uuid: str) -> str:
+    async with AsyncSessionLocal() as db:
+        return (await db.execute(
+            text("SELECT status FROM public.user WHERE uuid = :user_uuid"),
+            {"user_uuid": user_uuid}
+        )).scalars().first()
 
 
 async def get_last_user_payment(user_uuid: str):

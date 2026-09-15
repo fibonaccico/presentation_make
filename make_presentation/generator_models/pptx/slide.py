@@ -243,10 +243,10 @@ class Slide:
                 font_file=os.path.join(path_to_fonts, f"{text_font}.ttf")
             )
         except OSError:
-            logger.error("Could not set text fonts because of unsuppored OS.")
+            logger.info("Could not set text fonts because of unsuppored OS.")
             raise FontDoesNotExistError("There is no font file.")
         except TypeError:
-            logger.error("Could not fit text because of litle text frame.")
+            logger.info("Could not fit text because of litle text frame.")
 
     def __add_picture(self, shape: Any, num_pic: int, settings: dict[str, str]) -> None:
         if self.img:

@@ -28,6 +28,9 @@ I'm currently having some technical work done on my system.
 Try entering your topic again later, there's a chance it will work😉
 """
 
+NO_BALANCE_ERROR_MESSAGE_RU = 'Не удалось сгенерировать презентацию. Недостаточно презентаций на балансе или Вы хотите сгенерировать презентацию по тексту, которая доступна только при покупке презентаций 😌 '
+NO_BALANCE_ERROR_MESSAGE_EN = 'Failed to generate the presentation. Insufficient presentations on the balance or you are creating presentation from text that is only available with a purchased plan 😌 '
+
 SENDING_FAIL_RU = "Ошибка отправки презентации. Попробуй еще раз или обратись к администратору."
 
 SENDING_FAIL_EN = "Presentation sending error. Please try again or contact the administrator."
