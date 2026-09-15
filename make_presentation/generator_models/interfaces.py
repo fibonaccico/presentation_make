@@ -13,6 +13,7 @@ class TextGeneratorProtocol(Protocol):
         slides_count: Optional[int],
         api: TextAPIProtocol,
         context: str,
+        language: str,
         template: Optional[str]
     ) -> TextDTO:
         raise NotImplementedError

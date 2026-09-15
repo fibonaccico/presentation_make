@@ -1,16 +1,17 @@
 import asyncio
 import base64
 import json
-import logging
 import os
 import time
 from io import BytesIO
 from typing import Optional
+from uuid import UUID
 
 import aiohttp
 from dotenv import load_dotenv
 from PIL import Image
 
+from config.logger import get_logger
 from make_presentation.api_models.interfaces import ImageAPIProtocol
 from make_presentation.config import (BASE_KANDINSKY_URL, KANDINSKY_URLS,
                                       MAX_TIME_IMAGE_GENERATION)
@@ -18,9 +19,17 @@ from make_presentation.DTO import ImageDTO
 
 from ..errors import BadRequestError, ImageGenerationFailedError, TimeOutError
 
-logger = logging.getLogger(name=__name__)
+logger = get_logger()
 
 load_dotenv()
+
+
+class UUIDEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, UUID):
+            # if the obj is uuid, we simply return the value of uuid
+            return obj.hex
+        return json.JSONEncoder.default(self, obj)
 
 
 class KandinskyAPI(ImageAPIProtocol):
@@ -42,18 +51,24 @@ class KandinskyAPI(ImageAPIProtocol):
                 url=self.urls["models"], headers=self.AUTH_HEADERS
             ) as response:
                 data = await response.json()
-                return data[0]["id"]
+                logger.info(f"Model data: {data}")
+                try:
+                    logger.info(f"Kandinsky used model: = {data[1].get('version')}")
+                    return data[1]["id"]
+                except IndexError as err:
+                    logger.error(f"Error after geting Kandinsky model 3.1: reason: {err}")
+                    logger.info(f"Kandinsky used model: = {data[0].get('version')}")
+                    return data[0]["id"]
 
     async def create_image(
         self,
         save_path: Optional[str],
         promt: str = "Cat",
         width_height="1024 1024",
-        negative_prompt: str = "",
         images: int = 1,
         model: Optional[int] = None,
         style: str = "DEFAULT",
-        art_gpt: bool = False,
+        negative_prompt="",
         max_time: int = MAX_TIME_IMAGE_GENERATION,
     ) -> ImageDTO:
         """
@@ -68,22 +83,22 @@ class KandinskyAPI(ImageAPIProtocol):
                    only model available for API connection);
         max_time - max time generation max time before function returns error
         """
+        logger.warning("Start create image using Kandinsky")
 
-        if not model:
+        if model is None:
             model = await self.get_model()
+        logger.warning(f"Kandinsky model is {model}")
 
         width, height = map(int, width_height.split(" "))
-
         params = {
             "type": "GENERATE",
             "numImages": images,
             "style": style,
             "width": width,
             "height": height,
-            "censor": {"useGigaBeautificator": art_gpt},
             "generateParams": {"query": promt},
-            "negativePromptDecoder": negative_prompt,
         }
+        pipeline_id = str(model)
 
         data = aiohttp.FormData()
         data.add_field(
@@ -92,7 +107,7 @@ class KandinskyAPI(ImageAPIProtocol):
             content_type="application/json",
         )
 
-        data.add_field("model_id", str(model))
+        data.add_field("pipeline_id", pipeline_id)
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
@@ -106,15 +121,15 @@ class KandinskyAPI(ImageAPIProtocol):
         uuid = result["uuid"]
         image_result = await self._check_status(uuid=uuid, max_time=max_time)
         image_data = BytesIO(image_result["data"].getvalue())
-        image = Image.open(image_data)
+        image = Image.open(image_data).convert('RGB')
 
         if save_path:
-            path = f"{save_path}/{uuid}.png"
+            path = f"{save_path}/{uuid}.jpg"
             image.save(fp=path)
         else:
             path = None
 
-        return ImageDTO(image=image, path=path, description=promt)
+        return ImageDTO(image=image, path=path, description=promt, style=style)
 
     async def get_styles(self) -> list[dict[str, str]]:
         async with aiohttp.ClientSession() as session:
@@ -149,15 +164,15 @@ class KandinskyAPI(ImageAPIProtocol):
                     else:
                         result = await resp.json()
                     if result["status"] == "DONE":
-                        if result["censored"]:
+                        if result["result"]["censored"]:
                             logger.info(f"CENSORED PICTURE: UUID = {uuid}")
                             return {
-                                "data": BytesIO(base64.b64decode(result["images"][0])),
+                                "data": BytesIO(base64.b64decode(result["result"]["files"][0])),
                             }
                         else:
                             logger.info(f"PICTURE HAS BEEN GENERATED: UUID = {uuid}")
                             return {
-                                "data": BytesIO(base64.b64decode(result["images"][0])),
+                                "data": BytesIO(base64.b64decode(result["result"]["files"][0])),
                             }
                     elif result["status"] == "FAIL":
                         logger.error(f"FATAL GENERATION PICTURE: UUID = {uuid}")
