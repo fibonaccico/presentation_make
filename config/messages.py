@@ -4,7 +4,9 @@ TELEGRAM_CLOSING_MESSAGE_RU = """
 2. PowerPoint, если нужно что-то отредактировать✍🏻
 
 Важно❣️
-А если нужно поправить текст, можно это быстро сделать через наш сайт  fibonacciai.io/ru. Кстати, все твои презентации теперь хранятся там для быстрого доступа😉
+📄Если нужен доклад к презентации - зайди в наш бот и нажми кнопку Доклад @ChatGptTelegram01bot (http://t.me/ChatGptTelegram01bot)
+
+Если нужно поправить текст - можно быстро сделать через наш сайт fibonacciai.io/ru.
 """
 
 TELEGRAM_CLOSING_MESSAGE_EN = """
@@ -13,7 +15,7 @@ With care, we’re sending you 2 files:
 2. PowerPoint – for editing ✍🏻
 
 Important❣️
-Need to edit the text? Do it quickly on  fibonacciai.io/ru. All your presentations are stored there for easy access 😉
+Need to edit the text? Do it quickly on  fibonacciai.io. All your presentations are stored there for easy access 😉
 """
 
 GENERATION_ERROR_MESSAGE_RU = """
