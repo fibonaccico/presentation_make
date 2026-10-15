@@ -21,10 +21,6 @@ ENV PATH="/root/.cache/pypoetry/virtualenvs/presentation-make-9TtSrW0h-py3.11/bi
 VOLUME ["/app/presentations_images/"]
 VOLUME ["/app/presentations_files/"]
 VOLUME ["/app/log/"]
-#COPY rabbitmq.conf /etc/rabbitmq/
-#EXPOSE 5672 15672
-#CMD ["python /app/consumer.py"]
-CMD ["python", "/app/consumer.py"]
 #CMD sh -c "ip route add 149.154.160.0/20 via 172.29.0.2 && \
 #ip route add 162.159.140.245/32 via 172.29.0.2 && \
 #ip route add 172.66.0.243/32 via 172.29.0.2 && \
@@ -34,7 +30,7 @@ CMD ["python", "/app/consumer.py"]
 #ip route add 195.242.11.3/32 via 172.29.0.2 && \
 #ip route add 149.154.166.110/32 via 172.29.0.2 && \
 #ip route add 139.196.163.0/24 via 172.29.0.2 && \
-#python /app/consumer.py"
+CMD sh -c "python /app/consumer.py"
 # api.openai.com 162.159.140.245/32 172.66.0.243/32 103.224.182.250/32
 # telegram api 149.154.160.0/20 and 91.108.12.0/22
 #ip route add 149.154.160.0/20 via 172.29.0.2 && ip route add 91.108.12.0/22 via 172.29.0.2 &&
