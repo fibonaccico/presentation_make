@@ -21,8 +21,8 @@ services:
     restart: always
     networks:
       main:
-      openvpn_VPN:
-        ipv4_address: 172.29.0.3
+#      openvpn_VPN:
+#        ipv4_address: 172.29.0.3
     cap_add:
       - NET_ADMIN
     external_links:
@@ -59,6 +59,6 @@ networks:
     driver_opts:
       com.docker.network.driver.mtu: 1500
       com.docker.network.timeout: 300
-  openvpn_VPN:
-    external: true
+#  openvpn_VPN:
+#    external: true
 
