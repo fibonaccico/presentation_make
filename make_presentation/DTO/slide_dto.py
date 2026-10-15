@@ -12,7 +12,7 @@ class SlideDTO:
     number: int
     title: str
     text: list[str]
-    images: list[ImageInfoDTO] | None | list[ImageDTO]
+    images: list[ImageInfoDTO] | list[ImageDTO] | None
     subtitle_1: str | None
     subtitle_2: str | None
     subtitle_3: str | None

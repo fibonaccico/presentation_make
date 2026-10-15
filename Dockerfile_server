@@ -1,0 +1,9 @@
+# указать свой репозиторий вместо drq13/maker:v-1.0.2
+FROM drq13/maker:v-1.0.2
+WORKDIR /app
+COPY . /app
+VOLUME ["/app/presentations_images/"]
+VOLUME ["/app/presentations_files/"]
+VOLUME ["/app/log/"]
+CMD sh -c "ip route replace default via 172.29.0.2 dev eth1 && \
+python /app/consumer.py"
