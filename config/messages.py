@@ -38,28 +38,25 @@ SENDING_FAIL_RU = "Ошибка отправки презентации. Поп�
 SENDING_FAIL_EN = "Presentation sending error. Please try again or contact the administrator."
 
 FREE_PRES_ENDED_MESSAGE_RU = """
-🎯 Ты использовал бесплатные презентации
-Хочешь продолжить прямо сейчас?
+Следующая презентация может быть бесплатной! 🎁
 
-💳 Купить Тариф
-
-🎁 Бесплатно — позови друга, получи +1 презентацию. Друг тоже получит бонус.
+Выбери, как получить ещё одну бесплатную генерацию:
 """
 
 FREE_PRES_ENDED_MESSAGE_EN = """
-🎯 You’ve used up your free presentations.
-Want to keep going right now?
+Your next presentation could be free! 🎁
 
-💳 Buy Tariff
-
-🎁 Free — invite a friend and get +1 presentation. Your friend gets a bonus too.
+Choose how to get another free generation:
 """
 
-TARIFF_BUTTON_RU = '💰 Тарифы 💰'
-TARIFF_BUTTON_EN = "💰 Pricing 💰"
+TARIFF_BUTTON_RU = '💰 Выбрать тариф'
+TARIFF_BUTTON_EN = "💰 Choose a tariff"
 
-INVITE_FRIEND_BUTTON_EN = "Invite friend"
-INVITE_FRIEND_BUTTON_RU = "Позвать друга"
+INVITE_FRIEND_BUTTON_EN = "🔗 Invite friend"
+INVITE_FRIEND_BUTTON_RU = "🔗 Позвать друга"
+
+SUBSCRIBE_TO_CHANNEL_RU = "✅ Подписаться на канал"
+SUBSCRIBE_TO_CHANNEL_EN = "✅ Subscribe to the channel"
 
 INLINE_MESSAGE_RU = "Делаю презентации в боте Fibonacci AI за минуту, без регистрации — просто пишешь тему. Заходи по моей ссылке, тебе подарок на старте 👉 {link}"
 INLINE_MESSAGE_EN = "I create presentations in the Fibonacci AI bot in under a minute, with no sign-up required—just type in the topic. Use my link to get a welcome gift 👉 {link}"

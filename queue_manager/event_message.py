@@ -134,5 +134,13 @@ class SendMessgeEventMessage:
         return self._message_data.get("telegram_id")
 
     @property
-    def reply_markup(self) -> t.Optional[str]:
-        return self._message_data.get("reply_markup")
+    def keyboards(self) -> t.Optional[list[list[dict[str, str | None]]]]:
+        return self._message_data.get("keyboards")
+
+    @property
+    def media(self) -> t.Optional[dict[str, str]]:
+        return self._message_data.get("media")
+
+    @property
+    def parse_mode(self) -> t.Optional[str]:
+        return self._message_data.get("parse_mode")

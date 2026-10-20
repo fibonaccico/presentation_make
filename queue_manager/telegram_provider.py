@@ -1,52 +1,95 @@
 import asyncio
 import json
-import os
 from typing import Optional
 
 import aiohttp
-from dotenv import load_dotenv
 
 from config.logger import get_logger
+from queue_manager.config import MAX_API_KEY, TG_URLS
 
-load_dotenv()
 logger = get_logger()
 
 
-async def send_document(session: aiohttp.ClientSession, chat_id: str, file_path: str, token: str = os.getenv("TELEGRAM_API_KEY")) -> None:
-    filename = file_path.split('/')[-1]
-    logger.info(f"Sending file {file_path} to {chat_id}")
+async def send_document(
+    session: aiohttp.ClientSession,
+    chat_id: str,
+    file_path: Optional[str] = None,
+    file_id: Optional[str] = None,
+    text: Optional[str] = None,
+    parse_mode: Optional[str] = None,
+    reply_markup: Optional[list[list[dict]]] = None,
+    file_type: str = "document"
+) -> None:
+    logger.info(
+        f"Sending document or media file to {chat_id}."
+        f"File type: {file_type}, file path: {file_path}, file_id: {file_id}, "
+        f"text: {text}, reply_mark_up: {reply_markup}"
+    )
 
-    url = f'https://api.telegram.org/bot{token}/sendDocument'
-    with open(file_path, 'rb') as file:
-        data = aiohttp.FormData()
-        # reply_markup = [
-        #     [
-        #         {'text': '⭐Поставьте оценку/Rate⭐', 'callback_data': 'none'},
-        #     ],
-        #     [
-        #         {'text': '1', 'callback_data': 'rev_1'},
-        #         {'text': '2', 'callback_data': 'rev_2'},
-        #         {'text': '3', 'callback_data': 'rev_3'},
-        #         {'text': '4', 'callback_data': 'rev_4'},
-        #         {'text': '5', 'callback_data': 'rev_5'},
-        #     ]
-        # ]
+    data = aiohttp.FormData()
+    data.add_field('chat_id', chat_id)
+    if file_id:
+        data.add_field(file_type, file_id)
+    if file_path:
+        filename = file_path.split('/')[-1]
+        with open(file_path, 'rb') as file:
+            # reply_markup = [
+            #     [
+            #         {'text': '⭐Поставьте оценку/Rate⭐', 'callback_data': 'none'},
+            #     ],
+            #     [
+            #         {'text': '1', 'callback_data': 'rev_1'},
+            #         {'text': '2', 'callback_data': 'rev_2'},
+            #         {'text': '3', 'callback_data': 'rev_3'},
+            #         {'text': '4', 'callback_data': 'rev_4'},
+            #         {'text': '5', 'callback_data': 'rev_5'},
+            #     ]
+            # ]
 
-        # data.add_field('inline_keyboard', reply_markup)
-        data.add_field('chat_id', chat_id)
-        data.add_field('document', file, filename=filename)
+            # data.add_field('inline_keyboard', reply_markup)
+            data.add_field(file_type, file, filename=filename)
+    if reply_markup:
+        keyboard = {
+            "inline_keyboard": reply_markup
+        }
+        data.add_field("reply_markup", json.dumps(keyboard))
+    if text:
+        data.add_field("caption", text)
+    if parse_mode:
+        data.add_field("parse_mode", parse_mode)
+    try:
+        async with session.post(
+            url=TG_URLS.get(file_type),
+            data=data
+        ) as response:
+            result = await response.text()
+            logger.info(
+                f"Send file: [{file_path}, {file_id}] to "
+                f"user {chat_id}. Result: {result}")
+            status = response.status
         try:
-            async with session.post(url, data=data) as response:
-                result = await response.text()
-                logger.info(f"Send file: [{file_path}] to user {chat_id}. Result: {result}")
-
+            result_json = await response.json()
         except Exception as err:
-            logger.error(f"Cannot send file: [{file_path}] to user {chat_id}. Reason: {err}")
+            logger.error(f'Ошибка json. Reason: {err}')
+            result_json = {}
+        return status, result_json
+
+    except Exception as err:
+        logger.error(
+            f"Cannot send file: [{file_path}, {file_id}] "
+            f"to user {chat_id}. Reason: {err}")
 
 
-async def send_document_max(session: aiohttp.ClientSession, user_id: str, file_path: str, token: str = os.getenv("MAX_API_KEY")) -> None:
+async def send_document_max(
+    session: aiohttp.ClientSession,
+    user_id: str,
+    file_path: str,
+    token: str = MAX_API_KEY
+) -> None:
     filename = file_path.split('/')[-1]
-    logger.info(f"Пользователь [user_id: {user_id}]. Sending file {file_path} to {user_id} into MAX")
+    logger.info(
+        f"Пользователь [user_id: {user_id}]. Sending file "
+        f"{file_path} to {user_id} into MAX")
     headers = {
         'Authorization': token,
         'Content-Type': 'application/json'
@@ -57,9 +100,13 @@ async def send_document_max(session: aiohttp.ClientSession, user_id: str, file_p
         async with session.post(url=url_to_get_link, headers=headers) as response:
             res = await response.json()
             link_to_upload = dict(res).get("url")
-            logger.info(f'Пользователь [user_id: {user_id}]. Got link to file upload. link: {link_to_upload}')
+            logger.info(
+                f'Пользователь [user_id: {user_id}]. '
+                f'Got link to file upload. link: {link_to_upload}')
     except Exception as err:
-        logger.error(f"Пользователь [user_id: {user_id}]. Cannot get link to upload. Reason: {err}")
+        logger.error(
+            f"Пользователь [user_id: {user_id}]. Cannot get "
+            f"link to upload. Reason: {err}")
 
     # загрузка файла по полученной ссылке link_to_upload
     with open(file_path, 'rb') as file:
@@ -69,9 +116,13 @@ async def send_document_max(session: aiohttp.ClientSession, user_id: str, file_p
             async with session.post(link_to_upload, data=data) as response:
                 result = await response.json()
                 file_token = dict(result).get("token")
-                logger.info(f"Пользователь [user_id: {user_id}]. Файл загружен: [{file_path}]. Result: {result}")
+                logger.info(
+                    f"Пользователь [user_id: {user_id}]. "
+                    f"Файл загружен: [{file_path}]. Result: {result}")
         except Exception as err:
-            logger.error(f"Пользователь [user_id: {user_id}]. Cannot upload file: [{file_path}]. Reason: {err}")
+            logger.error(
+                f"Пользователь [user_id: {user_id}]. Cannot "
+                f"upload file: [{file_path}]. Reason: {err}")
 
     await asyncio.sleep(2.0)
     data_message = {
@@ -90,7 +141,9 @@ async def send_document_max(session: aiohttp.ClientSession, user_id: str, file_p
     async with session.post(url, json=data_message, headers=headers) as response:
         status = response.status
         if status == 200:
-            logger.debug(f'Сообщение [{data_message}] отправлено пользователю в MAX [user_id: {user_id}]')
+            logger.debug(
+                f'Сообщение [{data_message}] отправлено пользователю в MAX '
+                f'[user_id: {user_id}]')
             await response.text()
         else:
             logger.error(
@@ -98,19 +151,44 @@ async def send_document_max(session: aiohttp.ClientSession, user_id: str, file_p
                 f'Сообщение: [{data_message}]. Причина: {response.reason}')
 
 
-async def send_message(session: aiohttp.ClientSession, chat_id: str, message: str, token: str = os.getenv("TELEGRAM_API_KEY"), reply_markup: Optional[dict] = None):
-    logger.debug(f"Sending message {message} to {chat_id}. Reply markup: {reply_markup}")
+async def send_message(
+    session: aiohttp.ClientSession,
+    chat_id: str,
+    message: str,
+    reply_markup: Optional[list[list[dict]]] = None,
+    parse_mode: str = None,
+    media: Optional[dict[str, str]] = None
+):
+    logger.debug(
+        f"Sending message {message} to {chat_id}. Reply markup: {reply_markup}."
+        f"Media: {media}. Parse_mode: {parse_mode}. "
+    )
+    if media:
+        status, result_json = await send_document(
+            session=session,
+            chat_id=chat_id,
+            file_id=media.get("file_id"),
+            file_type=media.get("type"),
+            text=message,
+            parse_mode=parse_mode,
+            reply_markup=reply_markup
+        )
+        return status, result_json
 
-    url = f'https://api.telegram.org/bot{token}/sendMessage'
     data = aiohttp.FormData()
     data.add_field('chat_id', chat_id)
     data.add_field('text', message)
+    if parse_mode:
+        data.add_field('parse_mode', parse_mode)
 
     if reply_markup:
         logger.debug('Сообщение c клавиатурой')
-        data.add_field("reply_markup", json.dumps(reply_markup))
+        keyboard = {
+            "inline_keyboard": reply_markup
+        }
+        data.add_field("reply_markup", json.dumps(keyboard))
     try:
-        async with session.post(url, data=data) as response:
+        async with session.post(TG_URLS.get("message"), data=data) as response:
             result = await response.text()
             logger.info(f"Send message {message} to {chat_id}. Result: {result}")
             status = response.status
@@ -125,7 +203,12 @@ async def send_message(session: aiohttp.ClientSession, chat_id: str, message: st
         logger.error(f'Ошибка отправки сообщения. Reason: {err}')
 
 
-async def send_message_max(session: aiohttp.ClientSession, user_id: str, message: str, token: str = os.getenv("MAX_API_KEY")) -> None:
+async def send_message_max(
+    session: aiohttp.ClientSession,
+    user_id: str,
+    message: str,
+    token: str = MAX_API_KEY
+) -> None:
     headers = {
         'Authorization': token,
         'Content-Type': 'application/json'
@@ -136,7 +219,9 @@ async def send_message_max(session: aiohttp.ClientSession, user_id: str, message
     async with session.post(url, json=data, headers=headers) as response:
         status = response.status
         if status == 200:
-            logger.debug(f'Сообщение [{message}] отправлено пользователю в MAX [user_id: {user_id}]')
+            logger.debug(
+                f'Сообщение [{message}] отправлено пользователю '
+                f'в MAX [user_id: {user_id}]')
             await response.text()
         else:
             logger.error(

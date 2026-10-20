@@ -36,8 +36,7 @@ class PresentationTemplate:
         self,
         template_name: str,
         slides_count: int,
-        no_logo: bool,
-        save_path: str
+        no_logo: bool
     ) -> T:
         """
         To create presentation object from existing presentation template.
@@ -120,7 +119,7 @@ class PresentationTemplate:
     #     result.save(output_file_path)
     #     return output_file_path
 
-    def create_presentation(self, data: PresentationDTO, no_logo: bool, save_path: str) -> None:
+    async def create_presentation(self, data: PresentationDTO, no_logo: bool) -> None:
         """
         To create presentation based on a particular template.
         """
@@ -128,8 +127,7 @@ class PresentationTemplate:
         self.presentation = self._get_presentation_template(
             template_name=data.template_name,
             no_logo=no_logo,
-            slides_count=number_of_slides,
-            save_path=save_path
+            slides_count=number_of_slides
         )
         for slide in data.slides:
             if slide.number == 0:
@@ -173,7 +171,7 @@ class PresentationTemplate:
                 max_chars=MAX_CHARS[data.template_name]["max"]
             )
 
-            slide_in_pres.make_slide()
+            await slide_in_pres.make_slide()
 
         logger.info(f"A presentation {data.theme} has been created.")
 

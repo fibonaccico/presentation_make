@@ -10,6 +10,7 @@ from PIL import Image
 from pptx.dml.color import RGBColor
 
 from config.logger import get_logger
+from make_presentation.AWS_service import S3Client
 from make_presentation.config import (DEFAULT_TEXT_FONT,
                                       DEFAULT_TEXT_FONT_SETTINGS,
                                       DEFAULT_TEXT_SIZE, SCALING_FACTOR,
@@ -63,7 +64,7 @@ class Slide:
         self.foreground_pictures_setting = foreground_pictures_setting
         self.max_chars = max_chars
 
-    def make_slide(self) -> None:
+    async def make_slide(self) -> None:
         num_pic = 0
 
         for shape in self.slide.shapes:
@@ -75,7 +76,7 @@ class Slide:
                     and self.pictures_setting is not None
                 ):
                     # logger.info(f"PIC frame is found. Slide number: {self.slide_number}")
-                    self.__add_picture(
+                    await self.__add_picture(
                         shape=shape,
                         num_pic=num_pic,
                         settings=self.pictures_setting[num_pic],
@@ -248,13 +249,16 @@ class Slide:
         except TypeError:
             logger.info("Could not fit text because of litle text frame.")
 
-    def __add_picture(self, shape: Any, num_pic: int, settings: dict[str, str]) -> None:
+    async def __add_picture(self, shape: Any, num_pic: int, settings: dict[str, str]) -> None:
         if self.img:
             if len(self.img) < num_pic:
                 logger.error("Wrong picteres number.")
                 raise PicturesNumberError("Wrong picteres number.")
             if self.img[num_pic].path:
-                pic = Image.open(self.img[num_pic].path)
+                aws_S3_client = S3Client()
+                pic_bytes = await aws_S3_client.download_file(key=self.img[num_pic].path)
+                pic_buffer = BytesIO(pic_bytes)
+                pic = Image.open(pic_buffer)
             else:
                 pic = self.img[num_pic].image
         try:

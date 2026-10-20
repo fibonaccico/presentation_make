@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 from config.logger import get_logger
 from make_presentation.api_models.interfaces import ImageAPIProtocol
+from make_presentation.AWS_service import S3Client
 from make_presentation.config import NEGATIVE_PROMPT_SILICONFLOW
 from make_presentation.DTO import ImageDTO
 
@@ -65,7 +66,6 @@ class SiliconflowAPI(ImageAPIProtocol):
         data = {
             'model': 'Tongyi-MAI/Z-Image-Turbo',
             'prompt': promt + " /n" + NEGATIVE_PROMPT_SILICONFLOW,
-            # 'negative_prompt': NEGATIVE_PROMPT_SILICONFLOW,
             'image_size': f"{width}x{height}",
         }
         async with aiohttp.ClientSession() as session:
@@ -82,11 +82,20 @@ class SiliconflowAPI(ImageAPIProtocol):
 
             async with session.get(image_url) as response:
                 if response.status == 200:
-                    path = f"{save_path}/{uuid.uuid4()}.jpg"
-                    with open(path, 'wb') as file:
-                        file.write(await response.read())
-                    logger.info(f'Изображение сохранено как {path}')
+                    picture_data = await response.read()
+                    logger.info('The image from Siliconflow has been saved in RAM')
                 else:
-                    logger.error(f'Ошибка при скачивании изображения: {response.status} - {await response.text()}')
+                    logger.error(f'Image download failed: {response.status} - {await response.text()}')
 
-        return ImageDTO(image=image_url, path=path, description=promt, style=style)
+            try:
+                aws_S3_client = S3Client()
+                object_name = f"{save_path}/{uuid.uuid4()}.jpg"
+                await aws_S3_client.upload_file(
+                    data=picture_data,
+                    object_name=object_name
+                )
+                logger.info(f'Image has been saved in AWS S3 as {object_name}')
+            except Exception as err:
+                logger.error(f"Can't save image in AWS S3: reason {err}")
+
+        return ImageDTO(image=image_url, path=object_name, description=promt, style=style)

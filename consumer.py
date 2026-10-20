@@ -1,6 +1,7 @@
 import asyncio
 import functools
 import os
+from io import BytesIO
 
 import aiohttp
 import aiormq
@@ -25,6 +26,7 @@ from config.messages import (FORBBIDEN_ERROR_MESSAGE_EN,
                              TELEGRAM_CLOSING_MESSAGE_RU)
 from make_presentation import Presentation
 from make_presentation.api_models.text.openai_api import ForbiddenContent
+from make_presentation.AWS_service import S3Client
 from make_presentation.DTO import ImageInfoDTO, PresentationDTO, SlideDTO
 from queue_manager.db_queries import (create_auto_pay,
                                       create_presentation_adapter,
@@ -111,17 +113,19 @@ def create_presentation_dto(presentation_sql: PresentationSQL) -> PresentationDT
 async def on_telegram_sender(message: DeliveredMessage, session: aiohttp.ClientSession):
     event_message = SendMessgeEventMessage(message)
     logger.info(f"Start sending from message {event_message.__dict__}")
-    # if event_message.from_source not in GENERATOR_EVENT_TYPE:
-    #     logger.warning(f"Получено сообщение с неизвестным типом: {event_message.from_source}")
-    #     await message.channel.basic_ack(delivery_tag=message.delivery_tag)
-    #     return
+    if event_message.from_source not in GENERATOR_EVENT_TYPE:
+        logger.warning(f"Получено сообщение с неизвестным типом: {event_message.from_source}")
+        await message.channel.basic_ack(delivery_tag=message.delivery_tag)
+        return
     async with telegram_ratelimiter:
         try:
             status, body = await send_message(
                 session=session,
                 chat_id=event_message.telegram_id,
                 message=event_message.text,
-                reply_markup=event_message.reply_markup)
+                reply_markup=event_message.keyboards,
+                parse_mode=event_message.parse_mode,
+                media=event_message.media)
 
             if status == 200:
                 await message.channel.basic_ack(delivery_tag=message.delivery_tag)
@@ -268,7 +272,7 @@ async def on_generator_message(message: aiormq.abc.DeliveredMessage, session: ai
                     )
 
                 if event_message.event_type == EventType.TELEGRAM.value or event_message.event_type == EventType.MAX.value:
-                    file_path_pdf = Presentation.save(
+                    file_path_pdf = await Presentation.save(
                         data=presentation_data,
                         save_path=event_message.save_presentation_path,
                         no_logo=event_message.no_logo,
@@ -406,7 +410,7 @@ async def on_download_message(message, session: aiohttp.ClientSession):
 
                 try:
                     logger.info(f"Save presentation to {event_message.save_presentation_path}")
-                    presentation_path = Presentation.save(
+                    presentation_path = await Presentation.save(
                         data=create_presentation_dto(db_presentation),
                         save_path=event_message.save_presentation_path,
                         no_logo=event_message.no_logo,
@@ -444,7 +448,7 @@ async def on_download_message_directly(message):
             if db_presentation := await get_presentation_dto_or_none(presentation_uuid=event_message.presentation_uuid):      # noqa E501
                 try:
                     logger.info(f"Save presentation to {event_message.save_presentation_path}")
-                    presentation_path = Presentation.save(
+                    presentation_path = await Presentation.save(
                         data=create_presentation_dto(db_presentation),
                         save_path=event_message.save_presentation_path,
                         no_logo=True,
@@ -469,14 +473,18 @@ async def on_regenerate_image(message):
     logger.info(f"Starting regenerate image {event_message.__dict__}")
 
     current_image_db = await get_image_by_uuid(image_uuid=event_message.current_image_uuid)
-    with Image.open(current_image_db.local_file_path) as img:
-        width, height = img.size
+    aws_S3_client = S3Client()
+    pic_bytes = await aws_S3_client.download_file(key=current_image_db.local_file_path)
+    pic_buffer = BytesIO(pic_bytes)
+    with Image.open(pic_buffer) as pic:
+        width, height = pic.size
 
     new_image = await Presentation.generate_picture(
-        current_image_db.description,
-        width, height,
-        current_image_db.style,
-        os.path.dirname(current_image_db.local_file_path)
+        discription=current_image_db.description,
+        width=width,
+        height=height,
+        style=current_image_db.style,
+        save_path=os.path.dirname(current_image_db.local_file_path)
     )
 
     logger.debug(f"Create new image in db {new_image.__dict__}")

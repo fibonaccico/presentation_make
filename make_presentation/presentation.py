@@ -78,7 +78,7 @@ class Presentation:
             save_path=save_path_for_images,
             image_style=image_style
         )
-        logger.info(list_of_image_dto)
+        # logger.info(list_of_image_dto)
 
         list_of_image_info_dto = list_of_image_dto
 
@@ -146,7 +146,7 @@ class Presentation:
         )
 
     @staticmethod
-    def save(
+    async def save(
         data: PresentationDTO,
         save_path: str,
         no_logo: bool,
@@ -158,15 +158,14 @@ class Presentation:
 
         save_path: str - a path to the folder to save a presentation
         """
-        output_path = os.path.join(save_path, ("prs_" + str(time.time())))
         # create a folder
-        os.makedirs(output_path, exist_ok=True)
+        os.makedirs(save_path, exist_ok=True)
 
         presentation = PresentationTemplate()
-        presentation.create_presentation(data=data, no_logo=no_logo, save_path=output_path)
+        await presentation.create_presentation(data=data, no_logo=no_logo)
 
         presentation_save_path = Presentation.get_presentation_save_path(
-            save_path=output_path,
+            save_path=save_path,
             theme=data.theme
         )
 
@@ -191,8 +190,10 @@ class Presentation:
 
     @staticmethod
     def get_presentation_save_path(save_path: str, theme: str) -> str:
-        text = re.sub(r'[\(!/:*\\?"<>|+.\)]', "", theme)
+        text = re.sub(r'[\(!/:*\\?"<>|+.\)\']', "", theme)
         text = re.sub(r"\s", "_", text)
+        text = text.replace("'", "")
+        theme = text
 
         save_name = ""
         if len(text) < 80:
