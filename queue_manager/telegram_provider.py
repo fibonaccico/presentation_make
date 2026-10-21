@@ -30,24 +30,6 @@ async def send_document(
     data.add_field('chat_id', chat_id)
     if file_id:
         data.add_field(file_type, file_id)
-    if file_path:
-        filename = file_path.split('/')[-1]
-        with open(file_path, 'rb') as file:
-            # reply_markup = [
-            #     [
-            #         {'text': '⭐Поставьте оценку/Rate⭐', 'callback_data': 'none'},
-            #     ],
-            #     [
-            #         {'text': '1', 'callback_data': 'rev_1'},
-            #         {'text': '2', 'callback_data': 'rev_2'},
-            #         {'text': '3', 'callback_data': 'rev_3'},
-            #         {'text': '4', 'callback_data': 'rev_4'},
-            #         {'text': '5', 'callback_data': 'rev_5'},
-            #     ]
-            # ]
-
-            # data.add_field('inline_keyboard', reply_markup)
-            data.add_field(file_type, file, filename=filename)
     if reply_markup:
         keyboard = {
             "inline_keyboard": reply_markup
@@ -58,15 +40,23 @@ async def send_document(
     if parse_mode:
         data.add_field("parse_mode", parse_mode)
     try:
-        async with session.post(
-            url=TG_URLS.get(file_type),
-            data=data
-        ) as response:
-            result = await response.text()
-            logger.info(
-                f"Send file: [{file_path}, {file_id}] to "
-                f"user {chat_id}. Result: {result}")
-            status = response.status
+        if file_path:
+            filename = file_path.split('/')[-1]
+            with open(file_path, 'rb') as file:
+                data.add_field(file_type, file, filename=filename)
+                async with session.post(url=TG_URLS.get(file_type), data=data) as response:
+                    result = await response.text()
+                    logger.info(
+                        f"Send file: [{file_path}, {file_id}] to "
+                        f"user {chat_id}. Result: {result}")
+                    status = response.status
+        else:
+            async with session.post(url=TG_URLS.get(file_type), data=data) as response:
+                result = await response.text()
+                logger.info(
+                    f"Send file: [{file_path}, {file_id}] to "
+                    f"user {chat_id}. Result: {result}")
+                status = response.status
         try:
             result_json = await response.json()
         except Exception as err:
