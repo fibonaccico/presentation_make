@@ -45,7 +45,7 @@ class OpenAIRequest(TextAPIProtocol):
                 raise ForbiddenContent(f"ЗАПРЕЩЕННЫЙ КОНТЕНТ!!! Категории нарушений: {violated_categories}")
 
             chat_completion = await self.api.chat.completions.create(
-                model="gpt-4.1-nano",
+                model="gpt-5-nano",
                 messages=[{"role": "user", "content": text}],
                 temperature=DEFAULT_TEMPERATURE
             )
