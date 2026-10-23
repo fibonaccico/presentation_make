@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -8,13 +9,12 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class ImageDTO:
-    image: Image | None
-    path: str | None
-    description: str
-
-
-@dataclass
 class ImageInfoDTO:
     path: str | None
     description: str
+    style: str
+
+
+@dataclass
+class ImageDTO(ImageInfoDTO):
+    image: Image | None
