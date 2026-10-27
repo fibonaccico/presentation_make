@@ -473,19 +473,27 @@ async def on_regenerate_image(message):
     logger.info(f"Starting regenerate image {event_message.__dict__}")
 
     current_image_db = await get_image_by_uuid(image_uuid=event_message.current_image_uuid)
-    aws_S3_client = S3Client()
-    pic_bytes = await aws_S3_client.download_file(key=current_image_db.local_file_path)
-    pic_buffer = BytesIO(pic_bytes)
-    with Image.open(pic_buffer) as pic:
-        width, height = pic.size
+    if not current_image_db.local_file_path.startswith("/app/"):
+        s3_path = current_image_db.local_file_path[5:]
+    else:
+        s3_path = current_image_db.local_file_path
+    logger.info(f"S3 path for regenerate image {event_message.current_image_uuid}: {s3_path}")
+    try:
+        aws_S3_client = S3Client()
+        pic_bytes = await aws_S3_client.download_file(key=s3_path)
+        pic_buffer = BytesIO(pic_bytes)
+        with Image.open(pic_buffer) as pic:
+            width, height = pic.size
 
-    new_image = await Presentation.generate_picture(
-        discription=current_image_db.description,
-        width=width,
-        height=height,
-        style=current_image_db.style,
-        save_path=os.path.dirname(current_image_db.local_file_path)
-    )
+        new_image = await Presentation.generate_picture(
+            discription=current_image_db.description,
+            width=width,
+            height=height,
+            style=current_image_db.style,
+            save_path="/".join(s3_path.split("/")[:-1])
+        )
+    except Exception as err:
+        logger.error(f"Regenerate image {event_message.current_image_uuid} failed. Reason: {err}")
 
     logger.debug(f"Create new image in db {new_image.__dict__}")
     await update_candidate_image_db(image_uuid=event_message.candidate_image_uuid, new_image_data=new_image)
