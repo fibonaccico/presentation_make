@@ -49,7 +49,7 @@ GENERATION_LANGUAGES = {
 
 DEFAULT_TEMPERATURE = 0.7
 
-MAX_COUNT_OF_GENERATION = 3
+MAX_COUNT_OF_GENERATION = 2
 
 DEFAULT_REQUEST_NUMBER = 5
 
@@ -160,7 +160,7 @@ SECOND_PROMPT_FOR_TEXT_IN_TWO_STEPS = """
 
 SCALING_FACTOR = 0.1     # Меньше значение - более плавное уменьшение шрифта
 
-PROMPT_ONE_STEP_GENERATION = f'''
+PROMPT_ONE_STEP_GENERATION = """
 Ты генератор презентаций.
 СТРОГИЕ ПРАВИЛА:
 1. Весь КОНТЕНТ (заголовки, подзаголовки, тексты) — ТОЛЬКО на языке [LANGUAGE]
@@ -185,14 +185,16 @@ PROMPT_ONE_STEP_GENERATION = f'''
 Подзаголовок 3:
 Описание 3:
 Картинка:
-'''
 
+Верни ответ строго в формате JSON: {"theme": "...", "slides": [{"1": {"tittle": "....", "subtittle_1": "...", "discribtion_1": "...", "subtittle_2": "...", "discribtion_2": "...", "subtittle_3": "...", "discribtion_3": "...", "picture": "..."}}, {"2": {"tittle": "....", "subtittle_1": "...", "discribtion_1": "...", "subtittle_2": "...", "discribtion_2": "...", "subtittle_3": "...", "discribtion_3": "...", "picture": "..."}}, ...]}
+
+"""
 
 NEGATIVE_PROMPT_SILICONFLOW = 'фотореализм, высокое качество, европейские черты лица'
 ADDITIONAL_PROMPT_FOR_IMAGE_GENERATION = 'фотореализм, высокое качество, европейские черты лица'
 
 
-PROMPT_GENERATION_FROM_TEXT_ONE_STEP = f"""
+PROMPT_GENERATION_FROM_TEXT_ONE_STEP = """
 Ты ИИ для генерации презентаций по тексту. Тебе будет дан текст, твоя задача: 
 1. Проанализировать, немного сократить и разбить на 2-14 (N) слайдов в зависимости от его объема.
 
@@ -223,6 +225,8 @@ PROMPT_GENERATION_FROM_TEXT_ONE_STEP = f"""
 Подзаголовок 3:
 Описание 3:
 Картинка:
+
+Верни ответ строго в формате JSON: {"theme": "...", "slides": [{"1": {"tittle": "....", "subtittle_1": "...", "discribtion_1": "...", "subtittle_2": "...", "discribtion_2": "...", "subtittle_3": "...", "discribtion_3": "...", "picture": "..."}}, {"2": {"tittle": "....", "subtittle_1": "...", "discribtion_1": "...", "subtittle_2": "...", "discribtion_2": "...", "subtittle_3": "...", "discribtion_3": "...", "picture": "..."}}, ...]}
 
 [CONTEXT]
 """

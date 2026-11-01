@@ -123,6 +123,7 @@ class PresentationTemplate:
         """
         To create presentation based on a particular template.
         """
+
         number_of_slides = len(data.slides)
         self.presentation = self._get_presentation_template(
             template_name=data.template_name,

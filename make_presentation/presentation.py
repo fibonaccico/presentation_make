@@ -112,30 +112,32 @@ class Presentation:
             finish_title = None
 
         for slide in range(slides_count):
-            if not text_dto.subtitles_1:
-                subtitle_1 = None
-            else:
-                subtitle_1 = text_dto.subtitles_1[slide]
+            # if not text_dto.subtitles_1:
+            #     subtitle_1 = None
+            # else:
+            #     subtitle_1 = text_dto.subtitles_1[slide]
 
-            if not text_dto.subtitles_2:
-                subtitle_2 = None
-            else:
-                subtitle_2 = text_dto.subtitles_2[slide]
+            # if not text_dto.subtitles_2:
+            #     subtitle_2 = None
+            # else:
+            #     subtitle_2 = text_dto.subtitles_2[slide]
 
-            if not text_dto.subtitles_3:
-                subtitle_3 = None
-            else:
-                subtitle_3 = text_dto.subtitles_3[slide]
-
-            slide_dto = SlideDTO(
-                number=slide,
-                title=text_dto.titles[slide],
-                text=text_dto.slides_text_list[slide],
-                images=list_of_image_info_dto[slide],
-                subtitle_1=subtitle_1,
-                subtitle_2=subtitle_2,
-                subtitle_3=subtitle_3
-            )
+            # if not text_dto.subtitles_3:
+            #     subtitle_3 = None
+            # else:
+            #     subtitle_3 = text_dto.subtitles_3[slide]
+            try:
+                slide_dto = SlideDTO(
+                    number=slide,
+                    title=text_dto.titles[slide],
+                    text=text_dto.slides_text_list[slide],
+                    images=list_of_image_info_dto[slide],
+                    subtitle_1=text_dto.subtitles_1[slide],
+                    subtitle_2=text_dto.subtitles_2[slide],
+                    subtitle_3=text_dto.subtitles_3[slide]
+                )
+            except Exception as err:
+                logger.error(f"Cant make SlideDTO. Reason: {err}")
             slide_dto_list.append(slide_dto)
 
         return PresentationDTO(

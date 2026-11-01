@@ -49,7 +49,7 @@ class SiliconflowAPI(ImageAPIProtocol):
                    only model available for API connection);
         max_time - max time generation max time before function returns error
         """
-        logger.warning("Start create image using Siliconflow")
+        # logger.warning("Start create image using Siliconflow")
 
         width, height = map(int, width_height.split(" "))
         api_key = os.getenv("SILICONFLOW_TOKEN")
@@ -83,7 +83,7 @@ class SiliconflowAPI(ImageAPIProtocol):
             async with session.get(image_url) as response:
                 if response.status == 200:
                     picture_data = await response.read()
-                    logger.info('The image from Siliconflow has been saved in RAM')
+                    # logger.info('The image from Siliconflow has been saved in RAM')
                 else:
                     logger.error(f'Image download failed: {response.status} - {await response.text()}')
 
@@ -94,7 +94,7 @@ class SiliconflowAPI(ImageAPIProtocol):
                     data=picture_data,
                     object_name=object_name
                 )
-                logger.info(f'Image has been saved in AWS S3 as {object_name}')
+                # logger.info(f'Image has been saved in AWS S3 as {object_name}')
             except Exception as err:
                 logger.error(f"Can't save image in AWS S3: reason {err}")
 
