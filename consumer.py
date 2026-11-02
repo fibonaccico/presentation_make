@@ -305,20 +305,18 @@ async def on_generator_message(message: aiormq.abc.DeliveredMessage, session: ai
                             referral_code = await get_user_referral_code(user_uuid=event_message.user_uuid)
                             logger.info(f"user referral code: {referral_code.referral_code}")
                             link = f"https://t.me/fibonacci_presentation_bot?start={referral_code.referral_code}"
-                            reply_markup = {
-                                "inline_keyboard": [
-                                    [
-                                        {
-                                            'text': TARIFF_BUTTON,
-                                            "callback_data": "tariffs"
-                                        },
-                                        {
-                                            'text': INVITE_FRIEND_BUTTON,
-                                            'switch_inline_query': INLINE_MESSAGE.format(link=link)
-                                        }
-                                    ]
+                            reply_markup = [
+                                [
+                                    {
+                                        'text': TARIFF_BUTTON,
+                                        "callback_data": "tariffs"
+                                    },
+                                    {
+                                        'text': INVITE_FRIEND_BUTTON,
+                                        'switch_inline_query': INLINE_MESSAGE.format(link=link)
+                                    }
                                 ]
-                            }
+                            ]
                             await send_message(session=session, chat_id=user_telegram_id, message=FREE_PRES_ENDED_MESSAGE, reply_markup=reply_markup)
                     else:
                         for file in [file_path_pdf, file_path_pdf.replace("pdf", "pptx")]:
@@ -474,9 +472,9 @@ async def on_regenerate_image(message):
 
     current_image_db = await get_image_by_uuid(image_uuid=event_message.current_image_uuid)
     if not current_image_db.local_file_path.startswith("/app/"):
-        s3_path = current_image_db.local_file_path[5:]
-    else:
         s3_path = current_image_db.local_file_path
+    else:
+        s3_path = current_image_db.local_file_path[5:]
     logger.info(f"S3 path for regenerate image {event_message.current_image_uuid}: {s3_path}")
     try:
         aws_S3_client = S3Client()
