@@ -46,7 +46,8 @@ class OpenAIRequest(TextAPIProtocol):
 
             chat_completion = await self.api.chat.completions.create(
                 model="gpt-5-nano",
-                messages=[{"role": "user", "content": text}]
+                messages=[{"role": "user", "content": text}],
+                reasoning_effort="minimal"
             )
             request_cost = chat_completion.usage.prompt_tokens
             response_cost = chat_completion.usage.completion_tokens
